@@ -1,0 +1,8 @@
+/.venv
+/.vscode
+*.pyc
+*__pycache__/
+*.pyo
+*.pyd
+routerfleet/production_settings.py
+.idea/
