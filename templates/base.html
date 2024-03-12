@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% if page_title %}{{page_title}} | {% endif %}routerfleet</title>
+  <title>{% if page_title %}{{ page_title }} | {% endif %}routerfleet</title>
 
   <!-- Google Font: Source Sans Pro -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
@@ -93,8 +93,15 @@
                     </a>
                 </li>
 
+                <li class="nav-item">
+                    <a href="/user/list/" class="nav-link {% if '/user/' in request.path %}active{% endif %}">
+                      <i class="fas fa-users nav-icon"></i>
+                      <p>
+                        User Manager
+                      </p>
+                    </a>
+                </li>
 
-          
         </ul>
       </nav>
       <!-- /.sidebar-menu -->
