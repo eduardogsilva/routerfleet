@@ -3,7 +3,7 @@ from django.urls import path
 from dashboard.views import view_dashboard, view_status
 from user_manager.views import view_manage_user, view_user_list
 from accounts.views import view_login, view_logout, view_create_first_user
-
+from router_manager.views import view_router_list, view_manage_router
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -14,4 +14,6 @@ urlpatterns = [
     path('accounts/create_first_user/', view_create_first_user, name='create_first_user'),
     path('accounts/login/', view_login, name='login'),
     path('accounts/logout/', view_logout, name='logout'),
+    path('router/list/', view_router_list, name='router_list'),
+    path('router/manage/', view_manage_router, name='manage_router'),
 ]
