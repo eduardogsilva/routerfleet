@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+    <div class='row'>
+        <div class='col-lg-12'>
+            <div class="card card-primary card-outline">
+                {% if page_title %}
+                    <div class="card-header">
+                        <h3 class="card-title">{{ page_title }}</h3>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    {% include 'router_manager/router_nav_tabs.html' %}
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <table class="table table-hover">
+                                <thead>
+                                <th>Name</th>
+                                <th>Default</th>
+                                <th>Internal Notes</th>
+                                <th>Routers</th>
+                                <th></th>
+                                </thead>
+
+                                <tbody>
+                                {% for router_group in router_group_list %}
+                                    <tr>
+                                        <td>{{ router_group.name }}</td>
+                                        <td>{% if router_group.default_group %}<i class="fas fa-check"></i>{% endif %}
+                                        </td>
+                                        <td>{{ router_group.internal_notes }}</td>
+                                        <td>{{ router_group.routers.count }}</td>
+                                        <td class="min-width">
+                                            <a href="/router/manage_group/?uuid={{ router_group.uuid }}"><i
+                                                    class="fas fa-edit"></i></a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <a href="/router/manage_group/" class="btn btn-primary">Add Router Group</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

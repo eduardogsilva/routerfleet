@@ -1,10 +1,14 @@
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, HTML
-from .models import Router
+from .models import Router, RouterGroup, SSHKey
+import ipaddress
+import socket
 
 
 class RouterForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, required=False)
+
     class Meta:
         model = Router
         fields = ['name', 'address', 'username', 'password', 'ssh_key', 'monitoring', 'router_type', 'enabled']
@@ -15,6 +19,8 @@ class RouterForm(forms.ModelForm):
         self.helper.form_method = 'post'
         if self.instance.pk:
             delete_html = "<a href='javascript:void(0)' class='btn btn-outline-danger' data-command='delete' onclick='openCommandDialog(this)'>Delete</a>"
+            if self.instance.password:
+                self.fields['password'].widget.attrs['placeholder'] = '************'
         else:
             delete_html = ''
         self.helper.layout = Layout(
@@ -29,7 +35,6 @@ class RouterForm(forms.ModelForm):
                 css_class='form-row'
             ),
             'ssh_key',
-
             'router_type',
             'monitoring',
             'enabled',
@@ -37,6 +42,124 @@ class RouterForm(forms.ModelForm):
                 Column(
                     Submit('submit', 'Salvar', css_class='btn btn-success'),
                     HTML(' <a class="btn btn-secondary" href="/router/list/">Back</a> '),
+                    HTML(delete_html),
+                    css_class='col-md-12'),
+                css_class='form-row'
+            )
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        ssh_key = cleaned_data.get('ssh_key')
+        password = cleaned_data.get('password')
+        address = cleaned_data.get('address')
+
+        if name:
+            name = name.strip()
+            cleaned_data['name'] = name
+
+        if ssh_key and password:
+            raise forms.ValidationError('You must provide a password or an SSH Key, not both')
+        if not ssh_key and not password and not self.instance.password:
+            raise forms.ValidationError('You must provide a password or an SSH Key')
+
+        if not password and self.instance.password:
+            cleaned_data['password'] = self.instance.password
+
+        if ssh_key and not password:
+            cleaned_data['password'] = ''
+
+        if address:
+            address = address.lower()
+            cleaned_data['address'] = address
+
+            try:
+                socket.gethostbyname(address)
+            except socket.gaierror:
+                try:
+                    ipaddress.ip_address(address)
+                except ValueError:
+                    raise forms.ValidationError('The address field must be a valid hostname or IP address.')
+
+        return cleaned_data
+
+
+class RouterGroupForm(forms.ModelForm):
+    class Meta:
+        model = RouterGroup
+        fields = ['name', 'default_group', 'internal_notes', 'routers']
+        widgets = {
+            'internal_notes': forms.Textarea(attrs={'rows': 4, 'cols': 40}),  # Define como um Textarea simples
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(RouterGroupForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        if self.instance.pk:
+            delete_html = "<a href='javascript:void(0)' class='btn btn-outline-danger' data-command='delete' onclick='openCommandDialog(this)'>Delete</a>"
+        else:
+            delete_html = ''
+        self.helper.layout = Layout(
+            'name',
+            'internal_notes',
+            'routers',
+            'default_group',
+            Row(
+                Column(
+                    Submit('submit', 'Salvar', css_class='btn btn-success'),
+                    HTML(' <a class="btn btn-secondary" href="/router/group_list/">Back</a> '),
+                    HTML(delete_html),
+                    css_class='col-md-12'),
+                css_class='form-row'
+            )
+        )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        name = cleaned_data.get('name')
+        default_group = cleaned_data.get('default_group')
+
+        if name:
+            name = name.strip()
+            cleaned_data['name'] = name
+
+        if default_group:
+            RouterGroup.objects.filter(default_group=True).update(default_group=False)
+        return cleaned_data
+
+class SSHKeyForm(forms.ModelForm):
+    class Meta:
+        model = SSHKey
+        fields = ['name', 'public_key', 'private_key']
+        widgets = {
+            'public_key': forms.Textarea(attrs={'rows': 4, 'cols': 40}),
+            'private_key': forms.Textarea(attrs={'rows': 4, 'cols': 40}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(SSHKeyForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        if self.instance.pk:
+            delete_html = "<a href='javascript:void(0)' class='btn btn-outline-danger' data-command='delete' onclick='openCommandDialog(this)'>Delete</a>"
+        else:
+            delete_html = ''
+        self.helper.layout = Layout(
+            Row(
+                Column('name', css_class='form-group col-md-12 mb-0'),
+            ),
+            Row(
+                Column('public_key', css_class='form-group col-md-12 mb-0'),
+            ),
+            Row(
+                Column('private_key', css_class='form-group col-md-12 mb-0'),
+            ),
+            Row(
+                Column(
+                    Submit('submit', 'Salvar', css_class='btn btn-success'),
+                    HTML(' <a class="btn btn-secondary" href="/router/ssh_keys/">Back</a> '),
                     HTML(delete_html),
                     css_class='col-md-12'),
                 css_class='form-row'

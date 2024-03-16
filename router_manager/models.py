@@ -3,7 +3,7 @@ import uuid
 
 
 class SSHKey(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     public_key = models.TextField()
     private_key = models.TextField()
 
@@ -16,7 +16,8 @@ class SSHKey(models.Model):
 
 
 class Router(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
+    internal_notes = models.TextField(null=True, blank=True)
     address = models.CharField(max_length=15)
     username = models.CharField(max_length=100, default='admin')
     password = models.CharField(max_length=100, null=True, blank=True)
@@ -44,3 +45,16 @@ class RouterStatus(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
 
+
+class RouterGroup(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    default_group = models.BooleanField(default=False)
+    internal_notes = models.TextField(null=True, blank=True)
+    routers = models.ManyToManyField(Router, blank=True)
+
+    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+    uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
+
+    def __str__(self):
+        return self.name

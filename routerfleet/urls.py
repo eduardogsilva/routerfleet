@@ -3,7 +3,7 @@ from django.urls import path
 from dashboard.views import view_dashboard, view_status
 from user_manager.views import view_manage_user, view_user_list
 from accounts.views import view_login, view_logout, view_create_first_user
-from router_manager.views import view_router_list, view_manage_router
+from router_manager.views import view_router_list, view_manage_router, view_router_group_list, view_ssh_key_list, view_manage_router_group, view_manage_sshkey
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -16,4 +16,8 @@ urlpatterns = [
     path('accounts/logout/', view_logout, name='logout'),
     path('router/list/', view_router_list, name='router_list'),
     path('router/manage/', view_manage_router, name='manage_router'),
+    path('router/group_list/', view_router_group_list, name='router_group_list'),
+    path('router/ssh_keys/', view_ssh_key_list, name='ssh_keys_list'),
+    path('router/manage_group/', view_manage_router_group, name='manage_router_group'),
+    path('router/manage_sshkey/', view_manage_sshkey, name='manage_sshkey'),
 ]
