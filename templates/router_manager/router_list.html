@@ -19,40 +19,48 @@
                                 <th>Name</th>
                                 <th>Type</th>
                                 <th>Address</th>
-                                <th>Enabled</th>
                                 <th>Status</th>
+                                <th>Backup</th>
                                 <th>Groups</th>
-                                <th>Authentication</th>
+                                <th>Auth</th>
                                 <th></th>
                                 </thead>
                                 <tbody>
                                 {% for router in router_list %}
-                                    <tr>
+                                    <tr {% if not router.enabled %}style="text-decoration: line-through;"{% endif %}>
                                         <td>{{ router.name }}</td>
                                         <td>{{ router.get_router_type_display }}</td>
                                         <td>{{ router.address }}</td>
-                                        <td>{{ router.enabled }}</td>
+
                                         <td>
                                             {% if router.monitoring %}
                                                 {% if router.routerstatus.status_online %}
-                                                    Online
+                                                    <i class="far fa-check-circle text-success" title="Host is Online"></i>
                                                 {% else %}
-                                                    Offline
+                                                    <i class="far fa-times-circle text-danger" title="Host is unavailable"></i>
                                                 {% endif %}
                                             {% else %}
                                                 ---
                                             {% endif %}
                                         </td>
                                         <td>
+                                            {% if router.backup_profile %}
+                                                {{ router.backup_profile }} {% if router.routerstatus.last_backup_failed %}<i class="fas fa-exclamation-triangle text-danger" title="Last backup failed to complete"></i>{% endif %}
+                                            {% else %}
+                                                <i class="fas fa-exclamation-triangle text-warning" title="No backup profile selected"></i>
+                                            {% endif %}
+                                        </td>
+                                    
+                                        <td>
                                             {{ router.routergroup_set.count }}
                                         </td>
-                                        <td>
+                                        <td class="min-width">
                                             {% if router.ssh_key %}
-                                                {{ router.ssh_key }}
+                                                <i class="fas fa-key" title="SSH Key: {{ router.ssh_key }}"></i>
                                             {% elif router.password %}
-                                                User/Password
+                                                <i class="fas fa-keyboard" title="Password Authentication"></i>
                                             {% else %}
-                                                Missing authentication
+                                                <i class="fas fa-exclamation-triangle text-warning" title="Missing authentication"></i>
                                             {% endif %}
                                         </td>
                                         <td class="min-width">

@@ -73,5 +73,3 @@ class BackupSchedule(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
 
-
-

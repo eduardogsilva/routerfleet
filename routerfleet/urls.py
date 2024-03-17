@@ -4,6 +4,8 @@ from dashboard.views import view_dashboard, view_status
 from user_manager.views import view_manage_user, view_user_list
 from accounts.views import view_login, view_logout, view_create_first_user
 from router_manager.views import view_router_list, view_manage_router, view_router_group_list, view_ssh_key_list, view_manage_router_group, view_manage_sshkey
+from backup.views import view_backup_profile_list, view_manage_backup_profile
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -20,4 +22,7 @@ urlpatterns = [
     path('router/ssh_keys/', view_ssh_key_list, name='ssh_keys_list'),
     path('router/manage_group/', view_manage_router_group, name='manage_router_group'),
     path('router/manage_sshkey/', view_manage_sshkey, name='manage_sshkey'),
+    path('backup/profile_list/', view_backup_profile_list, name='backup_profile_list'),
+    path('backup/manage_profile/', view_manage_backup_profile, name='manage_backup_profile')
+
 ]

@@ -29,7 +29,7 @@ class BackupProfile(models.Model):
     daily_day_saturday = models.BooleanField(default=True)
     daily_day_sunday = models.BooleanField(default=True)
 
-    weekly_day = models.CharField(max_length=10, choices=(('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunday', 'Sunday')))
+    weekly_day = models.CharField(max_length=10, default='sunday', choices=(('monday', 'Monday'), ('tuesday', 'Tuesday'), ('wednesday', 'Wednesday'), ('thursday', 'Thursday'), ('friday', 'Friday'), ('saturday', 'Saturday'), ('sunday', 'Sunday')))
     monthly_day = models.IntegerField(default=1, choices=((1, '1st'), (7, '7th'), (14, '14th'), (21, '21st'), (28, '28th')))
 
     daily_hour = models.IntegerField(default=3, choices=HOUR_CHOICES)
@@ -37,7 +37,7 @@ class BackupProfile(models.Model):
     monthly_hour = models.IntegerField(default=0, choices=HOUR_CHOICES)
 
     max_retry = models.IntegerField(default=3, choices=((1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')))
-    retry_interval = models.IntegerField(default=30, choices=(('1', '1 Minute'), ('15', '15 Minutes'), ('30', '30 Minutes'), ('60', '1 Hour')))
+    retry_interval = models.IntegerField(default=30, choices=((1, '1 Minute'), (15, '15 Minutes'), (30, '30 Minutes'), (60, '1 Hour')))
     backup_interval = models.IntegerField(default=60, choices=((0, 'No interval'), (5, '5 seconds'), (60, '1 minute')))
 
     updated = models.DateTimeField(auto_now=True)

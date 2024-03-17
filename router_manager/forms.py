@@ -11,7 +11,7 @@ class RouterForm(forms.ModelForm):
 
     class Meta:
         model = Router
-        fields = ['name', 'address', 'username', 'password', 'ssh_key', 'monitoring', 'router_type', 'enabled']
+        fields = ['name', 'address', 'username', 'password', 'ssh_key', 'monitoring', 'router_type', 'enabled', 'backup_profile']
 
     def __init__(self, *args, **kwargs):
         super(RouterForm, self).__init__(*args, **kwargs)
@@ -35,6 +35,7 @@ class RouterForm(forms.ModelForm):
                 css_class='form-row'
             ),
             'ssh_key',
+            'backup_profile',
             'router_type',
             'monitoring',
             'enabled',
