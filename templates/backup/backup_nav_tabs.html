@@ -1,0 +1,29 @@
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item">
+        <a class="nav-link {% if request.path == '/backup/profile_list/' %}active{% endif %}" href="/backup/profile_list/" role="tab">
+            Backup Profiles
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link {% if view_type == 'success' %}active{% endif %}" href="/backup/backup_list/"
+           role="tab">
+            Backup List
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link {% if view_type == 'queue' %}active{% endif %}" href="/backup/backup_list/?type=queue"
+           role="tab">
+            Backup Queue
+        </a>
+    </li>
+
+    <li class="nav-item">
+        <a class="nav-link {% if view_type == 'errors' %}active{% endif %}" href="/backup/backup_list/?type=errors"
+           role="tab">
+            Backup Errors
+        </a>
+    </li>
+    
+</ul>

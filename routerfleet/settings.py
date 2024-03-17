@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'router_manager',
     'monitoring',
     'backup',
+    'backup_data'
 ]
 
 MIDDLEWARE = [

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+    <div class='row'>
+        <div class='col-lg-12'>
+            <div class="card card-primary card-outline">
+                {% if page_title %}
+                    <div class="card-header">
+                        <h3 class="card-title">{{ page_title }}</h3>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    {% include 'backup/backup_nav_tabs.html' %}
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <table class="table table-hover">
+                            
+                                <tbody>
+                                {% for backup in backup_list %}
+                                    <tr>
+                                        <td>
+                                            <a href="/backup/backup_details/?uuid={{ backup.uuid }}">
+                                                
+                                            {{ backup.router }}
+                                            </a>
+                                        </td>
+
+                                        
+
+
+
+                                        
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                    
+
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
