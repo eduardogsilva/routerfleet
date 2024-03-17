@@ -1,4 +1,5 @@
 from django.db import models
+from backup.models import BackupProfile
 import uuid
 
 
@@ -23,6 +24,7 @@ class Router(models.Model):
     password = models.CharField(max_length=100, null=True, blank=True)
     ssh_key = models.ForeignKey(SSHKey, on_delete=models.SET_NULL, null=True, blank=True)
     monitoring = models.BooleanField(default=True)
+    backup_profile = models.ForeignKey(BackupProfile, on_delete=models.SET_NULL, null=True, blank=True)
 
     router_type = models.CharField(max_length=100, choices=(('routeros', 'Mikrotik (RouterOS)'), ('openwrt', 'OpenWRT')))
     enabled = models.BooleanField(default=True)
@@ -40,6 +42,7 @@ class RouterStatus(models.Model):
     status_online = models.BooleanField(default=False)
     last_status_change = models.DateTimeField(blank=True, null=True)
     last_backup = models.DateTimeField(blank=True, null=True)
+    last_backup_failed = models.DateTimeField(blank=True, null=True)
 
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
@@ -58,3 +61,17 @@ class RouterGroup(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class BackupSchedule(models.Model):
+    router = models.OneToOneField(Router, on_delete=models.CASCADE)
+    next_daily_backup = models.DateTimeField(null=True, blank=True)
+    next_weekly_backup = models.DateTimeField(null=True, blank=True)
+    next_monthly_backup = models.DateTimeField(null=True, blank=True)
+
+    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+    uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
+
+
+

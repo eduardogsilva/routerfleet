@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'user_manager',
     'router_manager',
-    'monitoring'
+    'monitoring',
+    'backup',
 ]
 
 MIDDLEWARE = [
