@@ -4,11 +4,12 @@ from dashboard.views import view_dashboard, view_status
 from user_manager.views import view_manage_user, view_user_list
 from accounts.views import view_login, view_logout, view_create_first_user
 from router_manager.views import view_router_list, view_manage_router, view_router_group_list, view_ssh_key_list, view_manage_router_group, view_manage_sshkey
-from backup.views import view_backup_profile_list, view_manage_backup_profile, view_backup_list, view_backup_details
+from backup.views import view_backup_profile_list, view_manage_backup_profile, view_backup_list, view_backup_details, view_debug_run_backups
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('debug/run_backups/', view_debug_run_backups, name='debug_run_backups'),
     path('', view_dashboard, name='dashboard'),
     path('status/', view_status, name='status'),
     path('user/list/', view_user_list, name='user_list'),

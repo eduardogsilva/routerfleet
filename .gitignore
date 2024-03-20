@@ -7,3 +7,4 @@
 routerfleet/production_settings.py
 .idea/
 db.sqlite3
+backups/

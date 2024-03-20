@@ -2,6 +2,7 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, HTML
 from .models import Router, RouterGroup, SSHKey
+from routerlib.functions import test_authentication
 import ipaddress
 import socket
 
@@ -82,7 +83,15 @@ class RouterForm(forms.ModelForm):
                     ipaddress.ip_address(address)
                 except ValueError:
                     raise forms.ValidationError('The address field must be a valid hostname or IP address.')
-
+        test_authentication_success, test_authentication_message = test_authentication(
+            cleaned_data['router_type'], cleaned_data['address'], cleaned_data['username'], cleaned_data['password'],
+            cleaned_data['ssh_key']
+        )
+        if not test_authentication_success:
+            if test_authentication_message:
+                raise forms.ValidationError('Could not authenticate: ' + test_authentication_message)
+            else:
+                raise forms.ValidationError('Could not authenticate to the router. Please check the credentials and try again.')
         return cleaned_data
 
 

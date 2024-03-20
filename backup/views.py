@@ -1,6 +1,9 @@
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
+
+from routerlib.backup_functions import perform_backup
 from .models import BackupProfile
 from .forms import BackupProfileForm
 from router_manager.models import Router
@@ -78,3 +81,14 @@ def view_backup_details(request):
         'page_title': 'Backup Details'
     }
     return render(request, 'backup/backup_details.html', context)
+
+
+def view_debug_run_backups(request):
+    data = {
+        'backup_count': 0,
+    }
+    for backup in RouterBackup.objects.filter(success=False, error=False):
+        data['backup_count'] += 1
+        perform_backup(backup)
+
+    return JsonResponse(data)

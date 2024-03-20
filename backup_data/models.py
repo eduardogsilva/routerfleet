@@ -7,6 +7,7 @@ class RouterBackup(models.Model):
     router = models.ForeignKey(Router, on_delete=models.CASCADE)
     success = models.BooleanField(default=False)
     error = models.BooleanField(default=False)
+    backup_pending_retrieval = models.BooleanField(default=False)
     error_message = models.TextField(blank=True, null=True)
     retry_count = models.IntegerField(default=0)
     next_retry = models.DateTimeField(blank=True, null=True)
@@ -15,6 +16,7 @@ class RouterBackup(models.Model):
     queue_length = models.IntegerField(default=0) # Seconds
     finish_time = models.DateTimeField(blank=True, null=True)
     backup_text = models.TextField(blank=True, null=True)
+    backup_binary = models.FileField(upload_to='backups/', blank=True, null=True)
 
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
