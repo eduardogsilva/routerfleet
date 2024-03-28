@@ -38,7 +38,6 @@ def test_ssh_authentication(router_type, address, username, password, sshkey=Non
             else:
                 result = False, 'Device is not MikroTik'
         elif router_type == 'openwrt':
-            # Comando para verificar OpenWRT
             stdin, stdout, stderr = ssh.exec_command('ubus call system board')
             output = stdout.read().decode()
             if 'OpenWrt' in output:

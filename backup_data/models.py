@@ -8,6 +8,7 @@ class RouterBackup(models.Model):
     success = models.BooleanField(default=False)
     error = models.BooleanField(default=False)
     backup_pending_retrieval = models.BooleanField(default=False)
+    config_change_detected = models.BooleanField(default=False)
     error_message = models.TextField(blank=True, null=True)
     retry_count = models.IntegerField(default=0)
     next_retry = models.DateTimeField(blank=True, null=True)

@@ -28,6 +28,18 @@ def view_router_list(request):
 
 
 @login_required()
+def view_router_details(request):
+    router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
+    router_status, router_status_created = RouterStatus.objects.get_or_create(router=router)
+    context = {
+        'router': router,
+        'router_status': router_status,
+        'router_backup_list': router.routerbackup_set.all().order_by('-created'),
+        'page_title': 'Router Details',
+    }
+    return render(request, 'router_manager/router_details.html', context=context)
+
+@login_required()
 def view_manage_router(request):
     if request.GET.get('uuid'):
         router = get_object_or_404(Router, uuid=request.GET.get('uuid'))

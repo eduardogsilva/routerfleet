@@ -16,19 +16,24 @@
                         <div class="col-lg-12">
                             <table class="table table-hover">
                                 <thead>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th>Address</th>
-                                <th>Status</th>
-                                <th>Backup</th>
-                                <th>Groups</th>
-                                <th>Auth</th>
-                                <th></th>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Address</th>
+                                    <th>Status</th>
+                                    <th>Backup</th>
+                                    <th>Groups</th>
+                                    <th>Auth</th>
+                                    <th></th>
+                                </tr>
+                                
                                 </thead>
                                 <tbody>
                                 {% for router in router_list %}
                                     <tr {% if not router.enabled %}style="text-decoration: line-through;"{% endif %}>
-                                        <td>{{ router.name }}</td>
+                                        <td>
+                                            <a href="/router/details/?uuid={{ router.uuid }}">{{ router.name }}</a>
+                                        </td>
                                         <td>{{ router.get_router_type_display }}</td>
                                         <td>{{ router.address }}</td>
 
