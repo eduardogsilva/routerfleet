@@ -4,7 +4,7 @@ from dashboard.views import view_dashboard, view_status
 from user_manager.views import view_manage_user, view_user_list
 from accounts.views import view_login, view_logout, view_create_first_user
 from router_manager.views import view_router_list, view_manage_router, view_router_group_list, view_ssh_key_list, view_manage_router_group, view_manage_sshkey, view_router_details
-from backup.views import view_backup_profile_list, view_manage_backup_profile, view_backup_list, view_backup_details, view_debug_run_backups
+from backup.views import view_backup_profile_list, view_manage_backup_profile, view_backup_list, view_backup_details, view_debug_run_backups, view_compare_backups
 
 
 urlpatterns = [
@@ -28,4 +28,6 @@ urlpatterns = [
     path('backup/manage_profile/', view_manage_backup_profile, name='manage_backup_profile'),
     path('backup/backup_list/', view_backup_list, name='backup_list'),
     path('backup/backup_details/', view_backup_details, name='backup_info'),
+    path('backup/compare/', view_compare_backups, name='compare_backups'),
+
 ]

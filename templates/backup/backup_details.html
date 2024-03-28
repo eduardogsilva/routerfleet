@@ -1,5 +1,153 @@
 {% extends 'base.html' %}
+{% load crispy_forms_tags %}
 
 {% block content %}
-backup info
+    <div class='row'>
+        <div class='col-xl-4'>
+            <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <a href="/router/details/?uuid={{ backup.router.uuid }}" >
+                            {{ backup.router.name }}
+                        </a>
+
+                    </h3>
+                    <span class="float-right">
+                        <a href="/router/manage/?uuid={{ backup.router.uuid }}" >
+                            <i class="fas fa-edit"></i>
+                        </a>
+                    </span>
+                </div>
+
+                <div class="card-body row">
+                    <div class="col-lg-12">
+
+                        <ul class="list-group list-group-unbordered mb-3">
+                            {% comment %}
+                            <li class="list-group-item">
+                                <b></b>
+                                <span class="float-right">{{ backup }}</span>
+                            </li>
+                            {% endcomment %}
+                            <li class="list-group-item">
+                                <b>Schedule Type</b>
+                                <span class="float-right">
+                                    {{ backup.get_schedule_type_display }}
+                                </span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Task Created</b>
+                                <span class="float-right">{{ backup.created }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Schedule Time</b>
+                                <span class="float-right">{{ backup.schedule_time|default_if_none:"" }}</span>
+                            </li>
+
+                            <li class="list-group-item">
+                                <b>Finish Time</b>
+                                <span class="float-right">{{ backup.finish_time }}</span>
+                            </li>
+
+                            <li class="list-group-item">
+                                <b>Queue length</b>
+                                <span class="float-right">{{ backup.queue_length }}s</span>
+                            </li>
+
+                            <li class="list-group-item">
+                                <b>Backup hash</b>
+                                <span class="float-right" title="{{ backup.backup_text_hash }}">{{ backup.backup_text_hash|slice:":16" }}...</span>                            
+                            </li>
+                            
+                            <li class="list-group-item">
+                                <b>Download</b>
+                                <span class="float-right">
+                                {% if backup.backup_text %}
+                                <a href="/backup/download/?uuid={{ backup.uuid }}&type=text" download>
+                                    Text
+                                </a>
+                                   {% if backup.backup_binary %} - {% endif %}
+                                {% endif %}
+                                {% if backup.backup_binary %}
+                                <a href="/backup/download/?uuid={{ backup.uuid }}&type=binary" download>
+                                    Binary
+                                </a>
+                                {% endif %}
+                                </span>
+                            </li>
+                            
+                        </ul>
+
+
+                    </div>
+                    
+                </div>
+            </div>
+        
+        <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        Latest Configuration changes
+                    </h3>
+                    
+                </div>
+
+                <div class="card-body row">
+                    <div class="col-lg-12">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for compare_backup in backup_list %}
+                                <tr>
+                                <td>
+                                    {% if compare_backup.finish_time %}
+                                    {{ compare_backup.finish_time }}
+                                    {% else %}
+                                    {{ compare_backup.created }}
+                                    {% endif %}
+                                
+                                </td>
+                                
+                                <td>
+                                    <a href="/backup/compare/?uuid={{ backup.uuid }}&compare_uuid={{ compare_backup.uuid }}">
+                                        Compare
+                                    </a>
+                                </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                </div>
+        </div>
+        </div>
+        <div class='col-xl-8'>
+            <div class="card card-primary card-outline">
+
+                <div class="card-header">
+                    <h3 class="card-title">Text Backup</h3>
+                </div>
+
+                <div class="card-body row">
+                    <div class="col-lg-12">
+                        <pre>{{ backup.backup_text }}</pre>
+                        
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+{% endblock %}
+
+{% block custom_page_scripts %}
+
+
 {% endblock %}

@@ -8,6 +8,8 @@ from .models import BackupProfile
 from .forms import BackupProfileForm
 from router_manager.models import Router
 from backup_data.models import RouterBackup
+import difflib
+import unicodedata
 
 
 @login_required()
@@ -76,11 +78,54 @@ def view_backup_list(request):
 @login_required()
 def view_backup_details(request):
     backup = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
+    hash_list = [backup.backup_text_hash]
+    backup_list = []
+    for backup_item in RouterBackup.objects.filter(router=backup.router, success=True).order_by('-created'):
+        if backup_item.backup_text_hash and backup_item.backup_text_hash not in hash_list:
+            hash_list.append(backup_item.backup_text_hash)
+            backup_list.append(backup_item)
     context = {
         'backup': backup,
+        'backup_list': backup_list,
         'page_title': 'Backup Details'
     }
     return render(request, 'backup/backup_details.html', context)
+
+
+def normalize_text(text):
+    text = unicodedata.normalize('NFC', text)
+    text = text.replace('\r\n', '\n')
+    text = text.replace('\r', '')
+    text = '\n'.join([line.rstrip() for line in text.splitlines()])
+    return text
+
+
+def view_compare_backups(request):
+    backup1 = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
+    backup2 = get_object_or_404(RouterBackup, uuid=request.GET.get('compare_uuid'))
+    if request.GET.get('display') == 'all':
+        show_lines = 100000
+        show_all = True
+    else:
+        show_lines = 3
+        show_all = False
+
+    diff = difflib.unified_diff(normalize_text(backup1.backup_text).splitlines(keepends=True),
+                                normalize_text(backup2.backup_text).splitlines(keepends=True),
+                                fromfile=backup1.backup_text_hash[:16] + '...',
+                                tofile=backup2.backup_text_hash[:16] + '...',
+                                lineterm='', n=show_lines)
+    diff_str = '\n'.join(list(diff))
+
+    context = {
+        'backup1': backup1,
+        'backup2': backup2,
+        'diff_str': diff_str,
+        'page_title': 'Compare Backups',
+        'show_all': show_all
+    }
+
+    return render(request, 'backup/compare_backups.html', context)
 
 
 def view_debug_run_backups(request):

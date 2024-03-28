@@ -9,6 +9,13 @@ def get_router_features(router_type):
         return []
 
 
+def get_router_backup_file_extension(router_type):
+    if router_type == 'routeros':
+        return {'text': 'rsc', 'binary': 'backup'}
+    else:
+        return {'text': 'txt', 'binary': 'bin'}
+
+
 def test_authentication(router_type, address, username, password, sshkey=None):
     router_features = get_router_features(router_type)
     if 'ssh' in router_features:
