@@ -5,10 +5,8 @@
     <div class='row'>
         <div class='col-xl-5'>
             <div class="card card-primary card-outline">
-
                 <div class="card-header">
                     <h3 class="card-title">{{ router.name }}
-
                     </h3>
                     <span class="float-right">
                         <a href="/router/manage/?uuid={{ router.uuid }}" >
@@ -123,23 +121,19 @@
                         <table class="table">
                             <thead>
                             <tr>
-                                <th></th>
+                                <th>ID</th>
                                 <th>Schedule</th>
                                 <th>Time</th>
                                 <th>Status</th>
                                 <th><i class="fas fa-code-branch" title="Configuration has changed"></i></th>
-
-
                             </tr>
-
-
                             </thead>
                             <tbody>
                             {% for backup in router_backup_list %}
                                 <tr>
                                     <td class="min-width">
                                         <a href="/backup/backup_details/?uuid={{ backup.uuid }}">
-                                            <i class="far fa-eye"></i>
+                                            {% comment %}<i class="far fa-eye"></i>{% endcomment %}{{ backup.id }}
                                         </a>
                                     </td>
 

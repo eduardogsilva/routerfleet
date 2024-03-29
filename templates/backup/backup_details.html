@@ -12,11 +12,13 @@
                         </a>
 
                     </h3>
+                    {% comment %}
                     <span class="float-right">
                         <a href="/router/manage/?uuid={{ backup.router.uuid }}" >
                             <i class="fas fa-edit"></i>
                         </a>
                     </span>
+                    {% endcomment %}
                 </div>
 
                 <div class="card-body row">
@@ -29,6 +31,12 @@
                                 <span class="float-right">{{ backup }}</span>
                             </li>
                             {% endcomment %}
+                            <li class="list-group-item">
+                                <b>Backup ID</b>
+                                <span class="float-right">
+                                    {{ backup.id }}
+                                </span>
+                            </li>
                             <li class="list-group-item">
                                 <b>Schedule Type</b>
                                 <span class="float-right">
@@ -97,12 +105,20 @@
                         <table class="table">
                             <thead>
                             <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Compare</th>
                                 
                             </tr>
                             </thead>
                             <tbody>
                             {% for compare_backup in backup_list %}
                                 <tr>
+                                <td class="min-width">
+                                        <a href="/backup/backup_details/?uuid={{ compare_backup.uuid }}">
+                                            {{ compare_backup.id }}
+                                        </a>
+                                </td>
                                 <td>
                                     {% if compare_backup.finish_time %}
                                     {{ compare_backup.finish_time }}

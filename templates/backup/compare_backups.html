@@ -23,21 +23,11 @@
             <div class="card card-primary card-outline">
                 <div class="card-header">
                     <h3 class="card-title">
-
                         <a href="/router/details/?uuid={{ backup1.router.uuid }}">{{ backup1.router }}</a> -
-                        Comparing backup:
-                        <a href="/backup/backup_details/?uuid={{ backup1.uuid }}"
-                           title="{{ backup1.backup_text_hash }}">
-                            {% if backup1.finish_time %}{{ backup1.finish_time }}{% else %}
-                                {{ backup1.created }}{% endif %}
-                        </a>
-                        with:
-                        <a href="/backup/backup_details/?uuid={{ backup2.uuid }}"
-                           title="{{ backup2.backup_text_hash }}">
-                            {% if backup2.finish_time %}{{ backup2.finish_time }}{% else %}
-                                {{ backup2.created }}{% endif %}
-                        </a>
-
+                        Comparing backup
+                        <a href="/backup/backup_details/?uuid={{ backup1.uuid }}" title="hash: {{ backup1.backup_text_hash }}">{{ backup1.id }}</a>
+                        with
+                        <a href="/backup/backup_details/?uuid={{ backup2.uuid }}" title="hash: {{ backup2.backup_text_hash }}">{{ backup2.id }}</a>
                     </h3>
                 </div>
                 <div class="card-body row">
@@ -62,7 +52,6 @@
 {% block custom_page_scripts %}
     <script type="text/javascript">
         var diffString = `{{ diff_str|safe }}`;
-
         function renderDiff(viewType) {
             var targetElement = document.getElementById('diff-container');
             var processedDiffString = diffString.split('\n').filter(line => {
@@ -78,12 +67,7 @@
             var diffHtml = Diff2Html.html(processedDiffString, configuration);
             targetElement.innerHTML = diffHtml;
         }
-
         //renderDiff('inline');
         renderDiff('side-by-side');
     </script>
-
-
-
-
 {% endblock %}
