@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% load crispy_forms_tags %}
 
 {% block content %}
     <div class='row'>
@@ -14,17 +13,9 @@
                         </a>
                     </span>
                 </div>
-
                 <div class="card-body row">
                     <div class="col-lg-12">
-
                         <ul class="list-group list-group-unbordered mb-3">
-                            {% comment %}
-                            <li class="list-group-item">
-                                <b></b>
-                                <span class="float-right">{{ router }}</span>
-                            </li>
-                            {% endcomment %}
                             <li class="list-group-item">
                                 <b>Enabled</b>
                                 <span class="float-right">
@@ -35,7 +26,6 @@
                                     {% endif %}
                                 </span>
                             </li>
-
                             <li class="list-group-item">
                                 <b>Address</b>
                                 <span class="float-right">{{ router.address }}</span>
@@ -56,7 +46,6 @@
                                     {% endif %}
                                 </span>
                             </li>
-
                             <li class="list-group-item">
                                 <b>Monitoring</b>
                                 <span class="float-right">
@@ -100,22 +89,16 @@
                                 <b>Notes</b>
                                 <span class="float-right">{{ router.internal_notes|default_if_none:""|linebreaksbr }}</span>
                             </li>
-
-
                         </ul>
-
-
                     </div>
                 </div>
             </div>
         </div>
         <div class='col-xl-7'>
             <div class="card card-primary card-outline">
-
                 <div class="card-header">
                     <h3 class="card-title">Backup history</h3>
                 </div>
-
                 <div class="card-body row">
                     <div class="col-lg-12">
                         <table class="table">
@@ -133,10 +116,9 @@
                                 <tr>
                                     <td class="min-width">
                                         <a href="/backup/backup_details/?uuid={{ backup.uuid }}">
-                                            {% comment %}<i class="far fa-eye"></i>{% endcomment %}{{ backup.id }}
+                                            {{ backup.id }}
                                         </a>
                                     </td>
-
                                     <td>{{ backup.get_schedule_type_display }}</td>
                                     <td>{% if backup.finish_time %}{{ backup.finish_time }}{% else %}
                                         <i class="far fa-clock text-warning"></i>{% endif %}</td>
@@ -163,18 +145,9 @@
                             {% endfor %}
                             </tbody>
                         </table>
-
-
                     </div>
                 </div>
             </div>
         </div>
-
-
     </div>
-{% endblock %}
-
-{% block custom_page_scripts %}
-
-
 {% endblock %}
