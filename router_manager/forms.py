@@ -54,23 +54,15 @@ class RouterForm(forms.ModelForm):
         cleaned_data = super().clean()
         name = cleaned_data.get('name')
         ssh_key = cleaned_data.get('ssh_key')
+        username = cleaned_data.get('username')
         password = cleaned_data.get('password')
         address = cleaned_data.get('address')
+        router_type = cleaned_data.get('router_type')
+        backup_profile = cleaned_data.get('backup_profile')
 
         if name:
             name = name.strip()
             cleaned_data['name'] = name
-
-        if ssh_key and password:
-            raise forms.ValidationError('You must provide a password or an SSH Key, not both')
-        if not ssh_key and not password and not self.instance.password:
-            raise forms.ValidationError('You must provide a password or an SSH Key')
-
-        if not password and self.instance.password:
-            cleaned_data['password'] = self.instance.password
-
-        if ssh_key and not password:
-            cleaned_data['password'] = ''
 
         if address:
             address = address.lower()
@@ -83,9 +75,27 @@ class RouterForm(forms.ModelForm):
                     ipaddress.ip_address(address)
                 except ValueError:
                     raise forms.ValidationError('The address field must be a valid hostname or IP address.')
+
+        if router_type == 'monitoring':
+            cleaned_data['password'] = ''
+            cleaned_data['ssh_key'] = None
+            if backup_profile:
+                raise forms.ValidationError('Monitoring only routers cannot have a backup profile')
+            return cleaned_data
+
+        if ssh_key and password:
+            raise forms.ValidationError('You must provide a password or an SSH Key, not both')
+        if not ssh_key and not password and not self.instance.password:
+            raise forms.ValidationError('You must provide a password or an SSH Key')
+
+        if not password and self.instance.password:
+            cleaned_data['password'] = self.instance.password
+
+        if ssh_key and not password:
+            cleaned_data['password'] = ''
+
         test_authentication_success, test_authentication_message = test_authentication(
-            cleaned_data['router_type'], cleaned_data['address'], cleaned_data['username'], cleaned_data['password'],
-            cleaned_data['ssh_key']
+            router_type, cleaned_data['address'], username, cleaned_data['password'], ssh_key
         )
         if not test_authentication_success:
             if test_authentication_message:

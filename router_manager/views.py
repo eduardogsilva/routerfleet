@@ -58,6 +58,7 @@ def view_manage_router(request):
     if form.is_valid():
         form.save()
         messages.success(request, 'Router saved successfully')
+        router_status, router_status_created = RouterStatus.objects.get_or_create(router=form.instance)
         return redirect('router_list')
 
     context = {

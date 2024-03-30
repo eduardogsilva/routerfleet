@@ -49,10 +49,12 @@
                                             {% endif %}
                                         </td>
                                         <td>
+                                            {% if router.router_type != 'monitoring' %}
                                             {% if router.backup_profile %}
                                                 {{ router.backup_profile }} {% if router.routerstatus.last_backup_failed %}<i class="fas fa-exclamation-triangle text-danger" title="Last backup failed to complete"></i>{% endif %}
                                             {% else %}
                                                 <i class="fas fa-exclamation-triangle text-warning" title="No backup profile selected"></i>
+                                            {% endif %}
                                             {% endif %}
                                         </td>
                                     
@@ -60,12 +62,14 @@
                                             {{ router.routergroup_set.count }}
                                         </td>
                                         <td class="min-width">
-                                            {% if router.ssh_key %}
-                                                <i class="fas fa-key" title="SSH Key: {{ router.ssh_key }}"></i>
-                                            {% elif router.password %}
-                                                <i class="fas fa-keyboard" title="Password Authentication"></i>
-                                            {% else %}
-                                                <i class="fas fa-exclamation-triangle text-warning" title="Missing authentication"></i>
+                                            {% if router.router_type != 'monitoring' %}
+                                                {% if router.ssh_key %}
+                                                    <i class="fas fa-key" title="SSH Key: {{ router.ssh_key }}"></i>
+                                                {% elif router.password %}
+                                                    <i class="fas fa-keyboard" title="Password Authentication"></i>
+                                                {% else %}
+                                                    <i class="fas fa-exclamation-triangle text-warning" title="Missing authentication"></i>
+                                                {% endif %}
                                             {% endif %}
                                         </td>
                                         <td class="min-width">

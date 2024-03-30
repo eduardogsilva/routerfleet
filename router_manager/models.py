@@ -26,7 +26,7 @@ class Router(models.Model):
     monitoring = models.BooleanField(default=True)
     backup_profile = models.ForeignKey(BackupProfile, on_delete=models.SET_NULL, null=True, blank=True)
 
-    router_type = models.CharField(max_length=100, choices=(('routeros', 'Mikrotik (RouterOS)'), ('openwrt', 'OpenWRT')))
+    router_type = models.CharField(max_length=100, choices=(('monitoring', 'Monitoring Only'), ('routeros', 'Mikrotik (RouterOS)'), ('openwrt', 'OpenWRT')))
     enabled = models.BooleanField(default=True)
 
     updated = models.DateTimeField(auto_now=True)
