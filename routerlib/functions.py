@@ -16,6 +16,10 @@ def get_router_backup_file_extension(router_type):
         return {'text': 'txt', 'binary': 'bin'}
 
 
+def gen_backup_name(router_backup):
+    return f'routerfleet-backup-{router_backup.id}-{router_backup.schedule_type}-{router_backup.router.address}-{router_backup.created.strftime("%Y-%m-%d_%H-%M")}'
+
+
 def test_authentication(router_type, address, username, password, sshkey=None):
     router_features = get_router_features(router_type)
     if 'ssh' in router_features:

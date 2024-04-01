@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse, HttpResponse, FileResponse
+from django.shortcuts import render, get_object_or_404, redirect, Http404
 from django.contrib import messages
 
 from routerlib.backup_functions import perform_backup
@@ -10,6 +10,7 @@ from router_manager.models import Router
 from backup_data.models import RouterBackup
 import difflib
 import unicodedata
+from routerlib.functions import gen_backup_name, get_router_backup_file_extension
 
 
 @login_required()
@@ -137,3 +138,36 @@ def view_debug_run_backups(request):
         perform_backup(backup)
 
     return JsonResponse(data)
+
+
+@login_required()
+def view_backup_download(request):
+    backup = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
+    if request.GET.get('type') == 'text':
+        response = HttpResponse(backup.backup_text, content_type='text/plain')
+        if backup.backup_text_filename:
+            filename = backup.backup_text_filename
+        else:
+            filename = gen_backup_name(backup)
+            filename += f'.missing_backup_name.{get_router_backup_file_extension(backup.router.router_type)["text"]}'
+        print(filename)
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+        return response
+    elif request.GET.get('type') == 'binary':
+        response = FileResponse(backup.backup_binary, as_attachment=True)
+        return response
+    else:
+        raise Http404
+
+
+@login_required()
+def view_backup_delete(request):
+    backup = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
+    redirect_url = f'/router/details/?uuid={backup.router.uuid}'
+    if request.GET.get('confirmation') == f'delete{backup.id}':
+        backup.delete()
+        messages.success(request, 'Backup deleted successfully')
+        return redirect(redirect_url)
+    else:
+        messages.warning(request, 'Backup not deleted|Invalid confirmation')
+        return redirect(f'/backup/backup_details/?uuid={backup.uuid}')

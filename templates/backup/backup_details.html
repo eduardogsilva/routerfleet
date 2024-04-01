@@ -83,12 +83,19 @@
                                 {% endif %}
                                 </span>
                             </li>
-                            
+
+                            <li class="list-group-item">
+                                <b>Delete backup</b>
+                                <span class="float-right">
+
+                                <a href='javascript:void(0)' class='text-danger' data-command='delete' onclick='openCommandDialog(this)'>
+                                    <i class="far fa-trash-alt"></i>
+                                </a>
+
+                                </span>
+                            </li>
                         </ul>
-
-
                     </div>
-                    
                 </div>
             </div>
         
@@ -164,6 +171,17 @@
 {% endblock %}
 
 {% block custom_page_scripts %}
+
+<script>
+    function openCommandDialog(element) {
+        var command = element.getAttribute('data-command');
+        var confirmation = prompt("Please type 'delete{{ backup.id }}' to proceed.");
+        if (confirmation) {
+            var url = "/backup/delete/?uuid={{ backup.uuid }}&action=delete&confirmation=" + encodeURIComponent(confirmation);
+            window.location.href = url;
+        }
+    }
+</script>
 
 
 {% endblock %}

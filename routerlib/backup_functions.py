@@ -5,6 +5,7 @@ import paramiko
 import os
 from scp import SCPClient
 from django.core.files.base import ContentFile
+from routerlib.functions import gen_backup_name
 
 
 def perform_backup(router_backup: RouterBackup):
@@ -70,7 +71,7 @@ def execute_backup(router_backup: RouterBackup):
                 router_backup.router.address, username=router_backup.router.username,
                 password=router_backup.router.password, look_for_keys=False, allow_agent=False, timeout=10
             )
-            backup_name = f"backup-routerfleet-{router_backup.schedule_type}-{router_backup.uuid}"
+            backup_name = gen_backup_name(router_backup)
             ssh_client.exec_command(f'/system backup save name={backup_name}.backup')
             ssh_client.exec_command(f'/export file={backup_name}.rsc')
             return True, [f"{backup_name}.backup", f"{backup_name}.rsc"], error_message
@@ -86,7 +87,7 @@ def execute_backup(router_backup: RouterBackup):
 
 def retrieve_backup(router_backup: RouterBackup):
     error_message = ""
-    backup_name = f"backup-routerfleet-{router_backup.schedule_type}-{router_backup.uuid}"
+    backup_name = gen_backup_name(router_backup)
 
     success = False
     ssh_client = paramiko.SSHClient()
@@ -110,6 +111,7 @@ def retrieve_backup(router_backup: RouterBackup):
                 rsc_content_cleaned = '\n'.join(
                     line for line in rsc_content.split('\n') if not line.strip().startswith('#'))
                 router_backup.backup_text = rsc_content_cleaned
+                router_backup.backup_text_filename = f"{backup_name}.rsc"
 
             with open(backup_file_path, 'rb') as backup_file:
                 router_backup.backup_binary.save(f"{backup_name}.backup", ContentFile(backup_file.read()))
@@ -141,7 +143,7 @@ def clean_up_backup_files(router_backup: RouterBackup):
                 router_backup.router.address, username=router_backup.router.username,
                 password=router_backup.router.password, look_for_keys=False, timeout=10, allow_agent=False
             )
-            ssh_client.exec_command('file remove [find where name~"backup-routerfleet-"]')
+            ssh_client.exec_command('file remove [find where name~"routerfleet-backup-"]')
         else:
             print(f"Router type not supported: {router_backup.router.get_router_type_display()}")
     except Exception as e:

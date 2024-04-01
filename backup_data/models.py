@@ -2,6 +2,7 @@ from django.db import models
 from router_manager.models import Router
 import uuid
 import hashlib
+import os
 
 
 class RouterBackup(models.Model):
@@ -19,6 +20,7 @@ class RouterBackup(models.Model):
     finish_time = models.DateTimeField(blank=True, null=True)
     backup_text = models.TextField(blank=True, null=True)
     backup_text_hash = models.CharField(max_length=64, blank=True, db_index=True)
+    backup_text_filename = models.CharField(max_length=255, blank=True, null=True)
     backup_binary = models.FileField(upload_to='backups/', blank=True, null=True)
 
     updated = models.DateTimeField(auto_now=True)
@@ -31,5 +33,4 @@ class RouterBackup(models.Model):
         else:
             self.backup_text_hash = ''
         super(RouterBackup, self).save(*args, **kwargs)
-
 
