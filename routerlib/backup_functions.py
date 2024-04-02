@@ -47,7 +47,7 @@ def perform_backup(router_backup: RouterBackup):
             router_backup.backup_pending_retrieval = True
             router_backup.error_message = ''
             router_backup.retry_count = 0
-            router_backup.next_retry = timezone.now() + datetime.timedelta(minutes=router_backup.router.backup_profile.backup_interval)
+            router_backup.next_retry = timezone.now() + datetime.timedelta(seconds=router_backup.router.backup_profile.retrieve_interval)
             router_backup.save()
         else:
             handle_backup_failure(router_backup, error_message)

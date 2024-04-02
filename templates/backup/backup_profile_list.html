@@ -23,6 +23,7 @@
                                         <th>Weekly</th>
                                         <th>Monthly</th>
                                         <th></th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 
@@ -49,6 +50,13 @@
                                         <td>
                                             {% if backup_profile.monthly_backup %}
                                                 <i class="far fa-check-circle text-success"></i>
+                                            {% endif %}
+                                        </td>
+                                    
+                                        <td>
+                                            {% if backup_profile.profile_error_information %}
+                                            <i class="fas fa-exclamation-triangle text-warning"></i> {{ backup_profile.profile_error_information }}
+                                            
                                             {% endif %}
                                         </td>
 

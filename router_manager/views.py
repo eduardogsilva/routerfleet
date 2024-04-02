@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Router, RouterGroup, RouterStatus, SSHKey
+from .models import Router, RouterGroup, RouterStatus, SSHKey, BackupSchedule
 from .forms import RouterForm, RouterGroupForm, SSHKeyForm
 
 
@@ -30,7 +30,7 @@ def view_router_list(request):
 @login_required()
 def view_router_details(request):
     router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
-    router_status, router_status_created = RouterStatus.objects.get_or_create(router=router)
+    router_status, _ = RouterStatus.objects.get_or_create(router=router)
     context = {
         'router': router,
         'router_status': router_status,
@@ -38,6 +38,7 @@ def view_router_details(request):
         'page_title': 'Router Details',
     }
     return render(request, 'router_manager/router_details.html', context=context)
+
 
 @login_required()
 def view_manage_router(request):
@@ -58,7 +59,8 @@ def view_manage_router(request):
     if form.is_valid():
         form.save()
         messages.success(request, 'Router saved successfully')
-        router_status, router_status_created = RouterStatus.objects.get_or_create(router=form.instance)
+        router_status, _ = RouterStatus.objects.get_or_create(router=form.instance)
+        BackupSchedule.objects.filter(router=form.instance).delete()
         return redirect('router_list')
 
     context = {

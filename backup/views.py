@@ -6,7 +6,7 @@ from django.contrib import messages
 from routerlib.backup_functions import perform_backup
 from .models import BackupProfile
 from .forms import BackupProfileForm
-from router_manager.models import Router
+from router_manager.models import Router, BackupSchedule
 from backup_data.models import RouterBackup
 import difflib
 import unicodedata
@@ -15,6 +15,7 @@ from routerlib.functions import gen_backup_name, get_router_backup_file_extensio
 
 @login_required()
 def view_backup_profile_list(request):
+    default_backup_profile, _ = BackupProfile.objects.get_or_create(name='default')
     context = {
         'backup_profile_list': BackupProfile.objects.all().order_by('name'),
         'page_title': 'Backup Profiles'
@@ -28,12 +29,16 @@ def view_manage_backup_profile(request):
         backup_profile = get_object_or_404(BackupProfile, uuid=request.GET.get('uuid'))
         if request.GET.get('action') == 'delete':
             if request.GET.get('confirmation') == 'delete':
-                if Router.objects.filter(backup_profile=backup_profile).exists():
-                    messages.warning(request, 'Backup profile in use|Backup profile is in use and cannot be deleted')
+                if backup_profile.name == 'default':
+                    messages.warning(request, 'Backup profile not deleted|Default profile cannot be deleted')
                     return redirect('backup_profile_list')
                 else:
-                    backup_profile.delete()
-                    messages.success(request, 'Backup profile deleted successfully')
+                    if Router.objects.filter(backup_profile=backup_profile).exists():
+                        messages.warning(request, 'Backup profile in use|Backup profile is in use and cannot be deleted')
+                        return redirect('backup_profile_list')
+                    else:
+                        backup_profile.delete()
+                        messages.success(request, 'Backup profile deleted successfully')
                 return redirect('backup_profile_list')
             else:
                 messages.warning(request, 'Backup profile not deleted|Invalid confirmation')
@@ -43,7 +48,9 @@ def view_manage_backup_profile(request):
 
     form = BackupProfileForm(request.POST or None, instance=backup_profile)
     if form.is_valid():
+        form.instance.profile_error_information = ''
         form.save()
+        BackupSchedule.objects.filter(router__backup_profile=form.instance).delete()
         messages.success(request, 'Backup Profile saved successfully')
         return redirect('backup_profile_list')
 

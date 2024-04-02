@@ -9,12 +9,12 @@ class BackupProfileForm(forms.ModelForm):
         model = BackupProfile
         fields = [
             'name', 'daily_backup', 'weekly_backup', 'monthly_backup',
-            'daily_retenion', 'weekly_retention', 'monthly_retenion',
+            'daily_retention', 'weekly_retention', 'monthly_retention',
             'retain_backups_on_error', 'daily_day_monday', 'daily_day_tuesday',
             'daily_day_wednesday', 'daily_day_thursday', 'daily_day_friday',
             'daily_day_saturday', 'daily_day_sunday', 'weekly_day',
             'monthly_day', 'daily_hour', 'weekly_hour', 'monthly_hour',
-            'max_retry', 'retry_interval', 'backup_interval'
+            'max_retry', 'retry_interval', 'backup_interval', 'retrieve_interval', 'instant_retention'
         ]
         # widgets = {
         #     'weekly_day': forms.Select(),
@@ -31,7 +31,7 @@ class BackupProfileForm(forms.ModelForm):
         super(BackupProfileForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_method = 'post'
-        if self.instance.pk:
+        if self.instance.pk and self.instance.name != 'default':
             delete_html = "<a href='javascript:void(0)' class='btn btn-outline-danger' data-command='delete' onclick='openCommandDialog(this)'>Delete</a>"
         else:
             delete_html = ''
@@ -46,9 +46,12 @@ class BackupProfileForm(forms.ModelForm):
         self.fields['daily_backup'].label = 'Daily'
         self.fields['weekly_backup'].label = 'Weekly'
         self.fields['monthly_backup'].label = 'Monthly'
-        self.fields['daily_retenion'].label = 'Retention (days)'
+        self.fields['daily_retention'].label = 'Retention (days)'
         self.fields['weekly_retention'].label = 'Retention (days)'
-        self.fields['monthly_retenion'].label = 'Retention (days)'
+        self.fields['monthly_retention'].label = 'Retention (days)'
+        self.fields['instant_retention'].label = 'Instant Retention (days)'
+        if self.instance.pk and self.instance.name == 'default':
+            self.fields['name'].widget.attrs['readonly'] = True
 
         self.helper.layout = Layout(
             Div(Div('name', css_class='col-md-12'), css_class='row'),
@@ -60,9 +63,8 @@ class BackupProfileForm(forms.ModelForm):
 
             Div(
                 Div(HTML('<hr><h4>Daily Backups</h4>'), css_class='col-md-12'),
-                Div('daily_hour', css_class='col-md-4'),
-                Div('daily_retenion', css_class='col-md-4'),
-                Div(css_class='col-md-4'),
+                Div('daily_hour', css_class='col-md-6'),
+                Div('daily_retention', css_class='col-md-6'),
                 Div('daily_day_monday', css_class='col-md-4'),
                 Div('daily_day_tuesday', css_class='col-md-4'),
                 Div('daily_day_wednesday', css_class='col-md-4'),
@@ -75,25 +77,29 @@ class BackupProfileForm(forms.ModelForm):
 
             Div(
                 Div(HTML('<hr><h4>Weekly Backups</h4>'), css_class='col-md-12'),
-                Div('weekly_hour', css_class='col-md-4'),
-                Div('weekly_retention', css_class='col-md-4'),
-                Div('weekly_day', css_class='col-md-4'),
+                Div('weekly_hour', css_class='col-md-6'),
+                Div('weekly_day', css_class='col-md-6'),
+                Div('weekly_retention', css_class='col-md-6'),
+
                 css_id='weekly_settings', css_class='row'
             ),
 
             Div(
                 Div(HTML('<hr><h4>Monthly Backups</h4>'), css_class='col-md-12'),
-                Div('monthly_hour', css_class='col-md-4'),
-                Div('monthly_retenion', css_class='col-md-4'),
-                Div('monthly_day', css_class='col-md-4'),
+                Div('monthly_hour', css_class='col-md-6'),
+                Div('monthly_day', css_class='col-md-6'),
+                Div('monthly_retention', css_class='col-md-6'),
+
                 css_id='monthly_settings', css_class='row'
             ),
 
             Div(
                 Div(HTML('<hr><h4>Backup Settings</h4>'), css_class='col-md-12'),
-                Div('max_retry', css_class='col-md-4'),
-                Div('retry_interval', css_class='col-md-4'),
-                Div('backup_interval', css_class='col-md-4'),
+                Div('max_retry', css_class='col-md-6'),
+                Div('retry_interval', css_class='col-md-6'),
+                Div('backup_interval', css_class='col-md-6'),
+                Div('retrieve_interval', css_class='col-md-6'),
+                Div('instant_retention', css_class='col-md-6'),
                 Div('retain_backups_on_error', css_class='col-md-12'),
                 css_id='misc_settings', css_class='row'
             ),
@@ -120,6 +126,11 @@ class BackupProfileForm(forms.ModelForm):
         daily_day_friday = cleaned_data.get('daily_day_friday')
         daily_day_saturday = cleaned_data.get('daily_day_saturday')
         daily_day_sunday = cleaned_data.get('daily_day_sunday')
+        name = cleaned_data.get('name')
+
+        if self.instance.pk:
+            if self.instance.name == 'default' and name != 'default':
+                raise forms.ValidationError('You cannot change the default profile name')
 
         if daily_backup:
             if not daily_day_monday and not daily_day_tuesday and not daily_day_wednesday and not daily_day_thursday and not daily_day_friday and not daily_day_saturday and not daily_day_sunday:

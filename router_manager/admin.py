@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Router, SSHKey, RouterStatus
+from .models import Router, SSHKey, RouterStatus, BackupSchedule
 
 
 class RouterAdmin(admin.ModelAdmin):
@@ -27,3 +27,12 @@ class RouterStatusAdmin(admin.ModelAdmin):
 
 
 admin.site.register(RouterStatus, RouterStatusAdmin)
+
+
+class BackupScheduleAdmin(admin.ModelAdmin):
+    list_display = ('router', 'next_daily_backup', 'next_weekly_backup', 'next_monthly_backup')
+    search_fields = ('router', 'next_daily_backup', 'next_weekly_backup', 'next_monthly_backup')
+    list_filter = ('router', 'next_daily_backup', 'next_weekly_backup', 'next_monthly_backup')
+
+admin.site.register(BackupSchedule, BackupScheduleAdmin)
+
