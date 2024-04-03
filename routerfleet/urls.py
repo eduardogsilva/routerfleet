@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from dashboard.views import view_dashboard, view_status
+from integration_manager.views import view_wireguard_webadmin_launcher, view_manage_wireguard_integration, view_launch_wireguard_webadmin
 from user_manager.views import view_manage_user, view_user_list
 from accounts.views import view_login, view_logout, view_create_first_user
 from router_manager.views import view_router_list, view_manage_router, view_router_group_list, view_ssh_key_list, view_manage_router_group, view_manage_sshkey, view_router_details, view_create_instant_backup_task
@@ -40,4 +41,7 @@ urlpatterns = [
     path('cron/create_backup_tasks/', view_create_backup_tasks, name='create_backup_tasks'),
     path('cron/perform_backup_tasks/', view_perform_backup_tasks, name='perform_backup_tasks'),
     path('cron/housekeeping/', view_housekeeping, name='housekeeping'),
+    path('wireguard_webadmin/', view_wireguard_webadmin_launcher, name='wireguard_webadmin_launcher'),
+    path('wireguard_webadmin/manage/', view_manage_wireguard_integration, name='manage_wireguard_integration'),
+    path('wireguard_webadmin/launch/', view_launch_wireguard_webadmin, name='launch_wireguard_webadmin')
 ]

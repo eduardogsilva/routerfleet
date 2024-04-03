@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class='row'>
+        <div class='col-lg-6'>
+            <div class="card card-primary card-outline">
+
+                    <div class="card-header">
+                        <h3 class="card-title">wireguard_webadmin</h3>
+                    </div>
+
+                <div class="card-body ">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <p>
+                                <strong>wireguard_webadmin</strong> is a full-featured yet easy-to-configure web interface for managing WireGuard VPN instances. Designed to simplify the administration of WireGuard networks, it provides a user-friendly interface that supports multiple users with varying access levels, multiple WireGuard instances with individual peer management, and support for crypto key routing for site-to-site interconnections.<br><br>
+                                For more information, please visit the project's GitHub repository<br> <a href="https://github.com/eduardogsilva/wireguard_webadmin" target="_blank"><i class="fab fa-github"></i> eduardogsilva/wireguard_webadmin</a>
+                            </p>
+
+                        </div>
+                        <div class="col-md-6">
+                            {% if wireguard_integration %}
+                                <a href="/wireguard_webadmin/launch/" class="btn btn-primary btn-block" target="_blank"><i class="fas fa-project-diagram"></i> Launch wireguard_webadmin</a>
+                            {% else %}
+                                <a href="#" class="btn btn-primary btn-block disabled" ><i class="fas fa-project-diagram"></i> Launch wireguard_webadmin</a>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <a href="/wireguard_webadmin/manage/" class="btn btn-primary btn-block"><i class="fas fa-cogs"></i> Configure Integration</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
