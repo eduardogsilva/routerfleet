@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from backup.models import BackupProfile
 from backup_data.models import RouterBackup
-from router_manager.models import Router, BackupSchedule
+from router_manager.models import Router, BackupSchedule, RouterStatus
 from routerlib.backup_functions import perform_backup
 
 
@@ -235,3 +235,44 @@ def view_perform_backup_tasks(request):
 
     return JsonResponse(data)
 
+
+def view_housekeeping(requests):
+    max_backup_task_age = timezone.now() - timedelta(hours=18)
+    data = {
+        'backup_tasks_expired': 0,
+        'backup_locks_removed': 0
+    }
+    for backup in RouterBackup.objects.filter(created__lt=max_backup_task_age, success=False, error=False):
+        backup.error = True
+        backup.error_message = 'Backup task expired'
+        backup.save()
+        backup.router.routerstatus.last_backup_failed = timezone.now()
+        backup.router.routerstatus.save()
+
+        if not RouterBackup.objects.filter(router=backup.router, success=False, error=False).exists():
+            backup.router.routerstatus.backup_lock = None
+            backup.router.routerstatus.save()
+        data['backup_tasks_expired'] += 1  # Do not count locks removed for expired tasks
+
+    for router_status in RouterStatus.objects.filter(backup_lock__lt=max_backup_task_age):
+        if not RouterBackup.objects.filter(router=router_status.router, success=False, error=False).exists():
+            router_status.backup_lock = None
+            router_status.last_backup_failed = timezone.now()
+            router_status.save()
+            data['backup_locks_removed'] += 1
+
+    for backup_profile in BackupProfile.objects.all():
+        if backup_profile.name == 'default':
+            backup_list = RouterBackup.objects.filter(Q(router__backup_profile=backup_profile) | Q(router__backup_profile__isnull=True))
+        else:
+            backup_list = RouterBackup.objects.filter(router__backup_profile=backup_profile)
+
+        if backup_profile.retain_backups_on_error:
+            backup_list = backup_list.filter(router__routerstatus__last_backup_failed__isnull=True)
+
+        backup_list.filter(schedule_type='instant', created__lt=timezone.now() - timedelta(days=backup_profile.instant_retention)).delete()
+        backup_list.filter(schedule_type='monthly', created__lt=timezone.now() - timedelta(days=backup_profile.monthly_retention)).delete()
+        backup_list.filter(schedule_type='weekly', created__lt=timezone.now() - timedelta(days=backup_profile.weekly_retention)).delete()
+        backup_list.filter(schedule_type='daily', created__lt=timezone.now() - timedelta(days=backup_profile.daily_retention)).delete()
+
+    return JsonResponse(data)
