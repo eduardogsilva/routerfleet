@@ -85,6 +85,15 @@
                                 {% endfor %}
                                 </span>
                             </li>
+                        
+                            <li class="list-group-item">
+                                <b>Instant Backup</b>
+                                <span class="float-right">
+                                    <a href="/router/create_instant_backup/?uuid={{ router.uuid }}">
+                                        Backup now
+                                    </a>
+                                </span>
+                            </li>
                             <li class="list-group-item">
                                 <b>Notes</b>
                                 <span class="float-right">{{ router.internal_notes|default_if_none:""|linebreaksbr }}</span>

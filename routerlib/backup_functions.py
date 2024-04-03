@@ -10,15 +10,21 @@ from routerlib.functions import gen_backup_name
 
 def perform_backup(router_backup: RouterBackup):
     if router_backup.success or router_backup.error:
+        router_backup.router.routerstatus.backup_lock = None
+        router_backup.router.routerstatus.save()
         return
     if not router_backup.router.backup_profile:
         router_backup.error = True
         router_backup.error_message = "No backup profile assigned"
         router_backup.save()
+        router_backup.router.routerstatus.backup_lock = None
+        router_backup.router.routerstatus.save()
         return
     if router_backup.retry_count > router_backup.router.backup_profile.max_retry:
         router_backup.error = True
         router_backup.save()
+        router_backup.router.routerstatus.backup_lock = None
+        router_backup.router.routerstatus.save()
         return
 
     if router_backup.backup_pending_retrieval:
@@ -39,6 +45,8 @@ def perform_backup(router_backup: RouterBackup):
             router_backup.error_message = ''
             router_backup.success = True
             router_backup.save()
+            router_backup.router.routerstatus.backup_lock = None
+            router_backup.router.routerstatus.save()
         else:
             handle_backup_failure(router_backup, error_message)
     else:

@@ -1,6 +1,9 @@
 from django.contrib import messages
+from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+
+from backup_data.models import RouterBackup
 from .models import Router, RouterGroup, RouterStatus, SSHKey, BackupSchedule
 from .forms import RouterForm, RouterGroupForm, SSHKeyForm
 
@@ -145,3 +148,25 @@ def view_manage_sshkey(request):
         'instance': sshkey
     }
     return render(request, 'generic_form.html', context=context)
+
+
+@login_required()
+def view_create_instant_backup_task(request):
+    router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
+    router_details_url = f'/router/details/?uuid={router.uuid}'
+    if RouterBackup.objects.filter(router=router, success=False, error=False).exists():
+        messages.warning(request, 'Backup task not created|Active router backup task already exists')
+        return redirect(router_details_url)
+    if router.routerstatus.backup_lock is not None:
+        messages.warning(request, 'Backup task not created|Router backup is currently locked')
+        return redirect(router_details_url)
+    if not router.backup_profile:
+        messages.warning(request, 'Backup task not created|Router has no backup profile')
+        return redirect(router_details_url)
+
+    router_backup = RouterBackup.objects.create(router=router, schedule_time=timezone.now(), schedule_type='instant')
+    router.routerstatus.backup_lock = router_backup.schedule_time
+    router.routerstatus.save()
+    messages.success(request, 'Backup task created successfully')
+    return redirect(router_details_url)
+
