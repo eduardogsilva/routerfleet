@@ -1,0 +1,43 @@
+version: '3'
+services:
+  routerfleet:
+    container_name: routerfleet
+    restart: unless-stopped
+    build:
+      context: .
+    environment:
+      - SERVER_ADDRESS=${SERVER_ADDRESS}
+      - DEBUG_MODE=${DEBUG_MODE}
+    volumes:
+      - media_root:/var/lib/routerfleet/
+      - static_volume:/app_static_files/
+    command: /bin/bash /app/init.sh
+
+  routerfleet-cron:
+    container_name: routerfleet-cron
+    restart: unless-stopped
+    build:
+      context: ./containers/cron
+      dockerfile: Dockerfile-cron
+    depends_on:
+      - routerfleet
+
+  nginx:
+    container_name: routerfleet-nginx
+    restart: unless-stopped
+    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: Dockerfile_nginx
+    volumes:
+      - ./containers/nginx/virtualhost.conf:/etc/nginx/conf.d/routerfleet.conf
+      - static_volume:/static
+      - https_cert:/certificate
+    ports:
+      - "80:80"
+      - "443:443"
+
+volumes:
+  static_volume:
+  https_cert:
+  media_root:

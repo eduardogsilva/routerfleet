@@ -7,8 +7,8 @@ from subprocess import Popen, PIPE
 UPDATE_HOST_LIST_INTERVAL = 600  # How often to update the router list in seconds
 MONITOR_INTERVAL = 60  # How often to monitor each router in seconds
 MAX_NOTIFICATIONS_PER_MONITOR_INTERVAL = 50  # Throttle the number of notifications sent to the remote API
-HOST_LIST_URL = "http://127.0.0.1:8000/monitoring/export_router_list/"
-UPDATE_STATUS_URL = "http://127.0.0.1:8000/monitoring/update_router_status/"
+HOST_LIST_URL = "http://routerfleet:8001/monitoring/export_router_list/"
+UPDATE_STATUS_URL = "http://routerfleet:8001/monitoring/update_router_status/"
 DEBUG = False
 
 # Global variables
