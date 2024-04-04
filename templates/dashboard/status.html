@@ -1,5 +1,123 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    status
+    <div class='row'>
+        <div class='{% if form_size %}{{ form_size }}{% else %}col-lg-6{% endif %}'>
+            <div class="card card-primary card-outline">
+                {% if page_title %}
+                    <div class="card-header">
+                        <h3 class="card-title">{{ page_title }}</h3>
+                    </div>
+                {% endif %}
+                <div class="card-body row">
+                    <div class="col-lg-12">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                                <td>
+                                    <strong>
+                                        Used storage (binary backup)
+                                    </strong>
+                                </td>
+                                <td>
+                                    {{ media_root_stats.usage_percentage }}%
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                        Backup Queue
+                                    </strong>
+                                </td>
+                                <td>
+                                    {{ queue }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                        Successful backups (24h)
+                                    </strong>
+                                </td>
+                                <td>
+                                    {{ success_backup_last_24h }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                        Failed backups (24h)
+                                    </strong>
+                                </td>
+                                <td>
+                                    {{ error_backup_last_24h }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                        Routers
+                                    </strong>
+                                </td>
+                                <td>
+                                    {{ router_count }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                        Online Routers
+                                    </strong>
+                                </td>
+                                <td>
+                                    {{ router_online_count }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                        Offline Routers
+                                    </strong>
+                                </td>
+                                <td>
+                                    {{ router_offline_count }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                        Not monitored Routers
+                                    </strong>
+                                </td>
+                                <td>
+                                    {{ router_not_monitored_count }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>
+                                        Router Fleet Version
+                                    </strong>
+                                </td>
+                                <td>
+                                    {{ webadmin_version.current_version }}
+                                </td>
+                            </tr>
+                            
+                            </tbody>
+                        </table>
+                            
+                    </div>
+                </div>
+            </div>
+        <p class="small">This status page is just a placeholder, it will be improved in next versions</p>
+        </div>
+    </div>
+    
 {% endblock %}

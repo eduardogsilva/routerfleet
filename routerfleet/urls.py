@@ -8,6 +8,7 @@ from router_manager.views import view_router_list, view_manage_router, view_rout
 from backup.views import view_backup_profile_list, view_manage_backup_profile, view_backup_list, view_backup_details, view_debug_run_backups, view_compare_backups, view_backup_download, view_backup_delete
 from monitoring.views import view_export_router_list, view_update_router_status
 from backup_data.views import view_generate_backup_schedule, view_create_backup_tasks, view_perform_backup_tasks, view_housekeeping
+from routerfleet_tools.views import cron_check_updates
 
 
 urlpatterns = [
@@ -41,6 +42,7 @@ urlpatterns = [
     path('cron/create_backup_tasks/', view_create_backup_tasks, name='create_backup_tasks'),
     path('cron/perform_backup_tasks/', view_perform_backup_tasks, name='perform_backup_tasks'),
     path('cron/housekeeping/', view_housekeeping, name='housekeeping'),
+    path('cron/check_updates/', cron_check_updates, name='check_updates'),
     path('wireguard_webadmin/', view_wireguard_webadmin_launcher, name='wireguard_webadmin_launcher'),
     path('wireguard_webadmin/manage/', view_manage_wireguard_integration, name='manage_wireguard_integration'),
     path('wireguard_webadmin/launch/', view_launch_wireguard_webadmin, name='launch_wireguard_webadmin')

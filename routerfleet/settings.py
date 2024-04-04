@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'backup',
     'backup_data',
     'integration_manager',
+    'routerfleet_tools'
 ]
 
 MIDDLEWARE = [
@@ -139,3 +140,4 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = '/var/lib/routerfleet/'
+ROUTERFLEET_VERSION = 7002
