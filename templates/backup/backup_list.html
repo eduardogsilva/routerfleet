@@ -23,11 +23,9 @@
                                     <th>Schedule Type</th>
                                     <th>Schedule Time</th>
                                     <th>Finish Time</th>
-                                    <th class="min-width">Hash</th>
-                                    <th class="min-width"><i class="fas fa-code-branch" title="Configuration has changed"></i></th>
+                                    <th class="min-width" title="Backup hash"><i class="fas fa-code-branch" title="Configuration has changed"></i></th>
                                     <th class="min-width">Status</th>
                                 </thead>
-                            
                                 <tbody>
                                 {% for backup in backup_list %}
                                     <tr>
@@ -52,12 +50,7 @@
                                         <a href="#" title="{{ backup.backup_text_hash }}">{{ backup.backup_text_hash|slice:":12" }}...</a>
                                         {% endif %}
                                     </td>
-                                    <td class="min-width">
-                                        {% if backup.config_change_detected %}
-                                            <i class="fas fa-code-branch text-info"
-                                               title="Configuration has changed since last backup"></i>
-                                        {% endif %}
-                                    </td>
+                                    
                                     <td class="min-width" style="text-align: center;">
                                         {% if backup.success %}
                                             <i class="far fa-check-circle text-success"></i>

@@ -49,7 +49,7 @@ def view_launch_wireguard_webadmin(request):
 @login_required()
 def view_manage_wireguard_integration(request):
     context = {
-        'page_title': 'Manage WireGuard Integration',
+        'page_title': 'Manage WireGuard WebAdmin Integration',
         'delete_confirmation_message': 'Are you sure you want to delete this integration? This action cannot be undone. Type delete in the box below to confirm.'
     }
     wireguard_integration = ExternalIntegration.objects.filter(name='wireguard_webadmin', integration_type='wireguard_webadmin').first()
@@ -73,4 +73,4 @@ def view_manage_wireguard_integration(request):
         return redirect('/wireguard_webadmin/')
 
     context['form'] = form
-    return render(request, 'generic_form.html', context=context)
+    return render(request, 'integration_manager/wireguard_webadmin_form.html', context=context)

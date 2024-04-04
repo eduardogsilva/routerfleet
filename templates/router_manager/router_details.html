@@ -117,7 +117,7 @@
                                 <th>Schedule</th>
                                 <th>Time</th>
                                 <th>Status</th>
-                                <th><i class="fas fa-code-branch" title="Configuration has changed"></i></th>
+                                <th><i class="fas fa-code-branch" title="backup hash"></i></th>
                             </tr>
                             </thead>
                             <tbody>
@@ -145,9 +145,8 @@
                                         {% endif %}
                                     </td>
                                     <td class="min-width">
-                                        {% if backup.config_change_detected %}
-                                            <i class="fas fa-code-branch text-info"
-                                               title="Configuration has changed since last backup"></i>
+                                        {% if backup.backup_text_hash %}
+                                            <a href="#" title="{{ backup.backup_text_hash }}">{{ backup.backup_text_hash|default_if_none:""|slice:":8" }}...</a>
                                         {% endif %}
                                     </td>
                                 </tr>
