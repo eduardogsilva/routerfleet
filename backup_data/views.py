@@ -83,7 +83,6 @@ def view_generate_backup_schedule(request):
         'monthly_backup_schedule_removed': 0
     }
 
-
     for router in Router.objects.filter(backupschedule__isnull=True):
         new_backup_schedule, _ = BackupSchedule.objects.get_or_create(router=router)
         data['backup_schedule_created'] += 1

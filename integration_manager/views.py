@@ -4,6 +4,7 @@ from .models import ExternalIntegration
 from .forms import WireGuardWebAdminForm
 from django.contrib import messages
 import requests
+from user_manager.models import UserAcl
 
 
 @login_required()
@@ -48,6 +49,8 @@ def view_launch_wireguard_webadmin(request):
 
 @login_required()
 def view_manage_wireguard_integration(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=50).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     context = {
         'page_title': 'Manage WireGuard WebAdmin Integration',
         'delete_confirmation_message': 'Are you sure you want to delete this integration? This action cannot be undone. Type delete in the box below to confirm.'

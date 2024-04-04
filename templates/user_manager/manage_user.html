@@ -49,25 +49,17 @@
         
     
     <div class="col-md-8">
-        
-        <h5>Debugging Analyst</h5>
-        <p>Access to basic system information and logs for troubleshooting. No access to modify settings or view sensitive data such as peer keys.</p>
-
-        <h5>View Only User</h5>
-        <p>Full view access, including peer keys and configuration files. Cannot modify any settings or configurations.</p>
-
-        <h5>Peer Manager</h5>
-        <p>Permissions to add, edit, and remove peers and IP addresses. Does not include access to modify WireGuard instance configurations or higher-level settings.</p>
-
-        <h5>Manager</h5>
-        <p>Authority to add, edit, and remove configurations of WireGuard instances.</p>
-
+        <h5>Viewer</h5>
+        <p>This level has view-only access. Users can see queue information and the backup list, but they cannot access backup data or any sensitive information.</p>
+        <h5>Backup Operator</h5>
+        <p>In addition to the permissions of the Viewer level, users at this level can view host backups and start instant backups.</p>
+        <h5>Host Manager</h5>
+        <p>Users at this level can configure, add, and remove hosts, and delete backups. They also have all the permissions of the Backup Operator level.</p>
+        <h5>Configuration Manager</h5>
+        <p>In addition to the permissions of the Host Manager level, users at this level can configure backup profiles, SSH keys, and router groups.</p>
         <h5>Administrator</h5>
-        <p>Full access across the system. Can view and modify all settings, configurations and manage users. </p>
-
+        <p>Users at this level have full administrative rights, including all the permissions of the previous levels.</p>
     </div>
-
-
 </div>
         
     </div>

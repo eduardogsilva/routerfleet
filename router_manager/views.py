@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from backup_data.models import RouterBackup
 from .models import Router, RouterGroup, RouterStatus, SSHKey, BackupSchedule
 from .forms import RouterForm, RouterGroupForm, SSHKeyForm
+from user_manager.models import UserAcl
 
 
 @login_required
@@ -45,6 +46,8 @@ def view_router_details(request):
 
 @login_required()
 def view_manage_router(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=30).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     if request.GET.get('uuid'):
         router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
         if request.GET.get('action') == 'delete':
@@ -85,6 +88,8 @@ def view_router_group_list(request):
 
 @login_required()
 def view_manage_router_group(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=40).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     if request.GET.get('uuid'):
         router_group = get_object_or_404(RouterGroup, uuid=request.GET.get('uuid'))
         if request.GET.get('action') == 'delete':
@@ -123,6 +128,8 @@ def view_ssh_key_list(request):
 
 @login_required()
 def view_manage_sshkey(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=40).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     if request.GET.get('uuid'):
         sshkey = get_object_or_404(SSHKey, uuid=request.GET.get('uuid'))
         if request.GET.get('action') == 'delete':
@@ -152,6 +159,8 @@ def view_manage_sshkey(request):
 
 @login_required()
 def view_create_instant_backup_task(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=20).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
     router_details_url = f'/router/details/?uuid={router.uuid}'
     if RouterBackup.objects.filter(router=router, success=False, error=False).exists():

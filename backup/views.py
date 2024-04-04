@@ -11,6 +11,8 @@ from backup_data.models import RouterBackup
 import difflib
 import unicodedata
 from routerlib.functions import gen_backup_name, get_router_backup_file_extension
+from django.conf import settings
+from user_manager.models import UserAcl
 
 
 @login_required()
@@ -25,6 +27,8 @@ def view_backup_profile_list(request):
 
 @login_required()
 def view_manage_backup_profile(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=40).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     if request.GET.get('uuid'):
         backup_profile = get_object_or_404(BackupProfile, uuid=request.GET.get('uuid'))
         if request.GET.get('action') == 'delete':
@@ -85,6 +89,8 @@ def view_backup_list(request):
 
 @login_required()
 def view_backup_details(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=20).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     backup = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
     hash_list = [backup.backup_text_hash]
     backup_list = []
@@ -108,7 +114,10 @@ def normalize_text(text):
     return text
 
 
+@login_required()
 def view_compare_backups(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=20).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     backup1 = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
     backup2 = get_object_or_404(RouterBackup, uuid=request.GET.get('compare_uuid'))
     if request.GET.get('display') == 'all':
@@ -140,15 +149,19 @@ def view_debug_run_backups(request):
     data = {
         'backup_count': 0,
     }
-    for backup in RouterBackup.objects.filter(success=False, error=False):
-        data['backup_count'] += 1
-        perform_backup(backup)
-
+    if settings.DEBUG:
+        for backup in RouterBackup.objects.filter(success=False, error=False):
+            data['backup_count'] += 1
+            perform_backup(backup)
+    else:
+        data['error'] = 'Debug mode is not enabled'
     return JsonResponse(data)
 
 
 @login_required()
 def view_backup_download(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=20).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     backup = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
     if request.GET.get('type') == 'text':
         response = HttpResponse(backup.backup_text, content_type='text/plain')
@@ -169,6 +182,8 @@ def view_backup_download(request):
 
 @login_required()
 def view_backup_delete(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=30).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     backup = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
     redirect_url = f'/router/details/?uuid={backup.router.uuid}'
     if request.GET.get('confirmation') == f'delete{backup.id}':
