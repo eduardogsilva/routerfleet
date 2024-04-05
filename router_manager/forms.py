@@ -42,7 +42,7 @@ class RouterForm(forms.ModelForm):
             'enabled',
             Row(
                 Column(
-                    Submit('submit', 'Salvar', css_class='btn btn-success'),
+                    Submit('submit', 'Save', css_class='btn btn-success'),
                     HTML(' <a class="btn btn-secondary" href="/router/list/">Back</a> '),
                     HTML(delete_html),
                     css_class='col-md-12'),
@@ -128,7 +128,7 @@ class RouterGroupForm(forms.ModelForm):
             'default_group',
             Row(
                 Column(
-                    Submit('submit', 'Salvar', css_class='btn btn-success'),
+                    Submit('submit', 'Save', css_class='btn btn-success'),
                     HTML(' <a class="btn btn-secondary" href="/router/group_list/">Back</a> '),
                     HTML(delete_html),
                     css_class='col-md-12'),
@@ -178,7 +178,7 @@ class SSHKeyForm(forms.ModelForm):
             ),
             Row(
                 Column(
-                    Submit('submit', 'Salvar', css_class='btn btn-success'),
+                    Submit('submit', 'Save', css_class='btn btn-success'),
                     HTML(' <a class="btn btn-secondary" href="/router/ssh_keys/">Back</a> '),
                     HTML(delete_html),
                     css_class='col-md-12'),
