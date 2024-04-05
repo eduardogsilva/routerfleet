@@ -1,6 +1,7 @@
 services:
   routerfleet-postgres:
     container_name: routerfleet-postgres
+    restart: unless-stopped
     image: postgres:latest
     volumes:
       - postgres_data:/var/lib/postgresql/data
