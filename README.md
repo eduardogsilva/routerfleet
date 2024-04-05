@@ -69,6 +69,60 @@ Open a web browser and navigate to `https://yourserver.example.com` to access th
 
 **Important:** If you are using the self-signed certificate, your browser will present a certificate exception warning. You must accept this exception to proceed to the RouterFleet interface.
 
+
+## Upgrade Instructions for RouterFleet
+
+To maintain security, performance, and access to new features in RouterFleet, it's important to follow these steps when upgrading:
+
+1.**Backup Database**
+
+   Before starting the upgrade, it's crucial to back up your database. This step ensures you can revert to the previous state if the upgrade encounters problems. For the database, we recommend manually running a `pg_dump` command to create a backup.
+
+
+2.**Preparation:**
+
+   Navigate to your RouterFleet directory on your machine or server:
+   ```bash
+   cd path/to/routerfleet
+   ```
+
+3.**Shutdown Services:**
+
+   Prevent data loss by stopping all RouterFleet services gracefully:
+   ```bash
+   docker compose down
+   ```
+
+4.**Fetch the Latest Updates:**
+
+   Update your local repository to get the latest RouterFleet version:
+   ```bash
+   git pull origin main
+   ```
+
+5.**Deploy the Updated Version:**
+
+   With the latest updates in place, re-deploy RouterFleet using Docker Compose. This step rebuilds the Docker image to incorporate any changes:
+   ```bash
+   SERVER_ADDRESS=yourserver.example.com POSTGRES_PASSWORD=your_password docker compose up --build -d
+   ```
+
+6.**Verify Operation:**
+
+   After restarting the services, check the RouterFleet web interface to ensure all functions are operating correctly. Examine the application logs for errors or warnings:
+   ```bash
+   docker compose logs
+   ```
+
+7.**Post-Upgrade Checks:**
+
+   - Review the application and system logs carefully for any anomalies.
+   - If you encounter any issues, consider reporting them on [GitHub Issues](https://github.com/eduardogsilva/routerfleet/issues) or seek advice in [Discussions](https://github.com/eduardogsilva/routerfleet/discussions). If necessary, revert to your earlier backup.
+
+Following these instructions will help ensure a smooth upgrade process for your RouterFleet installation, keeping it secure and efficient.
+
+
+
 ## Contributing
 
 As an open source project, RouterFleet thrives on community support. Whether you're a developer, a network engineer, or just someone interested in network management, there are many ways you can contribute:
