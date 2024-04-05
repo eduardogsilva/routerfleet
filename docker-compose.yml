@@ -1,5 +1,14 @@
-version: '3'
 services:
+  routerfleet-postgres:
+    container_name: routerfleet-postgres
+    image: postgres:latest
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=routerfleet
+      - POSTGRES_USER=routerfleet
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
   routerfleet:
     container_name: routerfleet
     restart: unless-stopped
@@ -8,10 +17,14 @@ services:
     environment:
       - SERVER_ADDRESS=${SERVER_ADDRESS}
       - DEBUG_MODE=${DEBUG_MODE}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
     volumes:
       - media_root:/var/lib/routerfleet/
       - static_volume:/app_static_files/
     command: /bin/bash /app/init.sh
+    depends_on:
+      - routerfleet-postgres
 
   routerfleet-cron:
     container_name: routerfleet-cron
@@ -22,13 +35,22 @@ services:
     depends_on:
       - routerfleet
 
+  routerfleet-monitoring:
+    container_name: routerfleet-monitoring
+    restart: unless-stopped
+    build:
+      context: ./containers/monitoring
+      dockerfile: Dockerfile-monitoring
+    depends_on:
+      - routerfleet
+
   nginx:
     container_name: routerfleet-nginx
     restart: unless-stopped
     image: nginx:alpine
     build:
-      context: .
-      dockerfile: Dockerfile_nginx
+      context: ./containers/nginx
+      dockerfile: Dockerfile-nginx
     volumes:
       - ./containers/nginx/virtualhost.conf:/etc/nginx/conf.d/routerfleet.conf
       - static_volume:/static
@@ -36,8 +58,11 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    depends_on:
+      - routerfleet
 
 volumes:
   static_volume:
   https_cert:
   media_root:
+  postgres_data:

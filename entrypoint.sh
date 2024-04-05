@@ -7,6 +7,11 @@ if [ -z "$SERVER_ADDRESS" ]; then
     exit 1
 fi
 
+if [ -z "$POSTGRES_PASSWORD" ]; then
+    echo "POSTGRES_PASSWORD environment variable is not set. Exiting."
+    exit 1
+fi
+
 DEBUG_VALUE="False"
 if [[ "${DEBUG_MODE,,}" == "true" ]]; then
     DEBUG_VALUE="True"
@@ -17,8 +22,18 @@ DEBUG = $DEBUG_VALUE
 ALLOWED_HOSTS = ['routerfleet', '$SERVER_ADDRESS']
 CSRF_TRUSTED_ORIGINS = ['http://routerfleet', 'https://$SERVER_ADDRESS']
 SECRET_KEY = '$(openssl rand -base64 32)'
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'routerfleet',
+        'USER': 'routerfleet',
+        'PASSWORD': '$POSTGRES_PASSWORD',
+        'HOST': 'routerfleet-postgres',
+        'PORT': '5432',
+    }
+}
 EOL
 
-#sed -i "/^    path('admin\/', admin.site.urls),/s/^    /    # /" /app/routerfleet/urls.py
+sed -i "/^    path('admin\/', admin.site.urls),/s/^    /    # /" /app/routerfleet/urls.py
 
 exec "$@"

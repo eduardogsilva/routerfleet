@@ -93,6 +93,9 @@ def update_and_monitor():
 
 
 if __name__ == "__main__":
+    print(f"{datetime.now()} - Monitoring container started, waiting for routerfleet container to start...")
+    time.sleep(30)  # Wait for the routerfleet container to start
+    print(f"{datetime.now()} - Starting monitoring service...")
     update_and_monitor()
 
 

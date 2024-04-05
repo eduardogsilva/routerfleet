@@ -40,8 +40,11 @@
                     </div>
                     <div class="row">
                         <div class="col-lg-12">
-                            <a href="/router/manage_sshkey/" class="btn btn-primary">Add SSH Key</a>
+                            {% comment %}<a href="/router/manage_sshkey/" class="btn btn-primary">Add SSH Key</a>{% endcomment %}
+                            <a href="" class="btn btn-primary disabled">Add SSH Key</a>
+                            <p>Sorry, SSH authentication using keys is still unsupported. It will be added soon</p>
                         </div>
+                        
 
                     </div>
 
@@ -49,4 +52,5 @@
             </div>
         </div>
     </div>
+    
 {% endblock %}

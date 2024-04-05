@@ -64,7 +64,7 @@ def view_manage_router(request):
     form = RouterForm(request.POST or None, instance=router)
     if form.is_valid():
         form.save()
-        messages.success(request, 'Router saved successfully')
+        messages.success(request, 'Router saved successfully|It may take a few minutes until monitoring starts for this router.')
         router_status, _ = RouterStatus.objects.get_or_create(router=form.instance)
         BackupSchedule.objects.filter(router=form.instance).delete()
         return redirect('router_list')
