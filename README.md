@@ -1,6 +1,3 @@
-
-
-
 # RouterFleet
 
 Welcome to **RouterFleet** - the next step in centralized router backup and management. This open source project is designed to revolutionize the way we handle backups and configurations for routers and network equipment, focusing primarily on simplifying and securing network management tasks.
@@ -23,14 +20,39 @@ Welcome to **RouterFleet** - the next step in centralized router backup and mana
 
 To get started with RouterFleet, you'll want to clone the repository and set up your environment. Here's a quick guide:
 
+### Step 1: Clone the Repository
+
+First, clone the RouterFleet repository to your local machine or server:
+
 ```bash
 git clone https://github.com/eduardogsilva/routerfleet.git
 cd routerfleet
+```
+
+### Step 2: Deploy with Docker
+
+Use the following command to start your RouterFleet server. This command will also build the Docker image if it's the first time you're running it, or if there have been changes to the Dockerfile:
+
+```bash
 SERVER_ADDRESS=yourserver.example.com POSTGRES_PASSWORD=your_password docker compose up --build -d
 ```
-The container deployment will automatically generate a self-signed certificate for you. If you want to update your certificates, simply navigate to the certificates volume and replace nginx.pem and nginx.key with your own certificates. If you don't have a DNS name pointing to your server, use **SERVER_ADDRESS=ip_address**.
 
-Access the web interface using https://yourserver.example.com. If you are using a self-signed certificate, you must accept the certificate exception that your browser will present.
+During the deployment, a self-signed certificate will be automatically generated for use with HTTPS. If you prefer to use your own certificates, proceed to the next step.
+
+### Step 3: Update SSL Certificates (Optional)
+
+If you have your own SSL certificates and wish to use them instead of the self-signed certificate, follow these instructions:
+
+- Navigate to the certificates volume.
+- Replace `nginx.pem` and `nginx.key` with your certificate and key files, respectively.
+
+**Note:** If your server does not have a DNS name and you're using an IP address, set the `SERVER_ADDRESS` variable to your server's IP address (`SERVER_ADDRESS=ip_address`).
+
+### Step 4: Access the Web Interface
+
+Open a web browser and navigate to `https://yourserver.example.com` to access the RouterFleet web interface. 
+
+**Important:** If you are using the self-signed certificate, your browser will present a certificate exception warning. You must accept this exception to proceed to the RouterFleet interface.
 
 ## Contributing
 
