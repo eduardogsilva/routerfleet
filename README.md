@@ -16,6 +16,21 @@ Welcome to **RouterFleet** - the next step in centralized router backup and mana
 - **Integration with wireguard:** Integration with [wireguard_webadmin](https://github.com/eduardogsilva/wireguard_webadmin) to easily manage WireGuard VPNs.
 - **Open Source:** Dive into the code, contribute, and be a part of a growing community.
 
+## Screenshots
+### Backup comparison view (diff)
+Easily compare backups to identify changes and track configuration history.
+![Backup comparison view](screenshots/backup-diff.png)
+### Multiple Backup Profiles
+Create multiple backup profiles to manage different schedules and retention policies.
+![Multiple Backup Profiles](screenshots/backup-profiles.png)
+### Router Details
+View detailed information about your routers, including the complete backup history.
+![Router Details](screenshots/router-details.png)
+### User Management
+Manage users and their permissions to ensure secure access to RouterFleet.
+![User Management](screenshots/user-manager.png)
+
+
 ## Getting Started
 
 To get started with RouterFleet, you'll want to clone the repository and set up your environment. Here's a quick guide:
