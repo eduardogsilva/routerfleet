@@ -1,6 +1,5 @@
 FROM nginx:alpine
 RUN apk --no-cache add openssl
-RUN rm /etc/nginx/conf.d/default.conf
 COPY nginx_entrypoint.sh /nginx_entrypoint.sh
 RUN chmod +x /nginx_entrypoint.sh
 ENTRYPOINT ["/nginx_entrypoint.sh"]
