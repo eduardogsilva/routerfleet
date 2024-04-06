@@ -49,8 +49,9 @@ cd routerfleet
 Use the following command to start your RouterFleet server. This command will also build the Docker image if it's the first time you're running it, or if there have been changes to the Dockerfile:
 
 ```bash
-SERVER_ADDRESS=yourserver.example.com POSTGRES_PASSWORD=your_password docker compose up --build -d
+SERVER_ADDRESS=yourserver.example.com POSTGRES_PASSWORD=your_password TIMEZONE=America/Sao_Paulo docker compose up --build -d
 ```
+[Timezone List](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
 
 During the deployment, a self-signed certificate will be automatically generated for use with HTTPS. If you prefer to use your own certificates, proceed to the next step.
 
@@ -104,7 +105,7 @@ To maintain security, performance, and access to new features in RouterFleet, it
 
    With the latest updates in place, re-deploy RouterFleet using Docker Compose. This step rebuilds the Docker image to incorporate any changes:
    ```bash
-   SERVER_ADDRESS=yourserver.example.com POSTGRES_PASSWORD=your_password docker compose up --build -d
+   SERVER_ADDRESS=yourserver.example.com POSTGRES_PASSWORD=your_password TIMEZONE=America/Sao_Paulo docker compose up --build -d
    ```
 
 6.**Verify Operation:**

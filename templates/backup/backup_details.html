@@ -37,6 +37,64 @@
                                     {{ backup.id }}
                                 </span>
                             </li>
+                        
+                            
+                        {% if not backup.success and not backup.error %}
+                            <li class="list-group-item">
+                                <b><i class="far fa-question-circle" title="This debug information is only displayed while the backup is not finished."></i> Backup Status</b>
+                                <span class="float-right">
+                                    {% if backup.success %}
+                                            <i class="far fa-check-circle text-success"></i>
+                                        {% elif backup.error %}
+                                            <i class="far fa-times-circle text-danger"
+                                               title="{{ backup.error_message }}"></i>
+                                        {% elif backup.backup_pending_retrieval %}
+                                            <i class="fas fa-cloud-download-alt text-info"
+                                               title="Backup pending Retrieval"></i>
+                                        {% else %}
+                                            <i class="far fa-clock text-warning"></i>
+                                        {% endif %}
+                                </span>
+                            </li>
+                                
+                            <li class="list-group-item">
+                                <b><i class="far fa-question-circle" title="This debug information is only displayed while the backup is not finished."></i> Host Monitoring</b>
+                                <span class="float-right">
+                                    {% if backup.router.monitoring %}
+                                        {% if backup.router.routerstatus.status_online %}
+                                            <i class="far fa-check-circle text-success"></i>
+                                        {% else %}
+                                            <i class="far fa-times-circle text-danger"></i> Host offline. Waiting for it to come online
+                                        {% endif %}
+                                    {% else %}
+                                        Not enabled
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li class="list-group-item">
+                                <b><i class="far fa-question-circle" title="This debug information is only displayed while the backup is not finished."></i> Retry Count</b>
+                                <span class="float-right">
+                                    {{ backup.retry_count }}
+                                </span>
+                            </li>
+                                
+                            <li class="list-group-item">
+                                <b><i class="far fa-question-circle" title="This debug information is only displayed while the backup is not finished."></i> Next Retry</b>
+                                <span class="float-right">
+                                    {{ backup.next_retry|default_if_none:"" }}
+                                </span>
+                            </li>
+                            
+                            <li class="list-group-item">
+                                <b><i class="far fa-question-circle" title="This debug information is only displayed while the backup is not finished."></i> Cron last run</b>
+                                <span class="float-right">
+                                    {{ webadmin_settings.cron_last_run }}
+                                </span>
+                            </li>
+                                
+                                
+                            {% endif %}
+                        
                             <li class="list-group-item">
                                 <b>Schedule Type</b>
                                 <span class="float-right">
@@ -54,7 +112,7 @@
 
                             <li class="list-group-item">
                                 <b>Finish Time</b>
-                                <span class="float-right">{{ backup.finish_time }}</span>
+                                <span class="float-right">{{ backup.finish_time|default_if_none:"" }}</span>
                             </li>
 
                             <li class="list-group-item">
@@ -94,6 +152,8 @@
 
                                 </span>
                             </li>
+                        
+                        
                         </ul>
                     </div>
                 </div>
@@ -158,9 +218,7 @@
 
                 <div class="card-body row">
                     <div class="col-lg-12">
-                        <pre>{{ backup.backup_text }}</pre>
-                        
-
+                        <pre>{{ backup.backup_text|default_if_none:"" }}</pre>
                     </div>
                 </div>
             </div>

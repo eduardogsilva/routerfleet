@@ -3,6 +3,7 @@ from django.http import JsonResponse, HttpResponse, FileResponse
 from django.shortcuts import render, get_object_or_404, redirect, Http404
 from django.contrib import messages
 
+from routerfleet_tools.models import WebadminSettings
 from routerlib.backup_functions import perform_backup
 from .models import BackupProfile
 from .forms import BackupProfileForm
@@ -98,10 +99,12 @@ def view_backup_details(request):
         if backup_item.backup_text_hash and backup_item.backup_text_hash not in hash_list:
             hash_list.append(backup_item.backup_text_hash)
             backup_list.append(backup_item)
+    webadmin_settings, _ = WebadminSettings.objects.get_or_create(name='webadmin_settings')
     context = {
         'backup': backup,
         'backup_list': backup_list,
-        'page_title': 'Backup Details'
+        'page_title': 'Backup Details',
+        'webadmin_settings': webadmin_settings
     }
     return render(request, 'backup/backup_details.html', context)
 

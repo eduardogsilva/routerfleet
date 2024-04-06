@@ -34,6 +34,10 @@ DATABASES = {
 }
 EOL
 
+if [ -n "$TIMEZONE" ]; then
+    echo "TIME_ZONE = '$TIMEZONE'" >> /app/routerfleet/production_settings.py
+fi
+
 sed -i "/^    path('admin\/', admin.site.urls),/s/^    /    # /" /app/routerfleet/urls.py
 
 exec "$@"

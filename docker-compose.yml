@@ -19,6 +19,7 @@ services:
       - SERVER_ADDRESS=${SERVER_ADDRESS}
       - DEBUG_MODE=${DEBUG_MODE}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - TIMEZONE=${TIMEZONE}
 
     volumes:
       - media_root:/var/lib/routerfleet/

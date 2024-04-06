@@ -8,6 +8,8 @@ import requests
 
 def cron_check_updates(request):
     webadmin_settings, webadmin_settings_created = WebadminSettings.objects.get_or_create(name='webadmin_settings')
+    webadmin_settings.cron_last_run = timezone.now()
+    webadmin_settings.save()
 
     if webadmin_settings.last_checked is None or timezone.now() - webadmin_settings.last_checked > timezone.timedelta(
             hours=1):
