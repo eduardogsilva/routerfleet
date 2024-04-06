@@ -91,6 +91,13 @@
                                     {{ webadmin_settings.cron_last_run }}
                                 </span>
                             </li>
+                            
+                            <li class="list-group-item">
+                                <b><i class="far fa-question-circle" title="This debug information is only displayed while the backup is not finished."></i> Error message</b>
+                                <span class="float-right">
+                                    {{ backup.error_message }}
+                                </span>
+                            </li>
                                 
                                 
                             {% endif %}
