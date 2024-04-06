@@ -46,7 +46,7 @@ services:
     depends_on:
       - routerfleet
 
-  nginx:
+  routerfleet-nginx:
     container_name: routerfleet-nginx
     restart: unless-stopped
     image: nginx:alpine
