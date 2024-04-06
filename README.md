@@ -78,7 +78,9 @@ To maintain security, performance, and access to new features in RouterFleet, it
 1.**Backup Database**
 
    Before starting the upgrade, it's crucial to back up your database. This step ensures you can revert to the previous state if the upgrade encounters problems. For the database, we recommend manually running a `pg_dump` command to create a backup.
-
+```bash
+docker exec -e PGPASSWORD=your_password routerfleet-postgres pg_dump -U routerfleet -d routerfleet > /root/routerfleet-$(date +%Y-%m-%d-%H%M%S).sql
+```
 
 2.**Preparation:**
 
