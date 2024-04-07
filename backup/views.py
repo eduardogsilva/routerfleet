@@ -14,6 +14,7 @@ import unicodedata
 from routerlib.functions import gen_backup_name, get_router_backup_file_extension
 from django.conf import settings
 from user_manager.models import UserAcl
+from django.utils import timezone
 
 
 @login_required()
@@ -93,6 +94,14 @@ def view_backup_details(request):
     if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=20).exists():
         return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     backup = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
+    if request.GET.get('action') == 'anticipate':
+        if not backup.success and not backup.error:
+            backup.next_retry = timezone.now()
+            backup.save()
+            messages.success(request, 'Backup task anticipated|Backup task will be retried shortly')
+        else:
+            messages.warning(request, 'Backup task not anticipated|Task is already completed')
+        return redirect(f'/backup/backup_details/?uuid={backup.uuid}')
     hash_list = [backup.backup_text_hash]
     backup_list = []
     for backup_item in RouterBackup.objects.filter(router=backup.router, success=True).order_by('-created'):
@@ -104,7 +113,9 @@ def view_backup_details(request):
         'backup': backup,
         'backup_list': backup_list,
         'page_title': 'Backup Details',
-        'webadmin_settings': webadmin_settings
+        'webadmin_settings': webadmin_settings,
+        'now': timezone.now(),
+        '5_minutes_ago': timezone.now() - timezone.timedelta(minutes=5),
     }
     return render(request, 'backup/backup_details.html', context)
 
@@ -188,10 +199,15 @@ def view_backup_delete(request):
     if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=30).exists():
         return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     backup = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
+    router = backup.router
     redirect_url = f'/router/details/?uuid={backup.router.uuid}'
     if request.GET.get('confirmation') == f'delete{backup.id}':
         backup.delete()
         messages.success(request, 'Backup deleted successfully')
+        if router.routerstatus.backup_lock:
+            if not RouterBackup.objects.filter(router=router, success=False, error=False).exists():
+                router.routerstatus.backup_lock = None
+                router.routerstatus.save()
         return redirect(redirect_url)
     else:
         messages.warning(request, 'Backup not deleted|Invalid confirmation')

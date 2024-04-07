@@ -35,12 +35,21 @@ def view_router_list(request):
 def view_router_details(request):
     router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
     router_status, _ = RouterStatus.objects.get_or_create(router=router)
+    router_backup_list = router.routerbackup_set.all().order_by('-created')
+    if router_status.backup_lock:
+        if not router_backup_list.filter(success=False, error=False).exists():
+            router_status.backup_lock = None
+            router_status.save()
+            messages.warning(request, 'Backup lock removed|Backup lock was removed as there are no active backup tasks')
+
     context = {
         'router': router,
         'router_status': router_status,
-        'router_backup_list': router.routerbackup_set.all().order_by('-created'),
+        'router_backup_list': router_backup_list,
         'page_title': 'Router Details',
     }
+
+
     return render(request, 'router_manager/router_details.html', context=context)
 
 
