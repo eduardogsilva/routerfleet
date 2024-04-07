@@ -96,7 +96,10 @@
                                                 {{ backup.next_retry }} <i class="far fa-clock"></i>
                                             </span>
                                         {% endif %}
-
+                                    {% else %}
+                                        <span class="text-info" style="text-decoration: underline" title="This backup is queued to be executed as soon as possible.">
+                                                queued <i class="far fa-clock"></i>
+                                        </span>
                                     {% endif %}
                                     
                                     
@@ -122,7 +125,7 @@
                                 <li class="list-group-item">
                                     <b><i class="far fa-question-circle" title="This debug information is only displayed while the backup is not finished."></i> Error message</b>
                                     <span class="float-right">
-                                    {{ backup.error_message }}
+                                    {{ backup.error_message|default_if_none:"" }}
                                 </span>
                                 </li>
 
