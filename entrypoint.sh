@@ -1,4 +1,5 @@
 #!/bin/bash
+PRODUCTION_SETTINGS_FILE="/app/routerfleet/production_settings.py"
 
 set -e
 
@@ -7,8 +8,51 @@ if [ -z "$SERVER_ADDRESS" ]; then
     exit 1
 fi
 
-if [ -z "$POSTGRES_PASSWORD" ]; then
-    echo "POSTGRES_PASSWORD environment variable is not set. Exiting."
+if [[ "${DATABASE_ENGINE,,}" == "sqlite" ]]; then
+    if [[ "$COMPOSE_TYPE" != "no-postgres" ]]; then
+        echo "ERROR: Please use 'docker-compose-no-postgres.yml' when using sqlite as DATABASE_ENGINE. Exiting."
+        exit 1
+    fi
+    DATABASES_CONFIG="DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': '/var/lib/routerfleet_sqlite/routerfleet-db.sqlite3',
+        }
+    }"
+elif [[ "${DATABASE_ENGINE,,}" == "postgres" ]]; then
+    if [ -n "$POSTGRES_HOST" ]; then
+      if [[ "$COMPOSE_TYPE" != "no-postgres" ]]; then
+          echo "ERROR: When using a remote PostgreSQL server, please use 'docker-compose-no-postgres.yml'. Exiting."
+          exit 1
+      fi
+      if [ -z "$POSTGRES_PORT" ]; then
+          POSTGRES_PORT="5432"
+      fi
+    else
+        if [[ "$COMPOSE_TYPE" != "with-postgres" ]]; then
+            echo "ERROR: Local postgres is selected. Please use 'docker-compose.yml'. Exiting."
+            exit 1
+        fi
+        POSTGRES_HOST="routerfleet-postgres"
+        POSTGRES_PORT="5432"
+    fi
+
+    if [ -z "$POSTGRES_DB" ] || [ -z "$POSTGRES_USER" ] || [ -z "$POSTGRES_PASSWORD" ]; then
+        echo "POSTGRES_DB, POSTGRES_USER, or POSTGRES_PASSWORD environment variable is not set. Exiting."
+        exit 1
+    fi
+    DATABASES_CONFIG="DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': '$POSTGRES_DB',
+            'USER': '$POSTGRES_USER',
+            'PASSWORD': '$POSTGRES_PASSWORD',
+            'HOST': '$POSTGRES_HOST',
+            'PORT': '$POSTGRES_PORT',
+        }
+    }"
+else
+    echo "Unsupported DATABASE_ENGINE. Exiting."
     exit 1
 fi
 
@@ -17,25 +61,16 @@ if [[ "${DEBUG_MODE,,}" == "true" ]]; then
     DEBUG_VALUE="True"
 fi
 
-cat > /app/routerfleet/production_settings.py <<EOL
+cat > $PRODUCTION_SETTINGS_FILE <<EOL
 DEBUG = $DEBUG_VALUE
 ALLOWED_HOSTS = ['routerfleet', '$SERVER_ADDRESS']
 CSRF_TRUSTED_ORIGINS = ['http://routerfleet', 'https://$SERVER_ADDRESS']
 SECRET_KEY = '$(openssl rand -base64 32)'
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'routerfleet',
-        'USER': 'routerfleet',
-        'PASSWORD': '$POSTGRES_PASSWORD',
-        'HOST': 'routerfleet-postgres',
-        'PORT': '5432',
-    }
-}
+$DATABASES_CONFIG
 EOL
 
 if [ -n "$TIMEZONE" ]; then
-    echo "TIME_ZONE = '$TIMEZONE'" >> /app/routerfleet/production_settings.py
+    echo "TIME_ZONE = '$TIMEZONE'" >> $PRODUCTION_SETTINGS_FILE
 fi
 
 sed -i "/^    path('admin\/', admin.site.urls),/s/^    /    # /" /app/routerfleet/urls.py

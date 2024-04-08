@@ -6,8 +6,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
-      - POSTGRES_DB=routerfleet
-      - POSTGRES_USER=routerfleet
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 
   routerfleet:
@@ -18,10 +18,17 @@ services:
     environment:
       - SERVER_ADDRESS=${SERVER_ADDRESS}
       - DEBUG_MODE=${DEBUG_MODE}
+      - DATABASE_ENGINE=${DATABASE_ENGINE}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - TIMEZONE=${TIMEZONE}
+      - COMPOSE_TYPE=with-postgres
 
     volumes:
+      - sqlite_volume:/var/lib/routerfleet_sqlite/
       - media_root:/var/lib/routerfleet/
       - static_volume:/app_static_files/
     command: /bin/bash /app/init.sh
@@ -54,7 +61,6 @@ services:
       context: ./containers/nginx
       dockerfile: Dockerfile-nginx
     volumes:
-      - ./containers/nginx/virtualhost.conf:/etc/nginx/conf.d/routerfleet.conf
       - static_volume:/static
       - https_cert:/certificate
     ports:
@@ -68,3 +74,4 @@ volumes:
   https_cert:
   media_root:
   postgres_data:
+  sqlite_volume:
