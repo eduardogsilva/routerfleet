@@ -13,7 +13,8 @@ services:
   routerfleet:
     container_name: routerfleet
     restart: unless-stopped
-    image: eduardosilva/routerfleet:latest
+    build:
+      context: .
     environment:
       - SERVER_ADDRESS=${SERVER_ADDRESS}
       - DEBUG_MODE=${DEBUG_MODE}
@@ -25,6 +26,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - TIMEZONE=${TIMEZONE}
       - COMPOSE_TYPE=with-postgres
+
     volumes:
       - sqlite_volume:/var/lib/routerfleet_sqlite/
       - media_root:/var/lib/routerfleet/
@@ -36,21 +38,28 @@ services:
   routerfleet-cron:
     container_name: routerfleet-cron
     restart: unless-stopped
-    image: eduardosilva/routerfleet-cron:latest
+    build:
+      context: ./containers/cron
+      dockerfile: Dockerfile-cron
     depends_on:
       - routerfleet
 
   routerfleet-monitoring:
     container_name: routerfleet-monitoring
     restart: unless-stopped
-    image: eduardosilva/routerfleet-monitoring:latest
+    build:
+      context: ./containers/monitoring
+      dockerfile: Dockerfile-monitoring
     depends_on:
       - routerfleet
 
   routerfleet-nginx:
     container_name: routerfleet-nginx
     restart: unless-stopped
-    image: eduardosilva/routerfleet-nginx:latest
+    image: nginx:alpine
+    build:
+      context: ./containers/nginx
+      dockerfile: Dockerfile-nginx
     volumes:
       - static_volume:/static
       - https_cert:/certificate

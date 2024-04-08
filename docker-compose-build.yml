@@ -1,0 +1,24 @@
+version: '3'
+services:
+  routerfleet:
+    image: eduardosilva/routerfleet:latest
+    build:
+      context: .
+
+  routerfleet-cron:
+    image: eduardosilva/routerfleet-cron:latest
+    build:
+      context: ./containers/cron
+      dockerfile: Dockerfile-cron
+
+  routerfleet-monitoring:
+    image: eduardosilva/routerfleet-monitoring:latest
+    build:
+      context: ./containers/monitoring
+      dockerfile: Dockerfile-monitoring
+
+  routerfleet-nginx:
+    image: eduardosilva/routerfleet-nginx:latest
+    build:
+      context: ./containers/nginx
+      dockerfile: Dockerfile-nginx

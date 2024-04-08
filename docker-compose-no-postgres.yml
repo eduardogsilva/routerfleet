@@ -1,15 +1,4 @@
 services:
-  routerfleet-postgres:
-    container_name: routerfleet-postgres
-    restart: unless-stopped
-    image: postgres:latest
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-
   routerfleet:
     container_name: routerfleet
     restart: unless-stopped
@@ -24,14 +13,12 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - TIMEZONE=${TIMEZONE}
-      - COMPOSE_TYPE=with-postgres
+      - COMPOSE_TYPE=no-postgres
     volumes:
       - sqlite_volume:/var/lib/routerfleet_sqlite/
       - media_root:/var/lib/routerfleet/
       - static_volume:/app_static_files/
     command: /bin/bash /app/init.sh
-    depends_on:
-      - routerfleet-postgres
 
   routerfleet-cron:
     container_name: routerfleet-cron

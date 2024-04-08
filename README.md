@@ -31,99 +31,125 @@ Manage users and their permissions to ensure secure access to RouterFleet.
 ![User Management](screenshots/user-manager.png)
 
 
-## Getting Started
+## Deployment Instructions
 
-To get started with RouterFleet, you'll want to clone the repository and set up your environment. Here's a quick guide:
+These steps will guide you through deploying the RouterFleet project:
 
-### Step 1: Clone the Repository
+### Step 1: Prepare the Environment
 
-First, clone the RouterFleet repository to your local machine or server:
-
-```bash
-git clone https://github.com/eduardogsilva/routerfleet.git
-cd routerfleet
-```
-
-### Step 2: Deploy with Docker
-
-Use the following command to start your RouterFleet server. This command will also build the Docker image if it's the first time you're running it, or if there have been changes to the Dockerfile:
+Create a dedicated directory for the RouterFleet project and navigate into it. This directory will serve as your working environment for the deployment.
 
 ```bash
-SERVER_ADDRESS=yourserver.example.com POSTGRES_PASSWORD=your_password TIMEZONE=America/Sao_Paulo docker compose up --build -d
+mkdir routerfleet && cd routerfleet
 ```
-[Timezone List](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
 
-During the deployment, a self-signed certificate will be automatically generated for use with HTTPS. If you prefer to use your own certificates, proceed to the next step.
+### Step 2: Fetch the Docker Compose File
 
-### Step 3: Update SSL Certificates (Optional)
+Download the appropriate `docker-compose.yml` file directly into your working directory to ensure you're using the latest deployment configuration. Choose one of the following based on your deployment scenario:
 
-If you have your own SSL certificates and wish to use them instead of the self-signed certificate, follow these instructions:
+#### With Postgres (default setup)
 
-- Navigate to the certificates volume.
-- Replace `nginx.pem` and `nginx.key` with your certificate and key files, respectively.
+This is the recommended setup for production environments. Download the `docker-compose.yml` that includes the Postgres database container:
 
-**Note:** If your server does not have a DNS name and you're using an IP address, set the `SERVER_ADDRESS` variable to your server's IP address (`SERVER_ADDRESS=ip_address`).
+```bash
+wget -O docker-compose.yml https://raw.githubusercontent.com/eduardogsilva/routerfleet/main/docker-compose.yml
+```
 
-### Step 4: Access the Web Interface
+#### Without Postgres (sqlite or remote database)
 
-Open a web browser and navigate to `https://yourserver.example.com` to access the RouterFleet web interface. 
+If you prefer to use SQLite or a remote database, download the `docker-compose-no-postgres.yml` file:
 
-**Important:** If you are using the self-signed certificate, your browser will present a certificate exception warning. You must accept this exception to proceed to the RouterFleet interface.
+```bash
+wget -O docker-compose.yml https://raw.githubusercontent.com/eduardogsilva/routerfleet/main/docker-compose-no-postgres.yml
+```
 
+### Step 3: Create the `.env` File
+
+Generate a `.env` file in the same directory as your `docker-compose.yml` with the necessary environment variables:
+
+```env
+# Configure SERVER_ADDRESS to match the address of the server. If you don't have a DNS name, you can use the IP address.
+# A missconfigured SERVER_ADDRESS will cause the app to have CSRF errors.
+SERVER_ADDRESS=my_server_address
+DEBUG_MODE=False
+# Choose a timezone from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+TIMEZONE=America/Sao_Paulo
+
+# Available options are 'sqlite', 'postgres'
+DATABASE_ENGINE=postgres
+# If you want to use sqlite or postgres outside of docker, you should use docker-compose-no-postgres.yml
+# and provide POSTGRES_HOST, POSTGRES_PORT below.
+#POSTGRES_HOST=${POSTGRES_HOST}
+#POSTGRES_PORT=${POSTGRES_PORT}
+POSTGRES_DB=routerfleet
+POSTGRES_USER=routerfleet
+POSTGRES_PASSWORD=your_database_password
+```
+
+Adjust the variables according to your setup.
+
+### Step 4: Run Docker Compose
+
+Launch your RouterFleet deployment with the Docker Compose command:
+
+```bash
+docker compose up -d
+```
+
+### Step 5: Update SSL Certificates (Optional)
+
+If you prefer to use your own SSL certificates instead of the auto-generated self-signed certificate:
+
+- Access the `certificates` volume.
+- Replace `nginx.pem` and `nginx.key` with your certificate files.
+
+### Step 6: Access the Web Interface
+
+Visit `https://yourserver.example.com` in your web browser to access the RouterFleet web interface. Remember, if you're using the self-signed certificate, you'll need to accept the certificate exception in your browser.
+
+Following these steps will set up RouterFleet on your server, ensuring you're utilizing the latest configurations for optimal performance and security.
 
 ## Upgrade Instructions for RouterFleet
 
 To maintain security, performance, and access to new features in RouterFleet, it's important to follow these steps when upgrading:
 
-1.**Backup Database**
+
+### Step 1: Prepare the Environment
+  
+Begin by navigating to your routerfleet directory:
+   ```bash
+   cd path/to/routerfleet
+   ```
+   If you're upgrading from an existing git clone installation, navigate to your current project directory. 
+   ```bash
+   cd /path/to/routerfleet_git_clone
+   ```
+   
+
+### Step 2: Backup Database
 
    Before starting the upgrade, it's crucial to back up your database. This step ensures you can revert to the previous state if the upgrade encounters problems. For the database, we recommend manually running a `pg_dump` command to create a backup.
 ```bash
 docker exec -e PGPASSWORD=your_password routerfleet-postgres pg_dump -U routerfleet -d routerfleet > /root/routerfleet-$(date +%Y-%m-%d-%H%M%S).sql
 ```
 
-2.**Preparation:**
-
-   Navigate to your RouterFleet directory on your machine or server:
-   ```bash
-   cd path/to/routerfleet
-   ```
-
-3.**Shutdown Services:**
+### Step 3: Shutdown Services
 
    Prevent data loss by stopping all RouterFleet services gracefully:
    ```bash
    docker compose down
    ```
+### Step 4: Deploy using Docker Compose
+Follow the previously outlined [Deployment Instructions](#deployment-instructions).
 
-4.**Fetch the Latest Updates:**
+Don't forget to update the `docker-compose.yml` file to the latest version by re-downloading it from the repository.
 
-   Update your local repository to get the latest RouterFleet version:
-   ```bash
-   git pull origin main
-   ```
+### Post-Upgrade Checks
 
-5.**Deploy the Updated Version:**
-
-   With the latest updates in place, re-deploy RouterFleet using Docker Compose. This step rebuilds the Docker image to incorporate any changes:
-   ```bash
-   SERVER_ADDRESS=yourserver.example.com POSTGRES_PASSWORD=your_password TIMEZONE=America/Sao_Paulo docker compose up --build -d
-   ```
-
-6.**Verify Operation:**
-
-   After restarting the services, check the RouterFleet web interface to ensure all functions are operating correctly. Examine the application logs for errors or warnings:
-   ```bash
-   docker compose logs
-   ```
-
-7.**Post-Upgrade Checks:**
-
-   - Review the application and system logs carefully for any anomalies.
-   - If you encounter any issues, consider reporting them on [GitHub Issues](https://github.com/eduardogsilva/routerfleet/issues) or seek advice in [Discussions](https://github.com/eduardogsilva/routerfleet/discussions). If necessary, revert to your earlier backup.
+   - **Verify Operation:** After the services start, access the web interface to ensure routerfleet functions as expected. Examine the application logs for potential issues.
+   - **Support and Troubleshooting:** For any complications or need for further information, consult the project's [Discussions](https://github.com/eduardogsilva/routerfleet/discussions) page or relevant documentation.
 
 Following these instructions will help ensure a smooth upgrade process for your RouterFleet installation, keeping it secure and efficient.
-
 
 
 ## Contributing
