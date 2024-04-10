@@ -2,6 +2,12 @@ from django.db import models
 from backup.models import BackupProfile
 import uuid
 
+SUPPORTED_ROUTER_TYPES = (
+    ('monitoring', 'Monitoring Only'),
+    ('routeros', 'Mikrotik (RouterOS)'),
+    ('openwrt', 'OpenWRT')
+)
+
 
 class SSHKey(models.Model):
     name = models.CharField(max_length=100, unique=True)
@@ -25,10 +31,8 @@ class Router(models.Model):
     ssh_key = models.ForeignKey(SSHKey, on_delete=models.SET_NULL, null=True, blank=True)
     monitoring = models.BooleanField(default=True)
     backup_profile = models.ForeignKey(BackupProfile, on_delete=models.SET_NULL, null=True, blank=True)
-
-    router_type = models.CharField(max_length=100, choices=(('monitoring', 'Monitoring Only'), ('routeros', 'Mikrotik (RouterOS)')))
+    router_type = models.CharField(max_length=100, choices=SUPPORTED_ROUTER_TYPES)
     enabled = models.BooleanField(default=True)
-
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
@@ -39,7 +43,7 @@ class Router(models.Model):
 
 class RouterStatus(models.Model):
     router = models.OneToOneField(Router, on_delete=models.CASCADE)
-    status_online = models.BooleanField(default=False)
+    status_online = models.BooleanField(default=True)
     last_status_change = models.DateTimeField(blank=True, null=True)
     last_backup = models.DateTimeField(blank=True, null=True)
     last_backup_failed = models.DateTimeField(blank=True, null=True)
