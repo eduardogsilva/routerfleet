@@ -14,6 +14,8 @@ def get_router_features(router_type):
 def get_router_backup_file_extension(router_type):
     if router_type == 'routeros':
         return {'text': 'rsc', 'binary': 'backup'}
+    elif router_type == 'openwrt':
+        return {'text': 'txt', 'binary': 'tar.gz'}
     else:
         return {'text': 'txt', 'binary': 'bin'}
 

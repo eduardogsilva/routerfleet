@@ -4,7 +4,7 @@ from backup_data.models import RouterBackup
 import os
 from scp import SCPClient
 from django.core.files.base import ContentFile
-from routerlib.functions import gen_backup_name, connect_to_ssh
+from routerlib.functions import gen_backup_name, connect_to_ssh, get_router_backup_file_extension
 
 
 def perform_backup(router_backup: RouterBackup):
@@ -73,13 +73,26 @@ def handle_backup_failure(router_backup: RouterBackup, error_message):
 def execute_backup(router_backup: RouterBackup):
     error_message = ""
     router = router_backup.router
+    backup_name = gen_backup_name(router_backup)
+    file_extension = get_router_backup_file_extension(router.router_type)
     try:
         if router_backup.router.router_type == 'routeros':
             ssh_client = connect_to_ssh(router.address, router.username, router.password, router.ssh_key)
-            backup_name = gen_backup_name(router_backup)
-            ssh_client.exec_command(f'/system backup save name={backup_name}.backup')
-            ssh_client.exec_command(f'/export file={backup_name}.rsc')
-            return True, [f"{backup_name}.backup", f"{backup_name}.rsc"], error_message
+            ssh_client.exec_command(f'/system backup save name={backup_name}.{file_extension["binary"]}')
+            ssh_client.exec_command(f'/export file={backup_name}.{file_extension["text"]}')
+            return True, [f'{backup_name}.{file_extension["binary"]}', f'{backup_name}.{file_extension["text"]}'], error_message
+        elif router_backup.router.router_type == 'openwrt':
+            ssh_client = connect_to_ssh(router.address, router.username, router.password, router.ssh_key)
+            stdin, stdout, stderr = ssh_client.exec_command('uci export')
+            backup_text = stdout.read().decode('utf-8')
+            if backup_text:
+                router_backup.backup_text = backup_text
+                router_backup.backup_text_filename = f'{backup_name}.{file_extension["text"]}'
+                router_backup.save()
+            else:
+                return False, [], "Failed to execute backup: Empty backup text"
+            ssh_client.exec_command(f'sysupgrade --create-backup /tmp/{backup_name}.{file_extension["binary"]}')
+            return True, [f'/tmp/{backup_name}.{file_extension["binary"]}', f'{backup_name}.{file_extension["text"]}'], error_message
         else:
             error_message = f"Router type not supported: {router_backup.router.get_router_type_display()}"
             return False, [], error_message
@@ -95,33 +108,47 @@ def retrieve_backup(router_backup: RouterBackup):
     router = router_backup.router
     backup_name = gen_backup_name(router_backup)
     success = False
+    file_extension = get_router_backup_file_extension(router.router_type)
 
     try:
         if router_backup.router.router_type == 'routeros':
-            rsc_file_path = f"/tmp/{backup_name}.rsc"
-            backup_file_path = f"/tmp/{backup_name}.backup"
+            rsc_file_path = f'/tmp/{backup_name}.{file_extension["text"]}'
+            backup_file_path = f'/tmp/{backup_name}.{file_extension["binary"]}'
             ssh_client = connect_to_ssh(router.address, router.username, router.password, router.ssh_key)
             scp_client = SCPClient(ssh_client.get_transport())
-
-            scp_client.get(f"/{backup_name}.rsc", rsc_file_path)
-            scp_client.get(f"/{backup_name}.backup", backup_file_path)
+            scp_client.get(f'/{backup_name}.{file_extension["text"]}', rsc_file_path)
+            scp_client.get(f'/{backup_name}.{file_extension["binary"]}', backup_file_path)
 
             with open(rsc_file_path, 'r') as rsc_file:
                 rsc_content = rsc_file.read()
                 rsc_content_cleaned = '\n'.join(
                     line for line in rsc_content.split('\n') if not line.strip().startswith('#'))
                 router_backup.backup_text = rsc_content_cleaned
-                router_backup.backup_text_filename = f"{backup_name}.rsc"
+                router_backup.backup_text_filename = f'{backup_name}.{file_extension["text"]}'
 
             with open(backup_file_path, 'rb') as backup_file:
-                router_backup.backup_binary.save(f"{backup_name}.backup", ContentFile(backup_file.read()))
+                router_backup.backup_binary.save(f"{backup_name}.{file_extension['binary']}", ContentFile(backup_file.read()))
 
             router_backup.save()
             os.remove(rsc_file_path)
             os.remove(backup_file_path)
-            ssh_client.exec_command(f'/file remove "{backup_name}.rsc"')
-            ssh_client.exec_command(f'/file remove "{backup_name}.backup"')
+            ssh_client.exec_command(f'/file remove "{backup_name}.{file_extension["text"]}"')
+            ssh_client.exec_command(f'/file remove "{backup_name}.{file_extension["binary"]}"')
             success = True
+
+        elif router_backup.router.router_type == 'openwrt':
+            remote_backup_file_path = f'/tmp/{backup_name}.{file_extension["binary"]}'
+            local_backup_file_path = f'/tmp/{backup_name}.{file_extension["binary"]}'
+            ssh_client = connect_to_ssh(router.address, router.username, router.password, router.ssh_key)
+            scp_client = SCPClient(ssh_client.get_transport())
+            scp_client.get(remote_backup_file_path, local_backup_file_path)
+            with open(local_backup_file_path, 'rb') as backup_file:
+                router_backup.backup_binary.save(f"{backup_name}.{file_extension['binary']}", ContentFile(backup_file.read()))
+            router_backup.save()
+            os.remove(local_backup_file_path)
+            ssh_client.exec_command(f'rm {remote_backup_file_path}')
+            success = True
+
         else:
             error_message = f"Router type not supported: {router_backup.router.get_router_type_display()}"
             return success, error_message
@@ -140,6 +167,9 @@ def clean_up_backup_files(router_backup: RouterBackup):
         if router_backup.router.router_type == 'routeros':
             ssh_client = connect_to_ssh(router.address, router.username, router.password, router.ssh_key)
             ssh_client.exec_command('file remove [find where name~"routerfleet-backup-"]')
+        elif router_backup.router.router_type == 'openwrt':
+            ssh_client = connect_to_ssh(router.address, router.username, router.password, router.ssh_key)
+            ssh_client.exec_command('rm /tmp/routerfleet-backup-*')
         else:
             print(f"Router type not supported: {router_backup.router.get_router_type_display()}")
     except Exception as e:
