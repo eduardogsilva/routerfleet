@@ -25,7 +25,7 @@
                                 {% for sshkey in sshkey_list %}
                                     <tr>
                                         <td>{{ sshkey.name }}</td>
-                                        <td>{{ sshkey.public_key }}</td>
+                                        <td>{{ sshkey.public_key|slice:40 }}...</td>
                                         <td>{{ sshkey.router_set.count }}</td>
                                         <td class="min-width">
                                             <a href="/router/manage_sshkey/?uuid={{ sshkey.uuid }}"><i
@@ -40,9 +40,8 @@
                     </div>
                     <div class="row">
                         <div class="col-lg-12">
-                            {% comment %}<a href="/router/manage_sshkey/" class="btn btn-primary">Add SSH Key</a>{% endcomment %}
-                            <a href="" class="btn btn-primary disabled">Add SSH Key</a>
-                            <p>Sorry, SSH authentication using keys is still unsupported. It will be added soon</p>
+                            <a href="/router/manage_sshkey/" class="btn btn-primary">Add SSH Key</a>
+
                         </div>
                         
 

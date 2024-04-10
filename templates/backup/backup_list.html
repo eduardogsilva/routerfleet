@@ -21,7 +21,7 @@
                                     <th>Router</th>
                                     <th>Address</th>
                                     <th>Schedule Type</th>
-                                    <th>Schedule Time</th>
+                                    <th>Task Created</th>
                                     <th>Finish Time</th>
                                     <th class="min-width" title="Backup hash"><i class="fas fa-code-branch" title="Configuration has changed"></i></th>
                                     <th class="min-width">Status</th>
@@ -42,7 +42,7 @@
                                         </td>
                                     <td>{{ backup.router.address }}</td>
                                     <td>{{ backup.get_schedule_type_display }}</td>
-                                    <td>{{ backup.schedule_time|default_if_none:"" }}</td>
+                                    <td>{{ backup.created|default_if_none:"" }}</td>
                                     <td>{% if backup.finish_time %}{{ backup.finish_time }}{% else %}
                                         <i class="far fa-clock text-warning"></i>{% endif %}</td>
 

@@ -1,11 +1,10 @@
 import datetime
 from django.utils import timezone
 from backup_data.models import RouterBackup
-import paramiko
 import os
 from scp import SCPClient
 from django.core.files.base import ContentFile
-from routerlib.functions import gen_backup_name
+from routerlib.functions import gen_backup_name, connect_to_ssh
 
 
 def perform_backup(router_backup: RouterBackup):
@@ -73,14 +72,10 @@ def handle_backup_failure(router_backup: RouterBackup, error_message):
 
 def execute_backup(router_backup: RouterBackup):
     error_message = ""
-    ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    router = router_backup.router
     try:
         if router_backup.router.router_type == 'routeros':
-            ssh_client.connect(
-                router_backup.router.address, username=router_backup.router.username,
-                password=router_backup.router.password, look_for_keys=False, allow_agent=False, timeout=10
-            )
+            ssh_client = connect_to_ssh(router.address, router.username, router.password, router.ssh_key)
             backup_name = gen_backup_name(router_backup)
             ssh_client.exec_command(f'/system backup save name={backup_name}.backup')
             ssh_client.exec_command(f'/export file={backup_name}.rsc')
@@ -97,20 +92,15 @@ def execute_backup(router_backup: RouterBackup):
 
 def retrieve_backup(router_backup: RouterBackup):
     error_message = ""
+    router = router_backup.router
     backup_name = gen_backup_name(router_backup)
-
     success = False
-    ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
     try:
         if router_backup.router.router_type == 'routeros':
             rsc_file_path = f"/tmp/{backup_name}.rsc"
             backup_file_path = f"/tmp/{backup_name}.backup"
-
-            ssh_client.connect(router_backup.router.address, username=router_backup.router.username,
-                               password=router_backup.router.password, look_for_keys=False, allow_agent=False,
-                               timeout=10)
+            ssh_client = connect_to_ssh(router.address, router.username, router.password, router.ssh_key)
             scp_client = SCPClient(ssh_client.get_transport())
 
             scp_client.get(f"/{backup_name}.rsc", rsc_file_path)
@@ -145,14 +135,10 @@ def retrieve_backup(router_backup: RouterBackup):
 
 
 def clean_up_backup_files(router_backup: RouterBackup):
-    ssh_client = paramiko.SSHClient()
-    ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    router = router_backup.router
     try:
         if router_backup.router.router_type == 'routeros':
-            ssh_client.connect(
-                router_backup.router.address, username=router_backup.router.username,
-                password=router_backup.router.password, look_for_keys=False, timeout=10, allow_agent=False
-            )
+            ssh_client = connect_to_ssh(router.address, router.username, router.password, router.ssh_key)
             ssh_client.exec_command('file remove [find where name~"routerfleet-backup-"]')
         else:
             print(f"Router type not supported: {router_backup.router.get_router_type_display()}")
