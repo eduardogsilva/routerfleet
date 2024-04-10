@@ -9,4 +9,13 @@ else
     echo "Skipping self signed certificate creation, files already exist."
 fi
 
+if [ "$HTTPS_REDIRECT_POLICY" = "never" ]; then
+    echo "Copying /etc/nginx/virtualhost_noredirect.conf to /etc/nginx/conf.d/default.conf..."
+    cp /etc/nginx/virtualhost_noredirect.conf.disabled /etc/nginx/conf.d/default.conf
+else
+    echo "Copying /etc/nginx/virtualhost.conf to /etc/nginx/conf.d/default.conf..."
+    cp /etc/nginx/virtualhost.conf.disabled /etc/nginx/conf.d/default.conf
+fi
+
+
 exec "$@"

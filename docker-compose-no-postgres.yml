@@ -38,6 +38,8 @@ services:
     container_name: routerfleet-nginx
     restart: unless-stopped
     image: eduardosilva/routerfleet-nginx:latest
+    environment:
+      - HTTPS_REDIRECT_POLICY=${HTTPS_REDIRECT_POLICY}
     volumes:
       - static_volume:/static
       - https_cert:/certificate

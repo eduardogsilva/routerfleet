@@ -9,3 +9,4 @@ routerfleet/production_settings.py
 db.sqlite3
 backups/
 containers/*/.venv
+.env

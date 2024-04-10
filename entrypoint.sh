@@ -64,7 +64,7 @@ fi
 cat > $PRODUCTION_SETTINGS_FILE <<EOL
 DEBUG = $DEBUG_VALUE
 ALLOWED_HOSTS = ['routerfleet', '$SERVER_ADDRESS']
-CSRF_TRUSTED_ORIGINS = ['http://routerfleet', 'https://$SERVER_ADDRESS']
+CSRF_TRUSTED_ORIGINS = ['http://routerfleet', 'https://$SERVER_ADDRESS', 'http://$SERVER_ADDRESS']
 SECRET_KEY = '$(openssl rand -base64 32)'
 $DATABASES_CONFIG
 EOL

@@ -60,6 +60,8 @@ services:
     build:
       context: ./containers/nginx
       dockerfile: Dockerfile-nginx
+    environment:
+      - HTTPS_REDIRECT_POLICY=${HTTPS_REDIRECT_POLICY}
     volumes:
       - static_volume:/static
       - https_cert:/certificate
