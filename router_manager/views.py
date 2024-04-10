@@ -3,6 +3,7 @@ from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 
+from backup.models import BackupProfile
 from backup_data.models import RouterBackup
 from .models import Router, RouterGroup, RouterStatus, SSHKey, BackupSchedule
 from .forms import RouterForm, RouterGroupForm, SSHKeyForm
@@ -12,6 +13,7 @@ from user_manager.models import UserAcl
 @login_required
 def view_router_list(request):
     router_list = Router.objects.all().order_by('name')
+    default_backup_profile, _ = BackupProfile.objects.get_or_create(name='default')
     filter_group = None
     if request.GET.get('filter_group'):
         if request.GET.get('filter_group') == 'all':
