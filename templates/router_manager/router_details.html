@@ -60,6 +60,16 @@
                                 {% endif %}
                                 </span>
                             </li>
+                            {% if router.monitoring %}
+                            <li class="list-group-item">
+                                <b>Availability (last 7 days)</b>
+                                <span class="float-right">
+                                    <a href="/router/availability/?uuid={{ router.uuid }}">
+                                    {{ last_week_availability }}%
+                                    </a>
+                                </span>
+                            </li>
+                            {% endif %}
                             <li class="list-group-item">
                                 <b>Router Type</b>
                                 <span class="float-right">{{ router.get_router_type_display }}</span>

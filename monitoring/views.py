@@ -1,4 +1,6 @@
 from django.shortcuts import render
+
+from monitoring.models import RouterDownTime
 from router_manager.models import Router
 from django.http import JsonResponse
 from django.utils import timezone
@@ -40,6 +42,10 @@ def view_export_router_list(request):
 def view_update_router_status(request):
     router = Router.objects.get(uuid=request.GET.get('uuid'))
     new_status = request.GET.get('status')
+    if router.routerstatus.status_online:
+        current_status = 'online'
+    else:
+        current_status = 'offline'
     if new_status not in ['online', 'offline']:
         return JsonResponse({'status': 'error', 'error_message': 'Invalid status'}, status=400)
     if new_status == 'online':
@@ -47,6 +53,23 @@ def view_update_router_status(request):
     else:
         router.routerstatus.status_online = False
     router.routerstatus.save()
+
+    if current_status != new_status:
+
+        if new_status == 'online':
+            router.routerstatus.status_online = True
+            downtime = RouterDownTime.objects.filter(router=router, end_time=None).first()
+            if downtime:
+                downtime.end_time = timezone.now()
+                downtime.save()
+        else:
+            router.routerstatus.status_online = False
+            downtime = RouterDownTime.objects.create(router=router, start_time=timezone.now())
+        router.routerstatus.last_status_change = timezone.now()
+        router.routerstatus.save()
+        if downtime:
+            RouterDownTime.objects.filter(router=router, end_time=None).exclude(uuid=downtime.uuid).delete()
+
     webadmin_settings, _ = WebadminSettings.objects.get_or_create(name='webadmin_settings')
     webadmin_settings.monitoring_last_run = timezone.now()
     webadmin_settings.save()

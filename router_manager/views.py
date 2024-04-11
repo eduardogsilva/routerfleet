@@ -1,10 +1,12 @@
 from django.contrib import messages
+from django.db.models import Sum
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 
 from backup.models import BackupProfile
 from backup_data.models import RouterBackup
+from monitoring.models import RouterDownTime
 from routerfleet_tools.models import WebadminSettings
 from .models import Router, RouterGroup, RouterStatus, SSHKey, BackupSchedule
 from .forms import RouterForm, RouterGroupForm, SSHKeyForm
@@ -35,10 +37,28 @@ def view_router_list(request):
 
 
 @login_required()
+def view_router_availability(request):
+    router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
+    data = {
+        'router': router,
+        'downtime_list': router.routerdowntime_set.all().order_by('-start_time'),
+    }
+    return render(request, 'router_manager/router_availability.html', context=data)
+
+
+@login_required()
 def view_router_details(request):
     router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
     router_status, _ = RouterStatus.objects.get_or_create(router=router)
     router_backup_list = router.routerbackup_set.all().order_by('-created')
+    downtime_last_week = router.routerdowntime_set.filter(start_time__gte=timezone.now() - timezone.timedelta(days=7)).aggregate(total=Sum('total_down_time'))['total']
+    if downtime_last_week is None:
+        downtime_last_week = 0
+    total_last_week = 7 * 24 * 60 * 60  # total seconds in a week
+    last_week_availability = round((total_last_week - downtime_last_week) / total_last_week * 100, 3)
+    if downtime_last_week > 0 and last_week_availability == 100:
+        last_week_availability = 99.999
+
     if router_status.backup_lock:
         if not router_backup_list.filter(success=False, error=False).exists():
             router_status.backup_lock = None
@@ -50,6 +70,9 @@ def view_router_details(request):
         'router_status': router_status,
         'router_backup_list': router_backup_list,
         'page_title': 'Router Details',
+        'offline_time_last_week': downtime_last_week,
+        'last_week_availability': last_week_availability,
+
     }
 
 
