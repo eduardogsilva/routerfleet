@@ -8,7 +8,9 @@ class WebadminSettings(models.Model):
     current_version = models.PositiveIntegerField(default=0)
     latest_version = models.PositiveIntegerField(default=0)
     last_checked = models.DateTimeField(blank=True, null=True)
+    router_config_last_updated = models.DateTimeField(blank=True, null=True)
     cron_last_run = models.DateTimeField(blank=True, null=True)
+    monitoring_last_run = models.DateTimeField(blank=True, null=True)
 
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)

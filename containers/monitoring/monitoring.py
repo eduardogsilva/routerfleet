@@ -3,31 +3,58 @@ import time
 from datetime import datetime
 from subprocess import Popen, PIPE
 
+DEBUG = False
+if DEBUG:
+    API_ADDRESS = "http://localhost:8000"
+else:
+    API_ADDRESS = "http://routerfleet:8001"
 
+HOST_LIST_URL = f"{API_ADDRESS}/monitoring/export_router_list/"
+UPDATE_STATUS_URL = f"{API_ADDRESS}/monitoring/update_router_status/"
+CONFIG_TIMESTAMP_URL = f"{API_ADDRESS}/monitoring/router_config_timestamp/"
 UPDATE_HOST_LIST_INTERVAL = 600  # How often to update the router list in seconds
 MONITOR_INTERVAL = 60  # How often to monitor each router in seconds
 MAX_NOTIFICATIONS_PER_MONITOR_INTERVAL = 50  # Throttle the number of notifications sent to the remote API
-HOST_LIST_URL = "http://routerfleet:8001/monitoring/export_router_list/"
-UPDATE_STATUS_URL = "http://routerfleet:8001/monitoring/update_router_status/"
-DEBUG = False
+
 
 # Global variables
 host_list = []
 host_list_update_timestamp = 0
 notification_count = 0
+current_router_config_timestamp = ''
+remote_router_config_timestamp = ''
 
 
 def get_verbose_status(status):
     return "online" if status else "offline"
 
 
-def fetch_host_list():
-    global host_list_update_timestamp
+def update_router_config_timestamp():
+    global remote_router_config_timestamp
     try:
-        print(f"{datetime.now()} - Fetching host list...")
+        response = requests.get(CONFIG_TIMESTAMP_URL)
+        if response.status_code == 200:
+            remote_router_config_timestamp_temp = response.json()['router_config']
+            if remote_router_config_timestamp_temp != remote_router_config_timestamp:
+                remote_router_config_timestamp = remote_router_config_timestamp_temp
+                print(f"{datetime.now()} - Router config timestamp updated: {remote_router_config_timestamp}")
+            else:
+                print(f"{datetime.now()} - Router config timestamp unchanged: {remote_router_config_timestamp}")
+        else:
+            print(f"{datetime.now()} - Error updating router config timestamp: HTTP {response.status_code}")
+    except Exception as e:
+        print(f"{datetime.now()} - Exception updating router config timestamp: {e}")
+    return
+
+
+def fetch_host_list():
+    global host_list_update_timestamp, current_router_config_timestamp, remote_router_config_timestamp
+    try:
         response = requests.get(HOST_LIST_URL)
         if response.status_code == 200:
             host_list_update_timestamp = time.time()
+            remote_router_config_timestamp = response.json()['router_config']
+            current_router_config_timestamp = remote_router_config_timestamp
             return response.json()['router_list'], True
         else:
             print(f"{datetime.now()} - Error fetching host list: HTTP {response.status_code}")
@@ -66,18 +93,33 @@ def check_host_status(host_uuid):
 
 
 def update_and_monitor():
-    global host_list, host_list_update_timestamp, notification_count
+    global host_list, host_list_update_timestamp, notification_count, current_router_config_timestamp, remote_router_config_timestamp
     while True:
+        update_router_config_timestamp()
         current_time = time.time()
         notification_count = 0
+        update_required = False
 
+        if not current_router_config_timestamp:
+            update_required = True
+        if current_router_config_timestamp != remote_router_config_timestamp:
+            update_required = True
         if current_time - host_list_update_timestamp > UPDATE_HOST_LIST_INTERVAL:
+            update_required = True
+
+        if update_required:
+            print(f"{datetime.now()} - Update required. Fetching host list...")
             new_host_list, fetch_host_list_success = fetch_host_list()
             if fetch_host_list_success:
                 host_list = new_host_list
                 print(f"{datetime.now()} - host list updated.")
                 if DEBUG:
                     print(host_list)
+        else:
+            print(f"{datetime.now()} - No update required. Skipping host list update.")
+            if DEBUG:
+                print(f"{datetime.now()} - Current router config timestamp: {current_router_config_timestamp}")
+                print(f"{datetime.now()} - Remote router config timestamp: {remote_router_config_timestamp}")
 
         if host_list:
             if DEBUG:
@@ -94,7 +136,8 @@ def update_and_monitor():
 
 if __name__ == "__main__":
     print(f"{datetime.now()} - Monitoring container started, waiting for routerfleet container to start...")
-    time.sleep(30)  # Wait for the routerfleet container to start
+    if not DEBUG:
+        time.sleep(30)  # Wait for the routerfleet container to start
     print(f"{datetime.now()} - Starting monitoring service...")
     update_and_monitor()
 

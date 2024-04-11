@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 
 from backup.models import BackupProfile
 from backup_data.models import RouterBackup
+from routerfleet_tools.models import WebadminSettings
 from .models import Router, RouterGroup, RouterStatus, SSHKey, BackupSchedule
 from .forms import RouterForm, RouterGroupForm, SSHKeyForm
 from user_manager.models import UserAcl
@@ -59,12 +60,16 @@ def view_router_details(request):
 def view_manage_router(request):
     if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=30).exists():
         return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
+    webadmin_settings, _ = WebadminSettings.objects.get_or_create(name='webadmin_settings')
+
     if request.GET.get('uuid'):
         router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
         if request.GET.get('action') == 'delete':
             if request.GET.get('confirmation') == 'delete':
                 router.delete()
                 messages.success(request, 'Router deleted successfully')
+                webadmin_settings.router_config_last_updated = timezone.now()
+                webadmin_settings.save()
                 return redirect('router_list')
             else:
                 messages.warning(request, 'Router not deleted|Invalid confirmation')
@@ -78,6 +83,8 @@ def view_manage_router(request):
         messages.success(request, 'Router saved successfully|It may take a few minutes until monitoring starts for this router.')
         router_status, _ = RouterStatus.objects.get_or_create(router=form.instance)
         BackupSchedule.objects.filter(router=form.instance).delete()
+        webadmin_settings.router_config_last_updated = timezone.now()
+        webadmin_settings.save()
         return redirect('router_list')
 
     context = {
