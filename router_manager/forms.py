@@ -2,7 +2,7 @@ from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, HTML
 from .models import Router, RouterGroup, SSHKey
-from routerlib.functions import test_authentication
+from routerlib.functions import test_authentication, connect_to_ssh
 import ipaddress
 import socket
 
@@ -12,7 +12,7 @@ class RouterForm(forms.ModelForm):
 
     class Meta:
         model = Router
-        fields = ['name', 'address', 'username', 'password', 'ssh_key', 'monitoring', 'router_type', 'enabled', 'backup_profile']
+        fields = ['name', 'port', 'address', 'username', 'password', 'ssh_key', 'monitoring', 'router_type', 'enabled', 'backup_profile']
 
     def __init__(self, *args, **kwargs):
         super(RouterForm, self).__init__(*args, **kwargs)
@@ -27,7 +27,7 @@ class RouterForm(forms.ModelForm):
         self.helper.layout = Layout(
             Row(
                 Column('name', css_class='form-group col-md-6 mb-0'),
-                Column('address', css_class='form-group col-md-6 mb-0'),
+                Column('ssh_key', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
             Row(
@@ -35,7 +35,12 @@ class RouterForm(forms.ModelForm):
                 Column('password', css_class='form-group col-md-6 mb-0'),
                 css_class='form-row'
             ),
-            'ssh_key',
+            Row(
+                Column('address', css_class='form-group col-md-6 mb-0'),
+                Column('port', css_class='form-group col-md-6 mb-0'),
+                css_class='form-row'
+            ),
+
             'backup_profile',
             'router_type',
             'monitoring',
@@ -59,6 +64,7 @@ class RouterForm(forms.ModelForm):
         address = cleaned_data.get('address')
         router_type = cleaned_data.get('router_type')
         backup_profile = cleaned_data.get('backup_profile')
+        port = cleaned_data.get('port')
 
         if name:
             name = name.strip()
@@ -82,6 +88,11 @@ class RouterForm(forms.ModelForm):
             if backup_profile:
                 raise forms.ValidationError('Monitoring only routers cannot have a backup profile')
             return cleaned_data
+        else:
+            if not port:
+                raise forms.ValidationError('You must provide a port')
+            if not 1 <= port <= 65535:
+                raise forms.ValidationError('Invalid port number')
 
         if ssh_key and password:
             raise forms.ValidationError('You must provide a password or an SSH Key, not both')
@@ -94,8 +105,9 @@ class RouterForm(forms.ModelForm):
         if ssh_key and not password:
             cleaned_data['password'] = ''
 
+
         test_authentication_success, test_authentication_message = test_authentication(
-            router_type, cleaned_data['address'], username, cleaned_data['password'], ssh_key
+            router_type, cleaned_data['address'], port, username, cleaned_data['password'], ssh_key
         )
         if not test_authentication_success:
             if test_authentication_message:

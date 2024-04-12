@@ -26,6 +26,7 @@ class Router(models.Model):
     name = models.CharField(max_length=100, unique=True)
     internal_notes = models.TextField(null=True, blank=True)
     address = models.CharField(max_length=100)
+    port = models.IntegerField(default=22)
     username = models.CharField(max_length=100, default='admin')
     password = models.CharField(max_length=100, null=True, blank=True)
     ssh_key = models.ForeignKey(SSHKey, on_delete=models.SET_NULL, null=True, blank=True)
