@@ -12,23 +12,26 @@ from routerlib.backup_functions import perform_backup
 
 
 def next_weekday(now, weekday, hour):
+    now = timezone.localtime(timezone.now())
     days_ahead = weekday - now.weekday()
-    if days_ahead < 0 or (days_ahead == 0 and now.hour >= hour):  # if backup date is for today and hour has passed, move to next week
+    if days_ahead < 0 or (days_ahead == 0 and now.hour >= hour):
         days_ahead += 7
     next_backup = now + timedelta(days=days_ahead)
-    return next_backup.replace(hour=hour, minute=0, second=0, microsecond=0)
+    next_backup = next_backup.replace(hour=hour, minute=0, second=0, microsecond=0)
+    return next_backup
 
 
 def find_next_active_day(start_date, active_days, backup_hour):
-    for i in range(7):  # Verifica os próximos 7 dias
-        potential_date = start_date + timedelta(days=i)
-        if active_days[potential_date.weekday()]:
+    now = timezone.localtime()
+    for i in range(7):
+        potential_date = timezone.localtime(start_date + timedelta(days=i))
+        weekday = potential_date.weekday()
+        if active_days[weekday]:
             next_active_date = potential_date.replace(hour=backup_hour, minute=0, second=0, microsecond=0)
-            if next_active_date > timezone.now():
+            if next_active_date > now:
                 return next_active_date
-            # Se já passou a hora no primeiro dia válido, procura no dia correspondente da próxima semana
-            if i == 0:
-                return potential_date + timedelta(days=7, hours=(backup_hour - potential_date.hour))
+            if i == 0 and now.hour >= backup_hour:
+                continue
     return None
 
 
@@ -59,7 +62,6 @@ def calculate_next_backup(backup_profile):
         potential_monthly_backup = datetime(year=now.year, month=now.month, day=backup_profile.monthly_day,
                                             hour=backup_profile.monthly_hour, tzinfo=timezone.get_current_timezone())
         if potential_monthly_backup <= now:
-            # Se o dia do mês já passou, ou é hoje mas a hora já passou, agenda para o próximo mês
             month_increment = 1 if now.month < 12 else -11
             year_increment = 0 if now.month < 12 else 1
             next_monthly_backup = potential_monthly_backup.replace(year=now.year + year_increment,

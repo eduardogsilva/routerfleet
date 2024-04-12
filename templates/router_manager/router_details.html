@@ -117,6 +117,18 @@
             <div class="card card-primary card-outline">
                 <div class="card-header">
                     <h3 class="card-title">Backup history</h3>
+                    <span class="float-right">
+                        {% if router.backupschedule %}
+                        <a onclick="$('.backup-schedule-information').slideToggle();" href="#">
+                            show schedule <i class="far fa-clock"></i>
+                        </a>
+                        {% else %}
+                        <a onclick="alert('There\'s no backup schedule for this equipment.');" href="#">
+                            show schedule <i class="far fa-clock"></i>
+                        </a>
+                        {% endif %}
+                        
+                    </span>
                 </div>
                 <div class="card-body row">
                     <div class="col-lg-12">
@@ -131,6 +143,34 @@
                             </tr>
                             </thead>
                             <tbody>
+                            {% if router.backupschedule.next_daily_backup %}
+                            <tr class="backup-schedule-information"  style="display: none;">
+                                <td><i class="far fa-clock text-info"></i></td>
+                                <td>Daily</td>
+                                <td>{{ router.backupschedule.next_daily_backup }}</td>
+                                <td><i class="far fa-clock text-info"></i></td>
+                                <td>-</td>
+                            </tr>
+                            {% endif %}
+                            {% if router.backupschedule.next_weekly_backup %}
+                            <tr class="backup-schedule-information"  style="display: none;">
+                                <td><i class="far fa-clock text-info"></i></td>
+                                <td>Weekly</td>
+                                <td>{{ router.backupschedule.next_weekly_backup }}</td>
+                                <td><i class="far fa-clock text-info"></i></td>
+                                <td>-</td>
+                            </tr>
+                            {% endif %}
+                            {% if router.backupschedule.next_monthly_backup %}
+                            <tr class="backup-schedule-information" style="display: none;">
+                                <td><i class="far fa-clock text-info"></i></td>
+                                <td>Monthly</td>
+                                <td>{{ router.backupschedule.next_monthly_backup }}</td>
+                                <td><i class="far fa-clock text-info"></i></td>
+                                <td>-</td>
+                            </tr>
+                            {% endif %}
+
                             {% for backup in router_backup_list %}
                                 <tr>
                                     <td class="min-width">
@@ -140,7 +180,7 @@
                                     </td>
                                     <td>{{ backup.get_schedule_type_display }}</td>
                                     <td>{% if backup.finish_time %}{{ backup.finish_time }}{% else %}
-                                        <i class="far fa-clock text-warning"></i>{% endif %}</td>
+                                        {% if not backup.error %}<i class="far fa-clock text-warning"></i>{% endif %}{% endif %}</td>
                                     <td>
                                         {% if backup.success %}
                                             <i class="far fa-check-circle text-success"></i>
