@@ -3,6 +3,11 @@ PRODUCTION_SETTINGS_FILE="/app/routerfleet/production_settings.py"
 
 set -e
 
+if [[ "$COMPOSE_VERSION" != "02b" ]]; then
+    echo "ERROR: Please upgrade your docker compose file. Exiting."
+    exit 1
+fi
+
 if [ -z "$SERVER_ADDRESS" ]; then
     echo "SERVER_ADDRESS environment variable is not set. Exiting."
     exit 1
@@ -69,8 +74,8 @@ SECRET_KEY = '$(openssl rand -base64 32)'
 $DATABASES_CONFIG
 EOL
 
-if [ -n "$TIMEZONE" ]; then
-    echo "TIME_ZONE = '$TIMEZONE'" >> $PRODUCTION_SETTINGS_FILE
+if [ -n "$TZ" ]; then
+    echo "TIME_ZONE = '$TZ'" >> $PRODUCTION_SETTINGS_FILE
 fi
 
 sed -i "/^    path('admin\/', admin.site.urls),/s/^    /    # /" /app/routerfleet/urls.py

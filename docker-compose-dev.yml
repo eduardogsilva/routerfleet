@@ -9,6 +9,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - TZ=${TIMEZONE}
 
   routerfleet:
     container_name: routerfleet
@@ -24,7 +25,8 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - TIMEZONE=${TIMEZONE}
+      - TZ=${TIMEZONE}
+      - COMPOSE_VERSION=02b
       - COMPOSE_TYPE=with-postgres
 
     volumes:
@@ -41,6 +43,8 @@ services:
     build:
       context: ./containers/cron
       dockerfile: Dockerfile-cron
+    environment:
+      - TZ=${TIMEZONE}
     depends_on:
       - routerfleet
 
@@ -50,6 +54,8 @@ services:
     build:
       context: ./containers/monitoring
       dockerfile: Dockerfile-monitoring
+    environment:
+      - TZ=${TIMEZONE}
     depends_on:
       - routerfleet
 
@@ -62,6 +68,7 @@ services:
       dockerfile: Dockerfile-nginx
     environment:
       - HTTPS_REDIRECT_POLICY=${HTTPS_REDIRECT_POLICY}
+      - TZ=${TIMEZONE}
     volumes:
       - static_volume:/static
       - https_cert:/certificate

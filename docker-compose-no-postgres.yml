@@ -12,7 +12,8 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - TIMEZONE=${TIMEZONE}
+      - TZ=${TIMEZONE}
+      - COMPOSE_VERSION=02b
       - COMPOSE_TYPE=no-postgres
     volumes:
       - sqlite_volume:/var/lib/routerfleet_sqlite/
@@ -24,6 +25,8 @@ services:
     container_name: routerfleet-cron
     restart: unless-stopped
     image: eduardosilva/routerfleet-cron:latest
+    environment:
+      - TZ=${TIMEZONE}
     depends_on:
       - routerfleet
 
@@ -31,6 +34,8 @@ services:
     container_name: routerfleet-monitoring
     restart: unless-stopped
     image: eduardosilva/routerfleet-monitoring:latest
+    environment:
+      - TZ=${TIMEZONE}
     depends_on:
       - routerfleet
 
@@ -40,6 +45,7 @@ services:
     image: eduardosilva/routerfleet-nginx:latest
     environment:
       - HTTPS_REDIRECT_POLICY=${HTTPS_REDIRECT_POLICY}
+      - TZ=${TIMEZONE}
     volumes:
       - static_volume:/static
       - https_cert:/certificate
