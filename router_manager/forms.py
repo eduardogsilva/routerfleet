@@ -105,7 +105,6 @@ class RouterForm(forms.ModelForm):
         if ssh_key and not password:
             cleaned_data['password'] = ''
 
-
         test_authentication_success, test_authentication_message = test_authentication(
             router_type, cleaned_data['address'], port, username, cleaned_data['password'], ssh_key
         )

@@ -14,7 +14,7 @@
                     {% include 'router_manager/router_nav_tabs.html' %}
                     <div class="row">
                         <div class="col-lg-12">
-                            <table class="table table-hover">
+                            <table class="table table-hover datatables-no-export">
                                 <thead>
                                 <tr>
                                     <th>Name</th>
@@ -40,9 +40,9 @@
                                         <td>
                                             {% if router.monitoring %}
                                                 {% if router.routerstatus.status_online %}
-                                                    <i class="far fa-check-circle text-success" title="Host is Online"></i>
+                                                    <span style="display: none">online</span><i class="far fa-check-circle text-success" title="Host is Online"></i>
                                                 {% else %}
-                                                    <i class="far fa-times-circle text-danger" title="Host is unavailable"></i>
+                                                    <span style="display: none">offline</span><i class="far fa-times-circle text-danger" title="Host is unavailable"></i>
                                                 {% endif %}
                                             {% else %}
                                                 ---
@@ -57,16 +57,15 @@
                                             {% endif %}
                                             {% endif %}
                                         </td>
-                                    
                                         <td>
                                             {{ router.routergroup_set.count }}
                                         </td>
                                         <td class="min-width">
                                             {% if router.router_type != 'monitoring' %}
                                                 {% if router.ssh_key %}
-                                                    <i class="fas fa-key" title="SSH Key: {{ router.ssh_key }}"></i>
+                                                    <span style="display: none">sshkey</span><i class="fas fa-key" title="SSH Key: {{ router.ssh_key }}"></i>
                                                 {% elif router.password %}
-                                                    <i class="fas fa-keyboard" title="Password Authentication"></i>
+                                                    <span style="display: none">password</span><i class="fas fa-keyboard" title="Password Authentication"></i>
                                                 {% else %}
                                                     <i class="fas fa-exclamation-triangle text-warning" title="Missing authentication"></i>
                                                 {% endif %}
@@ -93,4 +92,7 @@
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block custom_page_scripts %}
 {% endblock %}
