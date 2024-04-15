@@ -2,12 +2,12 @@ import requests
 import time
 from datetime import datetime
 from subprocess import Popen, PIPE
+import os
+import uuid
+
 
 DEBUG = False
-if DEBUG:
-    API_ADDRESS = "http://localhost:8000"
-else:
-    API_ADDRESS = "http://routerfleet:8001"
+API_ADDRESS = "http://routerfleet:8001"
 
 HOST_LIST_URL = f"{API_ADDRESS}/monitoring/export_router_list/"
 UPDATE_STATUS_URL = f"{API_ADDRESS}/monitoring/update_router_status/"
@@ -23,16 +23,34 @@ host_list_update_timestamp = 0
 notification_count = 0
 current_router_config_timestamp = ''
 remote_router_config_timestamp = ''
+api_key = ''
 
 
 def get_verbose_status(status):
     return "online" if status else "offline"
 
 
+def get_api_key():
+    api_key_temp = None
+    api_file_path = "/app_secrets/monitoring_key"
+
+    if os.path.exists(api_file_path) and os.path.isfile(api_file_path):
+        with open(api_file_path, 'r') as api_file:
+            api_file_content = api_file.read().strip()
+            try:
+                uuid_test = uuid.UUID(api_file_content)
+
+                if str(uuid_test) == api_file_content:
+                    api_key_temp = str(uuid_test)
+            except:
+                pass
+    return api_key_temp
+
+
 def update_router_config_timestamp():
-    global remote_router_config_timestamp
+    global remote_router_config_timestamp, api_key
     try:
-        response = requests.get(CONFIG_TIMESTAMP_URL)
+        response = requests.get(f"{CONFIG_TIMESTAMP_URL}?key={api_key}")
         if response.status_code == 200:
             remote_router_config_timestamp_temp = response.json()['router_config']
             if remote_router_config_timestamp_temp != remote_router_config_timestamp:
@@ -48,9 +66,9 @@ def update_router_config_timestamp():
 
 
 def fetch_host_list():
-    global host_list_update_timestamp, current_router_config_timestamp, remote_router_config_timestamp
+    global host_list_update_timestamp, current_router_config_timestamp, remote_router_config_timestamp, api_key
     try:
-        response = requests.get(HOST_LIST_URL)
+        response = requests.get(f"{HOST_LIST_URL}?key={api_key}")
         if response.status_code == 200:
             host_list_update_timestamp = time.time()
             remote_router_config_timestamp = response.json()['router_config']
@@ -64,12 +82,12 @@ def fetch_host_list():
 
 
 def update_host_status(uuid, status):
-    global notification_count
+    global notification_count, api_key
     if notification_count >= MAX_NOTIFICATIONS_PER_MONITOR_INTERVAL:
         print(f"{datetime.now()} - Notification limit reached. Skipping Remote API update for {host_list[uuid]['address']}")
         return  # Skip if notification limit is reached
     try:
-        response = requests.get(f"{UPDATE_STATUS_URL}?uuid={uuid}&status={get_verbose_status(status)}")
+        response = requests.get(f"{UPDATE_STATUS_URL}?key={api_key}&uuid={uuid}&status={get_verbose_status(status)}")
         if response.status_code == 200:
             print(f"{datetime.now()} - Remote API Status updated for {host_list[uuid]['address']} to {get_verbose_status(status)}")
             notification_count += 1
@@ -93,7 +111,12 @@ def check_host_status(host_uuid):
 
 
 def update_and_monitor():
-    global host_list, host_list_update_timestamp, notification_count, current_router_config_timestamp, remote_router_config_timestamp
+    global host_list, host_list_update_timestamp, notification_count, current_router_config_timestamp, remote_router_config_timestamp, api_key
+    api_key = get_api_key()
+    if not api_key:
+        print(f"{datetime.now()} - Monitoring key not found or invalid. Exiting...")
+        exit(1)
+
     while True:
         update_router_config_timestamp()
         current_time = time.time()

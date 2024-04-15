@@ -25,12 +25,13 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - TZ=${TIMEZONE}
-      - COMPOSE_VERSION=02b
+      - COMPOSE_VERSION=02c
       - COMPOSE_TYPE=with-postgres
     volumes:
       - sqlite_volume:/var/lib/routerfleet_sqlite/
       - media_root:/var/lib/routerfleet/
       - static_volume:/app_static_files/
+      - app_secrets:/app_secrets/
     command: /bin/bash /app/init.sh
     depends_on:
       - routerfleet-postgres
@@ -50,6 +51,8 @@ services:
     image: eduardosilva/routerfleet-monitoring:latest
     environment:
       - TZ=${TIMEZONE}
+    volumes:
+      - app_secrets:/app_secrets/
     depends_on:
       - routerfleet
 
@@ -75,3 +78,4 @@ volumes:
   media_root:
   postgres_data:
   sqlite_volume:
+  app_secrets:

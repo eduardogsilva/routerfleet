@@ -3,7 +3,7 @@ PRODUCTION_SETTINGS_FILE="/app/routerfleet/production_settings.py"
 
 set -e
 
-if [[ "$COMPOSE_VERSION" != "02b" ]]; then
+if [[ "$COMPOSE_VERSION" != "02c" ]]; then
     echo "ERROR: Please upgrade your docker compose file. Exiting."
     exit 1
 fi
@@ -77,6 +77,12 @@ EOL
 if [ -n "$TZ" ]; then
     echo "TIME_ZONE = '$TZ'" >> $PRODUCTION_SETTINGS_FILE
 fi
+
+if [ ! -f /app_secrets/monitoring_key ]; then
+    cat /proc/sys/kernel/random/uuid > /app_secrets/monitoring_key
+fi
+echo "MONITORING_KEY = '$(cat /app_secrets/monitoring_key)'" >> $PRODUCTION_SETTINGS_FILE
+
 
 sed -i "/^    path('admin\/', admin.site.urls),/s/^    /    # /" /app/routerfleet/urls.py
 
