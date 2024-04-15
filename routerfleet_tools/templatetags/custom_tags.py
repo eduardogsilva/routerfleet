@@ -11,6 +11,9 @@ def tag_webadmin_version():
     if webadmin_settings.current_version != settings.ROUTERFLEET_VERSION:
         webadmin_settings.current_version = settings.ROUTERFLEET_VERSION
         webadmin_settings.save()
+    if webadmin_settings.current_version > webadmin_settings.latest_version:
+        webadmin_settings.latest_version = webadmin_settings.current_version
+        webadmin_settings.save()
     if webadmin_settings.current_version == webadmin_settings.latest_version:
         webadmin_settings.update_available = False
         webadmin_settings.save()

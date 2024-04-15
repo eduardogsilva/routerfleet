@@ -273,24 +273,25 @@
     $('.select').chosen();
 </script>
 <script>
-  $(function () {
-    $(".datatables-with-export").DataTable({
-      "responsive": true, "lengthChange": false, "autoWidth": false,
-      "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
-    }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
-    $('.datatables-no-export').DataTable({
-      "paging": true,
-      "lengthChange": true,
-      "searching": true,
-      "ordering": true,
-      "order": [],
-      "info": true,
-      "autoWidth": false,
-      "responsive": true,
+    var dataTable;
+    $(function () {
+        $(".datatables-with-export").DataTable({
+            "responsive": true, "lengthChange": false, "autoWidth": false,
+            "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
+        }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
+        dataTable = $('.datatables-no-export').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "order": [],
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+        });
     });
-  });
-  $('.datatables-with-export').show();
-  $('.datatables-no-export').show();
+    $('.datatables-with-export').show();
+    $('.datatables-no-export').show();
 </script>
 <script>
     $(document).ready(function() {

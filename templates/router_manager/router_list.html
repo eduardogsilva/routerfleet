@@ -100,7 +100,7 @@
         var group_uuid = "{{ filter_group.uuid|default_if_none:'' }}";
         var status_online_text = '<span style="display: none">online</span><i class="far fa-check-circle text-success" title="Host is Online"></i>';
         var status_offline_text = '<span style="display: none">offline</span><i class="far fa-times-circle text-danger" title="Host is unavailable"></i>';
-        
+
         function checkStatusChange() {
             $.ajax({
                 url: "/monitoring/last_status_change/",
@@ -123,28 +123,37 @@
                 }
             });
         }
-
         function updateRouterStatuses(routerList) {
             for (var uuid in routerList) {
                 var router = routerList[uuid];
-                var $statusTd = $('#status-' + uuid);
-                var currentStatus = $statusTd.find('span').text().trim();
-                var newStatus = router.online ? 'online' : 'offline';
-                var newStatusHtml = router.online ? status_online_text : status_offline_text;
+                var cells = dataTable.$('td#status-' + uuid);
 
-                if (currentStatus !== newStatus) {
-                    $statusTd.html(newStatusHtml);
+                if (cells.length) {
+                    cells.each(function () {
+                        var $cell = $(this);
+                        var currentStatusContent = $cell.html(); 
+                        var $currentSpan = $cell.find('span');
+                        var currentStatus = $currentSpan.length ? $currentSpan.text().trim() : '';
 
-                    $(document).Toasts('create', {
-                        class: router.online ? 'bg-success' : 'bg-danger',
-                        title: 'Host status updated',
-                        body: 'Host ' + router.name + ' is now ' + newStatus,
-                        delay: 10000,
-                        autohide: true
+                        var newStatus = router.online ? 'online' : 'offline';
+                        var newStatusHtml = router.online ? status_online_text : status_offline_text;
+
+                        if (currentStatus !== newStatus) {
+                            $cell.html(newStatusHtml);
+                            
+                            $(document).Toasts('create', {
+                                class: router.online ? 'bg-success' : 'bg-danger',
+                                title: 'Host status updated',
+                                body: 'Host ' + router.name + ' is now ' + newStatus,
+                                delay: 10000,
+                                autohide: true
+                            });
+                        }
                     });
                 }
             }
         }
+        
         setInterval(checkStatusChange, 30000);
         $(document).ready(function() {
             checkStatusChange();
