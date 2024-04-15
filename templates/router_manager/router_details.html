@@ -30,6 +30,7 @@
                                 <b>Address</b>
                                 <span class="float-right">{{ router.address }}</span>
                             </li>
+                            {% if router.router_type != 'monitoring' %}
                             <li class="list-group-item">
                                 <b>username</b>
                                 <span class="float-right">{{ router.username }}</span>
@@ -46,6 +47,7 @@
                                     {% endif %}
                                 </span>
                             </li>
+                            {% endif %}
                             <li class="list-group-item">
                                 <b>Monitoring</b>
                                 <span class="float-right">
@@ -74,6 +76,16 @@
                                 <b>Router Type</b>
                                 <span class="float-right">{{ router.get_router_type_display }}</span>
                             </li>
+                            
+                            <li class="list-group-item">
+                                <b>Groups</b>
+                                <span class="float-right">
+                                {% for router_group in router.routergroup_set.all %}
+                                    <span class="badge badge-primary">{{ router_group.name }}</span>
+                                {% endfor %}
+                                </span>
+                            </li>
+                            {% if router.router_type != 'monitoring' %}
                             <li class="list-group-item">
                                 <b>Backup Profile</b>
                                 <span class="float-right">
@@ -88,15 +100,6 @@
                                 </span>
                             </li>
                             <li class="list-group-item">
-                                <b>Groups</b>
-                                <span class="float-right">
-                                {% for router_group in router.routergroup_set.all %}
-                                    <span class="badge badge-primary">{{ router_group.name }}</span>
-                                {% endfor %}
-                                </span>
-                            </li>
-                        
-                            <li class="list-group-item">
                                 <b>Instant Backup</b>
                                 <span class="float-right">
                                     <a href="/router/create_instant_backup/?uuid={{ router.uuid }}">
@@ -104,6 +107,7 @@
                                     </a>
                                 </span>
                             </li>
+                            {% endif %}
                             <li class="list-group-item">
                                 <b>Notes</b>
                                 <span class="float-right">{{ router.internal_notes|default_if_none:""|linebreaksbr }}</span>
@@ -114,6 +118,7 @@
             </div>
         </div>
         <div class='col-xl-7'>
+        {% if router_backup_list or router.router_type != 'monitoring' %}
             <div class="card card-primary card-outline">
                 <div class="card-header">
                     <h3 class="card-title">Backup history</h3>
@@ -206,6 +211,7 @@
                     </div>
                 </div>
             </div>
+        {% endif %}
         </div>
     </div>
 {% endblock %}
