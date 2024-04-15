@@ -6,7 +6,7 @@ from user_manager.views import view_manage_user, view_user_list
 from accounts.views import view_login, view_logout, view_create_first_user
 from router_manager.views import view_router_list, view_manage_router, view_router_group_list, view_ssh_key_list, view_manage_router_group, view_manage_sshkey, view_router_details, view_create_instant_backup_task, view_router_availability
 from backup.views import view_backup_profile_list, view_manage_backup_profile, view_backup_list, view_backup_details, view_debug_run_backups, view_compare_backups, view_backup_download, view_backup_delete
-from monitoring.views import view_export_router_list, view_update_router_status, view_router_config_timestamp
+from monitoring.views import view_export_router_list, view_update_router_status, view_router_config_timestamp, view_router_last_status_change
 from backup_data.views import view_generate_backup_schedule, view_create_backup_tasks, view_perform_backup_tasks, view_housekeeping
 from routerfleet_tools.views import cron_check_updates
 
@@ -40,6 +40,7 @@ urlpatterns = [
     path('monitoring/export_router_list/', view_export_router_list, name='export_router_list'),
     path('monitoring/update_router_status/', view_update_router_status, name='update_router_status'),
     path('monitoring/router_config_timestamp/', view_router_config_timestamp, name='router_config_timestamp'),
+    path('monitoring/last_status_change/', view_router_last_status_change, name='last_status_change'),
     path('cron/generate_backup_schedule/', view_generate_backup_schedule, name='generate_backup_schedule'),
     path('cron/create_backup_tasks/', view_create_backup_tasks, name='create_backup_tasks'),
     path('cron/perform_backup_tasks/', view_perform_backup_tasks, name='perform_backup_tasks'),

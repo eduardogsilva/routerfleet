@@ -37,7 +37,7 @@
                                         <td>{{ router.get_router_type_display }}</td>
                                         <td>{{ router.address }}</td>
 
-                                        <td>
+                                        <td id="status-{{ router.uuid }}">
                                             {% if router.monitoring %}
                                                 {% if router.routerstatus.status_online %}
                                                     <span style="display: none">online</span><i class="far fa-check-circle text-success" title="Host is Online"></i>
@@ -95,4 +95,59 @@
 {% endblock %}
 
 {% block custom_page_scripts %}
+    <script>
+        var last_status_change = "{{ last_status_change_timestamp }}";
+        var group_uuid = "{{ filter_group.uuid|default_if_none:'' }}";
+        var status_online_text = '<span style="display: none">online</span><i class="far fa-check-circle text-success" title="Host is Online"></i>';
+        var status_offline_text = '<span style="display: none">offline</span><i class="far fa-times-circle text-danger" title="Host is unavailable"></i>';
+        
+        function checkStatusChange() {
+            $.ajax({
+                url: "/monitoring/last_status_change/",
+                success: function(data) {
+                    if (data.last_status_change !== last_status_change) {
+                        // Update last_status_change and fetch new router list
+                        last_status_change = data.last_status_change;
+                        fetchRouterList();
+                    }
+                }
+            });
+        }
+
+        function fetchRouterList() {
+            var url = group_uuid ? "/monitoring/export_router_list/?filter_group=" + group_uuid : "/monitoring/export_router_list/";
+            $.ajax({
+                url: url,
+                success: function(data) {
+                    updateRouterStatuses(data.router_list);
+                }
+            });
+        }
+
+        function updateRouterStatuses(routerList) {
+            for (var uuid in routerList) {
+                var router = routerList[uuid];
+                var $statusTd = $('#status-' + uuid);
+                var currentStatus = $statusTd.find('span').text().trim();
+                var newStatus = router.online ? 'online' : 'offline';
+                var newStatusHtml = router.online ? status_online_text : status_offline_text;
+
+                if (currentStatus !== newStatus) {
+                    $statusTd.html(newStatusHtml);
+
+                    $(document).Toasts('create', {
+                        class: router.online ? 'bg-success' : 'bg-danger',
+                        title: 'Host status updated',
+                        body: 'Host ' + router.name + ' is now ' + newStatus,
+                        delay: 10000,
+                        autohide: true
+                    });
+                }
+            }
+        }
+        setInterval(checkStatusChange, 30000);
+        $(document).ready(function() {
+            checkStatusChange();
+        });
+    </script>
 {% endblock %}

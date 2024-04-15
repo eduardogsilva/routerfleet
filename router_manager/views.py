@@ -16,6 +16,12 @@ from user_manager.models import UserAcl
 @login_required
 def view_router_list(request):
     router_list = Router.objects.all().order_by('name')
+    last_router_status_change = RouterStatus.objects.filter(last_status_change__isnull=False).order_by('-last_status_change').first()
+    if last_router_status_change:
+        last_status_change_timestamp = last_router_status_change.last_status_change.isoformat()
+    else:
+        last_status_change_timestamp = 0
+
     default_backup_profile, _ = BackupProfile.objects.get_or_create(name='default')
     filter_group = None
     if request.GET.get('filter_group'):
@@ -32,6 +38,7 @@ def view_router_list(request):
         'page_title': 'Router List',
         'filter_group_list': RouterGroup.objects.all().order_by('name'),
         'filter_group': filter_group,
+        'last_status_change_timestamp': last_status_change_timestamp,
     }
     return render(request, 'router_manager/router_list.html', context=context)
 

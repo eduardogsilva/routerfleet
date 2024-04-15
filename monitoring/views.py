@@ -1,7 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 
 from monitoring.models import RouterDownTime
-from router_manager.models import Router
+from router_manager.models import Router, RouterStatus, RouterGroup
 from django.http import JsonResponse
 from django.utils import timezone
 
@@ -17,15 +17,30 @@ def view_router_config_timestamp(request):
     return JsonResponse({'router_config': webadmin_settings.router_config_last_updated.isoformat()})
 
 
+def view_router_last_status_change(request):
+    last_router_status_change = RouterStatus.objects.filter(last_status_change__isnull=False).order_by('-last_status_change').first()
+    if last_router_status_change:
+        last_status_change_timestamp = last_router_status_change.last_status_change.isoformat()
+    else:
+        last_status_change_timestamp = "0"
+    return JsonResponse({'last_status_change': last_status_change_timestamp})
+
+
 def view_export_router_list(request):
-    router_list = {}
     webadmin_settings, _ = WebadminSettings.objects.get_or_create(name='webadmin_settings')
-    webadmin_settings.monitoring_last_run = timezone.now()
+    # Not updating the monitoring last run here, as this view is also used on the dashboard
     if not webadmin_settings.router_config_last_updated:
         webadmin_settings.router_config_last_updated = timezone.now()
-    webadmin_settings.save()
+        webadmin_settings.save()
 
-    for router in Router.objects.filter(enabled=True, monitoring=True):
+    if request.GET.get('filter_group'):
+        router_group = get_object_or_404(RouterGroup, uuid=request.GET.get('filter_group'))
+        query_router_list = router_group.routers.all().filter(enabled=True, monitoring=True)
+    else:
+        query_router_list = Router.objects.filter(enabled=True, monitoring=True)
+
+    router_list = {}
+    for router in query_router_list:
         router_list[str(router.uuid)] = {
             'address': router.address,
             'name': router.name,
