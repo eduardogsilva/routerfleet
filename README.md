@@ -90,7 +90,9 @@ Adjust the variables according to your setup.
 
 ### Step 4: Run Docker Compose
 
-Launch your RouterFleet deployment with the Docker Compose command:
+If you are upgrading from a previous version, you should consider running ```docker compose pull``` to ensure you are using the latest images.
+
+Start the RouterFleet services using Docker Compose:
 
 ```bash
 docker compose up -d
