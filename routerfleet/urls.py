@@ -9,6 +9,7 @@ from backup.views import view_backup_profile_list, view_manage_backup_profile, v
 from monitoring.views import view_export_router_list, view_update_router_status, view_router_config_timestamp, view_router_last_status_change
 from backup_data.views import view_generate_backup_schedule, view_create_backup_tasks, view_perform_backup_tasks, view_housekeeping
 from routerfleet_tools.views import cron_check_updates
+from message_center.views import view_message_channel_list, view_manage_message_settings, view_manage_message_channel
 
 
 urlpatterns = [
@@ -48,5 +49,8 @@ urlpatterns = [
     path('cron/check_updates/', cron_check_updates, name='check_updates'),
     path('wireguard_webadmin/', view_wireguard_webadmin_launcher, name='wireguard_webadmin_launcher'),
     path('wireguard_webadmin/manage/', view_manage_wireguard_integration, name='manage_wireguard_integration'),
-    path('wireguard_webadmin/launch/', view_launch_wireguard_webadmin, name='launch_wireguard_webadmin')
+    path('wireguard_webadmin/launch/', view_launch_wireguard_webadmin, name='launch_wireguard_webadmin'),
+    path('message_center/channel_list/', view_message_channel_list, name='message_channel_list'),
+    path('message_center/manage_settings/', view_manage_message_settings, name='manage_message_settings'),
+    path('message_center/manage_channel/', view_manage_message_channel, name='manage_message_channel'),
 ]

@@ -19,7 +19,7 @@ class MessageChannel(models.Model):
     enabled = models.BooleanField(default=True)
     channel_type = models.CharField(
         max_length=100, choices=(
-            ('callmebot', 'CallMeBot'), ('ntfy', 'ntfy'), ('telegram', 'telegram'),
+            ('callmebot', 'CallMeBot (WhatsApp)'), ('telegram', 'Telegram'),
         )
     )
     destination = models.CharField(max_length=100, blank=True, null=True)

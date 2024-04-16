@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class='row'>
+        <div class='col-lg-12'>
+            <div class="card card-primary card-outline">
+
+                <div class="card-header">
+                    <h3 class="card-title">Notification Channels</h3>
+                </div>
+
+                <div class="card-body row">
+                    <div class="col-lg-12">
+                        <table class="table table-hover datatables-no-export">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Enabled</th>
+                                <th>Channel</th>
+                                <th style="text-decoration: underline" title="Status change to Online">Online</th>
+                                <th style="text-decoration: underline" title="Status change to Offline">Offline</th>
+                                <th style="text-decoration: underline" title="Backup failed">Backup</th>
+                                <th style="text-decoration: underline" title="Daily report for host status">Status Report</th>
+                                <th style="text-decoration: underline" title="Daily backup report">Backup Report</th>
+                            </tr>
+
+                            </thead>
+                            <tbody>
+                            {% for channel in message_channels %}
+                                <tr>
+                                    <td>
+                                        <a href="/message_center/manage_channel/?uuid={{ channel.uuid }}">
+                                        {{ channel.name }}
+                                            </a>
+                                    
+                                    </td>
+                                    <td>
+                                        {% if channel.enabled %}
+                                            <span style="display: none">enabled</span><i class="far fa-check-circle text-success"></i>
+                                        {% else %}
+                                            <span style="display: none">disabled</span><i class="far fa-times-circle text-danger"></i>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ channel.get_channel_type_display }}</td>
+                                    <td>
+                                        {% if channel.status_change_online %}
+                                            <span style="display: none">enabled</span><i class="far fa-check-circle text-success"></i>
+                                        {% else %}
+                                            <span style="display: none">disabled</span><i class="far fa-times-circle text-danger"></i>
+                                        {% endif %}
+                                    </td>
+                                <td>
+                                        {% if channel.status_change_offline %}
+                                            <span style="display: none">enabled</span><i class="far fa-check-circle text-success"></i>
+                                        {% else %}
+                                            <span style="display: none">disabled</span><i class="far fa-times-circle text-danger"></i>
+                                        {% endif %}
+                                    </td>
+                                <td>
+                                        {% if channel.backup_fail %}
+                                            <span style="display: none">enabled</span><i class="far fa-check-circle text-success"></i>
+                                        {% else %}
+                                            <span style="display: none">disabled</span><i class="far fa-times-circle text-danger"></i>
+                                        {% endif %}
+                                    </td>
+                                <td>
+                                        {% if channel.daily_status_report %}
+                                            <span style="display: none">enabled</span><i class="far fa-check-circle text-success"></i>
+                                        {% else %}
+                                            <span style="display: none">disabled</span><i class="far fa-times-circle text-danger"></i>
+                                        {% endif %}
+                                    </td>
+                                <td>
+                                        {% if channel.daily_backup_report %}
+                                            <span style="display: none">enabled</span><i class="far fa-check-circle text-success"></i>
+                                        {% else %}
+                                            <span style="display: none">disabled</span><i class="far fa-times-circle text-danger"></i>
+                                        {% endif %}
+                                    </td>
+                                    
+                                
+                                </tr>
+
+                            {% endfor %}
+
+                            </tbody>
+                        </table>
+
+
+                    </div>
+                
+                <div class="col-lg-12">
+                    <a href="/message_center/manage_channel/" class="btn btn-primary">Create Channel</a>
+                    <a href="/message_center/manage_settings/" class="btn btn-primary">Message Settings</a>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
