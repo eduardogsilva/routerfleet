@@ -7,6 +7,7 @@ from django.utils import timezone
 
 from backup.models import BackupProfile
 from backup_data.models import RouterBackup
+from message_center.functions import notify_backup_fail
 from router_manager.models import Router, BackupSchedule, RouterStatus
 from routerlib.backup_functions import perform_backup
 
@@ -249,6 +250,7 @@ def view_housekeeping(requests):
         backup.save()
         backup.router.routerstatus.last_backup_failed = timezone.now()
         backup.router.routerstatus.save()
+        notify_backup_fail(backup)
 
         if not RouterBackup.objects.filter(router=backup.router, success=False, error=False).exists():
             backup.router.routerstatus.backup_lock = None

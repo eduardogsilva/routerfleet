@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404
 
+from message_center.functions import notify_router_status_update
 from monitoring.models import RouterDownTime
 from router_manager.models import Router, RouterStatus, RouterGroup
 from django.http import JsonResponse
@@ -78,7 +79,6 @@ def view_update_router_status(request):
     router.routerstatus.save()
 
     if current_status != new_status:
-
         if new_status == 'online':
             router.routerstatus.status_online = True
             downtime = RouterDownTime.objects.filter(router=router, end_time=None).first()
@@ -92,6 +92,7 @@ def view_update_router_status(request):
         router.routerstatus.save()
         if downtime:
             RouterDownTime.objects.filter(router=router, end_time=None).exclude(uuid=downtime.uuid).delete()
+        notify_router_status_update(router)
 
     webadmin_settings, _ = WebadminSettings.objects.get_or_create(name='webadmin_settings')
     webadmin_settings.monitoring_last_run = timezone.now()

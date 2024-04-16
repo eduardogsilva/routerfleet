@@ -4,6 +4,8 @@ from backup_data.models import RouterBackup
 import os
 from scp import SCPClient
 from django.core.files.base import ContentFile
+
+from message_center.functions import notify_backup_fail
 from routerlib.functions import gen_backup_name, connect_to_ssh, get_router_backup_file_extension
 
 
@@ -18,12 +20,14 @@ def perform_backup(router_backup: RouterBackup):
         router_backup.save()
         router_backup.router.routerstatus.backup_lock = None
         router_backup.router.routerstatus.save()
+        notify_backup_fail(router_backup)
         return
     if router_backup.retry_count > router_backup.router.backup_profile.max_retry:
         router_backup.error = True
         router_backup.save()
         router_backup.router.routerstatus.backup_lock = None
         router_backup.router.routerstatus.save()
+        notify_backup_fail(router_backup)
         return
 
     if router_backup.backup_pending_retrieval:

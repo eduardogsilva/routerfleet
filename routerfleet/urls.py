@@ -9,12 +9,13 @@ from backup.views import view_backup_profile_list, view_manage_backup_profile, v
 from monitoring.views import view_export_router_list, view_update_router_status, view_router_config_timestamp, view_router_last_status_change
 from backup_data.views import view_generate_backup_schedule, view_create_backup_tasks, view_perform_backup_tasks, view_housekeeping
 from routerfleet_tools.views import cron_check_updates
-from message_center.views import view_message_channel_list, view_manage_message_settings, view_manage_message_channel
+from message_center.views import view_message_channel_list, view_manage_message_settings, view_manage_message_channel, view_debug_test_messages
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('debug/run_backups/', view_debug_run_backups, name='debug_run_backups'),
+    path('debug/test_messages/', view_debug_test_messages, name='debug_test_messages'),
     path('', view_dashboard, name='dashboard'),
     path('status/', view_status, name='status'),
     path('user/list/', view_user_list, name='user_list'),

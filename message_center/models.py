@@ -35,6 +35,9 @@ class MessageChannel(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
 
+    def __str__(self):
+        return self.name + ' (' + self.channel_type + ')'
+
 
 class Message(models.Model):
     channel = models.ForeignKey(MessageChannel, on_delete=models.CASCADE)
@@ -44,7 +47,9 @@ class Message(models.Model):
         ('pending', 'Pending'), ('sent', 'Sent'), ('failed', 'Failed'),
     ), default='pending')
     retry_count = models.IntegerField(default=0)
+    next_retry = models.DateTimeField(blank=True, null=True)
     error_message = models.TextField(blank=True, null=True)
+    error_status_code = models.IntegerField(blank=True, null=True)
     completed = models.DateTimeField(blank=True, null=True)
 
     updated = models.DateTimeField(auto_now=True)

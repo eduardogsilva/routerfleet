@@ -1,9 +1,34 @@
-from django.shortcuts import render, redirect
+from django.http import JsonResponse, Http404
+from django.shortcuts import render, redirect, Http404, get_object_or_404
 from django.contrib import messages
+
+from router_manager.models import Router
 from user_manager.models import UserAcl
 from .forms import MessageSettingsForm, MessageChannelForm
 from .models import Notification, MessageChannel, Message, MessageSettings
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
+from .functions import notify_router_status_update, notify_backup_fail, send_notification_message
+from backup_data.models import RouterBackup
+
+
+def view_debug_test_messages(request):
+    if not settings.DEBUG:
+        raise Http404
+    data = {'status': 'success'}
+    router = None
+    router_backup = None
+    if request.GET.get('router_uuid'):
+        router = get_object_or_404(Router, uuid=request.GET.get('router_uuid'))
+        print(f'Creating test message for router {router.name}')
+        notify_router_status_update(router)
+    elif request.GET.get('backup_id'):
+        router_backup = get_object_or_404(RouterBackup, id=request.GET.get('backup_id'))
+        notify_backup_fail(router_backup)
+    else:
+        for message in Message.objects.filter(status='pending'):
+            send_notification_message(message)
+    return JsonResponse(data)
 
 
 @login_required()
