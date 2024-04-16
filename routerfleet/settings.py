@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     'backup',
     'backup_data',
     'integration_manager',
-    'routerfleet_tools'
+    'routerfleet_tools',
+    'message_center',
 ]
 
 MIDDLEWARE = [
