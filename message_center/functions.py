@@ -7,6 +7,120 @@ import requests
 from django.utils import timezone
 
 
+def concatenate_notifications(notification_type: str):
+    concatenate_count = 0
+    message_settings, _ = MessageSettings.objects.get_or_create(name='message_settings')
+    message_channel_list = MessageChannel.objects.filter(enabled=True)
+    if notification_type == 'status_online':
+        notification_text = 'Router status change: Online\n'
+        notification_list = Notification.objects.filter(notification_type='status_online')
+        message_channel_list = message_channel_list.filter(status_change_online=True)
+    elif notification_type == 'status_offline':
+        notification_text = 'Router status change: Offline\n'
+        notification_list = Notification.objects.filter(notification_type='status_offline')
+        message_channel_list = message_channel_list.filter(status_change_offline=True)
+    elif notification_type == 'backup_fail':
+        notification_text = 'Backup failed report\n'
+        notification_list = Notification.objects.filter(notification_type='backup_fail')
+        message_channel_list = message_channel_list.filter(backup_fail=True)
+    else:
+        return 0
+
+    notification_list = notification_list.order_by('created')
+    for notification in notification_list:
+        notification_text_temp = notification_text
+        if notification.router_backup:
+            notification_text_temp += f'\n- Backup: {notification.router_backup.id} for router {notification.router_backup.router.name} '
+        elif notification.router:
+            notification_text_temp += f'\n- Router {notification.router.name} ({notification.router.address})'
+        if len(notification_text_temp) < message_settings.max_length:
+            notification_text = notification_text_temp
+            notification.delete()
+            concatenate_count += 1
+        else:
+            break
+
+    for message_channel in message_channel_list:
+        Message.objects.create(
+            channel=message_channel,
+            subject=notification_text.split('\n')[0],
+            message=notification_text
+        )
+    return concatenate_count
+
+
+def generate_backup_report(data):
+    message_settings, _ = MessageSettings.objects.get_or_create(name='message_settings')
+    yesterday = timezone.now() - datetime.timedelta(days=1)
+    failed_backup_list = RouterBackup.objects.filter(error=True, updated__gt=yesterday)
+    success_backup_list = RouterBackup.objects.filter(success=True, updated__gt=yesterday)
+    pending_backup_list = RouterBackup.objects.filter(success=False, error=False, updated__gt=yesterday)
+    if data['report_time_exception']:
+        message_text = 'Warning: Error calculating report time, please check your timezone settings.\n\n'
+    else:
+        message_text = ''
+    message_text = 'Routerfleet Daily backup report:\n'
+    message_text += f'Backups completed: {success_backup_list.count()}\n'
+    message_text += f'Backups failed: {failed_backup_list.count()}\n'
+    message_text += f'Backups pending: {pending_backup_list.count()}\n'
+
+    if failed_backup_list.count() > 0:
+        message_text += '\n=========\n Failed backups:\n'
+        message_text_temp = message_text
+        truncate_text = 'There are more failed backups, please check the web interface for the full list\n\n'
+        for backup in failed_backup_list:
+            message_text_temp += f'- Backup {backup.id} for router {backup.router.name} ({backup.router.address})\n'
+            if len(message_text_temp + truncate_text) < message_settings.max_length:
+                message_text = message_text_temp
+            else:
+                message_text += truncate_text
+                break
+    for message_channel in MessageChannel.objects.filter(enabled=True, daily_backup_report=True):
+        Message.objects.create(
+            channel=message_channel,
+            subject='Daily backup report',
+            message=message_text
+        )
+    return
+
+
+def generate_status_report(data):
+    message_settings, _ = MessageSettings.objects.get_or_create(name='message_settings')
+    router_list = Router.objects.filter(enabled=True, monitoring=True)
+    offline_count = router_list.filter(routerstatus__status_online=False).count()
+    if data['report_time_exception']:
+        message_text = 'Warning: Error calculating report time, please check your timezone settings.\n\n'
+    else:
+        message_text = ''
+    message_text += 'Routerfleet Daily status report:\n'
+    message_text += f'Monitored routers: {router_list.count()}\n'
+    message_text += f'Online: {router_list.filter(routerstatus__status_online=True).count()}\n'
+    message_text += f'Offline: {offline_count}\n'
+
+    if offline_count > 0:
+        message_text += '\n=========\n Offline routers:\n'
+        message_text_temp = message_text
+        truncate_text = 'There are more offline routers, please check the web interface for the full list\n\n'
+        for router in router_list.filter(routerstatus__status_online=False):
+            message_text_temp += f'- {router.name} ({router.address})\n'
+            if len(message_text_temp + truncate_text) < message_settings.max_length:
+                message_text = message_text_temp
+            else:
+                message_text += truncate_text
+                break
+
+    message_channel_list = MessageChannel.objects.filter(enabled=True, daily_status_report=True)
+    for message_channel in message_channel_list:
+        Message.objects.create(
+            channel=message_channel,
+            subject='Daily status report',
+            message=message_text
+        )
+    message_settings.last_daily_status_report = timezone.now()
+    message_settings.save()
+    return
+
+
 def send_notification_message(message: Message):
     message_settings, _ = MessageSettings.objects.get_or_create(name='message_settings')
     if message.status != 'pending':

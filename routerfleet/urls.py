@@ -9,7 +9,7 @@ from backup.views import view_backup_profile_list, view_manage_backup_profile, v
 from monitoring.views import view_export_router_list, view_update_router_status, view_router_config_timestamp, view_router_last_status_change
 from backup_data.views import view_generate_backup_schedule, view_create_backup_tasks, view_perform_backup_tasks, view_housekeeping
 from routerfleet_tools.views import cron_check_updates
-from message_center.views import view_message_channel_list, view_manage_message_settings, view_manage_message_channel, view_debug_test_messages
+from message_center.views import view_message_channel_list, view_manage_message_settings, view_manage_message_channel, view_debug_test_messages, view_cron_concatenate_notifications, view_cron_send_messages, view_cron_daily_reports
 
 
 urlpatterns = [
@@ -48,6 +48,9 @@ urlpatterns = [
     path('cron/perform_backup_tasks/', view_perform_backup_tasks, name='perform_backup_tasks'),
     path('cron/housekeeping/', view_housekeeping, name='housekeeping'),
     path('cron/check_updates/', cron_check_updates, name='check_updates'),
+    path('cron/concatenate_notifications/', view_cron_concatenate_notifications, name='concatenate_notifications'),
+    path('cron/send_messages/', view_cron_send_messages, name='send_messages'),
+    path('cron/daily_reports/', view_cron_daily_reports, name='daily_reports'),
     path('wireguard_webadmin/', view_wireguard_webadmin_launcher, name='wireguard_webadmin_launcher'),
     path('wireguard_webadmin/manage/', view_manage_wireguard_integration, name='manage_wireguard_integration'),
     path('wireguard_webadmin/launch/', view_launch_wireguard_webadmin, name='launch_wireguard_webadmin'),
