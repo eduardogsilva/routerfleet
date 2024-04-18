@@ -81,6 +81,8 @@ def generate_backup_report(data):
             subject='Daily backup report',
             message=message_text
         )
+    message_settings.last_daily_backup_report = timezone.now()
+    message_settings.save()
     return
 
 
