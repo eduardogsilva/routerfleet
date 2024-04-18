@@ -25,7 +25,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - TZ=${TIMEZONE}
-      - COMPOSE_VERSION=02c
+      - COMPOSE_VERSION=02d
       - COMPOSE_TYPE=with-postgres
     volumes:
       - sqlite_volume:/var/lib/routerfleet_sqlite/

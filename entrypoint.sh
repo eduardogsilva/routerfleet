@@ -3,7 +3,7 @@ PRODUCTION_SETTINGS_FILE="/app/routerfleet/production_settings.py"
 
 set -e
 
-if [[ "$COMPOSE_VERSION" != "02c" ]]; then
+if [[ "$COMPOSE_VERSION" != "02d" ]]; then
     echo "ERROR: Please upgrade your docker compose file. Exiting."
     exit 1
 fi
@@ -66,9 +66,11 @@ if [[ "${DEBUG_MODE,,}" == "true" ]]; then
     DEBUG_VALUE="True"
 fi
 
+SERVER_HOSTNAME=$(echo $SERVER_ADDRESS | cut -d ':' -f 1)
+
 cat > $PRODUCTION_SETTINGS_FILE <<EOL
 DEBUG = $DEBUG_VALUE
-ALLOWED_HOSTS = ['routerfleet', '$SERVER_ADDRESS']
+ALLOWED_HOSTS = ['routerfleet', '$SERVER_HOSTNAME']
 CSRF_TRUSTED_ORIGINS = ['http://routerfleet', 'https://$SERVER_ADDRESS', 'http://$SERVER_ADDRESS']
 SECRET_KEY = '$(openssl rand -base64 32)'
 $DATABASES_CONFIG
