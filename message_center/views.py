@@ -196,9 +196,31 @@ def view_manage_message_settings(request):
         form.save()
         messages.success(request, 'Message Settings saved successfully')
         return redirect('/message_center/channel_list/')
+    form_description_content = '''
+    <strong>Max Length</strong>
+    <p>Maximum length of a message in characters. Longer messages will be truncated.</p>
+    <strong>Daily Report Time</strong>
+    <p>Time of day to send daily status and backup reports. Format: HH:MM (24-hour clock)</p>
+    <strong>Max Retry and Retry Interval</strong>
+    <p>Maximum number of retries for a failed message and the interval between retries in seconds.</p>
+    <strong>Concatenate Status Change</strong>
+    <p>
+    When enabled, the system will concatenate status change notifications for multiple routers into a single message.
+    If a router goes offline and then online again within the status change delay, the system will not send any message.
+    </p>
+    <strong>Concatenate Backup Fails</strong>
+    <p>Instead of sending a single message for each backup failure, the system will concatenate multiple failures into a single message.</p>
+    <strong>Status Change and Backup fail Delay</strong>
+    <p>Time in seconds to wait for additional notifications before sending a concatenated message.</p>
+    '''
+
     context = {
         'message_settings': message_settings,
         'form': form,
+        'form_description': {
+            'size': '',
+            'content': form_description_content
+        },
     }
     return render(request, 'generic_form.html', context=context)
 
@@ -226,8 +248,24 @@ def view_manage_message_channel(request):
         form.save()
         messages.success(request, 'Message Channel saved successfully')
         return redirect('/message_center/channel_list/')
+    form_description_content = '''
+    <strong>Destination</strong>
+    <p>Destination address for the message channel. For CallMeBot, this is the phone number. For Telegram, this is the chat ID.</p>
+    <strong>Token</strong>
+    <p>For CallMeBot, this is the API token. For Telegram, this is the bot token.</p>
+    <strong>Status Change and Backup Fail</strong>
+    <p>Enable or disable notifications for status changes and backup failures.</p>
+    <strong>Daily Status and Backup Report</strong>
+    <p>Enable or disable daily status and backup reports. This is a quick summary of online/offline status and backup success/failure.</p>
+    
+    '''
+
     context = {
         'message_settings': message_settings,
         'form': form,
+        'form_description': {
+            'size': '',
+            'content': form_description_content
+        },
     }
     return render(request, 'generic_form.html', context=context)
