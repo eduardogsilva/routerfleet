@@ -1,9 +1,9 @@
-* * * * *    root sleep 50; /usr/bin/curl -s http://routerfleet:8001/cron/check_updates/             >> /var/log/cron.log 2>&1
 */5 * * * *  root sleep 0 ; /usr/bin/curl -s http://routerfleet:8001/cron/generate_backup_schedule/  >> /var/log/cron.log 2>&1
 * * * * *    root sleep 5 ; /usr/bin/curl -s http://routerfleet:8001/cron/create_backup_tasks/       >> /var/log/cron.log 2>&1
-* * * * *    root sleep 40; /usr/bin/curl -s http://routerfleet:8001/cron/perform_backup_tasks/      >> /var/log/cron.log 2>&1
 */10 * * * * root sleep 20; /usr/bin/curl -s http://routerfleet:8001/cron/housekeeping/              >> /var/log/cron.log 2>&1
+* * * * *    root sleep 40; /usr/bin/curl -s http://routerfleet:8001/cron/perform_backup_tasks/      >> /var/log/cron.log 2>&1
+* * * * *    root sleep 50; /usr/bin/curl -s http://routerfleet:8001/cron/check_updates/             >> /var/log/cron.log 2>&1
 # Messages and notifications
-* * * * *    root sleep 30; /usr/bin/curl -s http://routerfleet:8001/cron/send_messages/             >> /var/log/cron.log 2>&1
 * * * * *    root sleep 10; /usr/bin/curl -s http://routerfleet:8001/cron/concatenate_notifications/ >> /var/log/cron.log 2>&1
 */10 * * * * root sleep 15; /usr/bin/curl -s http://routerfleet:8001/cron/daily_reports/              >> /var/log/cron.log 2>&1
+* * * * *    root sleep 30; /usr/bin/curl -s http://routerfleet:8001/cron/send_messages/             >> /var/log/cron.log 2>&1
