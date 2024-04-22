@@ -14,6 +14,7 @@ from .functions import notify_router_status_update, notify_backup_fail, send_not
 from backup_data.models import RouterBackup
 import datetime
 from django.utils import timezone
+from django.db.models import Q
 
 
 @login_required()
@@ -132,6 +133,21 @@ def view_cron_send_messages(request):
     return JsonResponse(data)
 
 
+def remove_offline_notifications_for_online_routers():
+    # This function is used to remove change status notifications for routers that are currently online but have
+    # pending offline notifications.
+    # This prevents the system from sending a double status change notification when the router goes offline and then
+    # online again.
+    offline_list = Notification.objects.filter(
+        notification_type='status_offline', router__routerstatus__status_online=True
+    )
+    for notification in offline_list:
+        Notification.objects.filter(router=notification.router).filter(
+            Q(notification_type='status_offline') | Q(notification_type='status_online')
+        ).delete()
+    return
+
+
 def view_cron_concatenate_notifications(request):
     data = {
         'status': 'success',
@@ -145,10 +161,13 @@ def view_cron_concatenate_notifications(request):
     status_change_limit = timezone.now() - datetime.timedelta(seconds=message_settings.status_change_delay)
     backup_fail_limit = timezone.now() - datetime.timedelta(seconds=message_settings.backup_fails_delay)
 
-    if Notification.objects.filter(created__lte=status_change_limit, notification_type='status_online').exists():
-        data['notification_type']['status_online'] = concatenate_notifications('status_online')
+    if message_settings.concatenate_status_change:
+        remove_offline_notifications_for_online_routers()
+
     if Notification.objects.filter(created__lte=status_change_limit, notification_type='status_offline').exists():
         data['notification_type']['status_offline'] = concatenate_notifications('status_offline')
+    if Notification.objects.filter(created__lte=status_change_limit, notification_type='status_online').exists():
+        data['notification_type']['status_online'] = concatenate_notifications('status_online')
     if Notification.objects.filter(created__lte=backup_fail_limit, notification_type='backup_fail').exists():
         data['notification_type']['backup_fail'] = concatenate_notifications('backup_fail')
     return JsonResponse(data)
