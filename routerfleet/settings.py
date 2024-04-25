@@ -141,6 +141,6 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_ROOT = '/var/lib/routerfleet/'
-ROUTERFLEET_VERSION = 7017
+ROUTERFLEET_VERSION = 7019
 
 from routerfleet.production_settings import *

@@ -10,6 +10,7 @@ from backup_data.models import RouterBackup
 from message_center.functions import notify_backup_fail
 from router_manager.models import Router, BackupSchedule, RouterStatus
 from routerlib.backup_functions import perform_backup
+from message_center.models import Message
 
 
 def next_weekday(now, weekday, hour):
@@ -242,7 +243,8 @@ def view_housekeeping(requests):
     max_backup_task_age = timezone.now() - timedelta(hours=18)
     data = {
         'backup_tasks_expired': 0,
-        'backup_locks_removed': 0
+        'backup_locks_removed': 0,
+        'messages_removed': 0,
     }
     for backup in RouterBackup.objects.filter(created__lt=max_backup_task_age, success=False, error=False):
         backup.error = True
@@ -277,5 +279,9 @@ def view_housekeeping(requests):
         backup_list.filter(schedule_type='monthly', created__lt=timezone.now() - timedelta(days=backup_profile.monthly_retention)).delete()
         backup_list.filter(schedule_type='weekly', created__lt=timezone.now() - timedelta(days=backup_profile.weekly_retention)).delete()
         backup_list.filter(schedule_type='daily', created__lt=timezone.now() - timedelta(days=backup_profile.daily_retention)).delete()
+
+    expired_messages = Message.objects.filter(created__lt=timezone.now() - timedelta(days=30))
+    data['messages_removed'] = expired_messages.count()
+    expired_messages.delete()
 
     return JsonResponse(data)

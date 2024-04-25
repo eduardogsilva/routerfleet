@@ -9,7 +9,7 @@ from backup.views import view_backup_profile_list, view_manage_backup_profile, v
 from monitoring.views import view_export_router_list, view_update_router_status, view_router_config_timestamp, view_router_last_status_change
 from backup_data.views import view_generate_backup_schedule, view_create_backup_tasks, view_perform_backup_tasks, view_housekeeping
 from routerfleet_tools.views import cron_check_updates
-from message_center.views import view_message_channel_list, view_manage_message_settings, view_manage_message_channel, view_debug_test_messages, view_cron_concatenate_notifications, view_cron_send_messages, view_cron_daily_reports
+from message_center.views import view_message_channel_list, view_manage_message_settings, view_manage_message_channel, view_debug_test_messages, view_cron_concatenate_notifications, view_cron_send_messages, view_cron_daily_reports, view_message_history
 
 
 urlpatterns = [
@@ -57,4 +57,5 @@ urlpatterns = [
     path('message_center/channel_list/', view_message_channel_list, name='message_channel_list'),
     path('message_center/manage_settings/', view_manage_message_settings, name='manage_message_settings'),
     path('message_center/manage_channel/', view_manage_message_channel, name='manage_message_channel'),
+    path('message_center/message_history/', view_message_history, name='message_history'),
 ]
