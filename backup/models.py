@@ -41,7 +41,7 @@ class BackupProfile(models.Model):
     max_retry = models.IntegerField(default=3, choices=((1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')))
     retry_interval = models.IntegerField(default=30, choices=((1, '1 Minute'), (15, '15 Minutes'), (30, '30 Minutes'), (60, '1 Hour')))
     retrieve_interval = models.IntegerField(default=60, choices=((15, '15 Seconds'), (30, '30 Seconds'), (60, '1 Minute'), (900, '15 Minutes'), (1800, '30 Minutes'), (3600, '1 Hour')))
-    backup_interval = models.IntegerField(default=60, choices=((0, 'No interval'), (5, '5 seconds'), (60, '1 minute')))
+    backup_interval = models.IntegerField(default=0, choices=((0, 'No interval'), (5, '5 seconds'), (60, '1 minute')))
 
     profile_error_information = models.CharField(max_length=100, blank=True, null=True)
 
