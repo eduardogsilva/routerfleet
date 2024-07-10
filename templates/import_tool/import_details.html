@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+    <div class='row'>
+        <div class='col-lg-12'>
+            <div class="card card-primary card-outline">
+                {% if page_title %}
+                    <div class="card-header">
+                        <h3 class="card-title">{{ page_title }}</h3>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link {% if import_view == 'tasks' %}active{% endif %}" href="?uuid={{ csv_data.uuid }}&view=taks" role="tab">
+                                Tasks
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link {% if import_view == 'processed' %}active{% endif %}" href="?uuid={{ csv_data.uuid }}&view=processed" role="tab">
+                                Processed data
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link {% if import_view == 'raw' %}active{% endif %}" href="?uuid={{ csv_data.uuid }}&view=raw" role="tab">
+                                Raw data
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            {% if import_view == 'tasks' %}
+                                {% include 'import_tool/import_details_tasks.html' %}
+                            {% elif import_view == 'processed' %}
+                                {% include 'import_tool/import_details_processed.html' %}
+                            {% elif import_view == 'raw' %}
+                                {% include 'import_tool/import_details_raw.html' %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

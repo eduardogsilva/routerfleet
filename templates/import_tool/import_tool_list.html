@@ -16,11 +16,32 @@
                             <table class="table table-hover datatables-no-export">
                                 <thead>
                                 <tr>
-
+                                    <th>ID</th>
+                                    <th>Created</th>
+                                    <th>Total Tasks</th>
+                                    <th>Success</th>
+                                    <th>Error</th>
+                                    <th>Status</th>
                                 </tr>
 
                                 </thead>
                                 <tbody>
+                                {% for import in import_list %}
+                                    <tr>
+                                        <td>
+                                            <a href="/router/import_tool/details/?uuid={{ import.csv_data.uuid }}">
+                                                {{ import.csv_data.id }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            {{ import.csv_data.created }}
+                                        </td>
+                                        <td>{{ import.task_count }}</td>
+                                        <td>{{ import.success_count }}</td>
+                                        <td>{{ import.error_count }}</td>
+                                        <td>{{ import.status }}</td>
+                                    </tr>
+                                {% endfor %}
 
                                 </tbody>
                             </table>

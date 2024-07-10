@@ -1,0 +1,34 @@
+<table class="table table-hover datatables-no-export">
+    <thead>
+    <tr>
+        <th class="min-width">Import ID</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Port</th>
+        <th>Username</th>
+        <th>Password</th>
+        <th>SSH Key</th>
+        <th>Router Type</th>
+        <th>Backup Profile</th>
+        <th>Router Group</th>
+        <th>Monitoring</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for import_task in csv_data.import_data %}
+    <tr>
+        <td>{{ import_task.import_id }}</td>
+        <td>{{ import_task.name }}</td>
+        <td>{{ import_task.address }}</td>
+        <td>{{ import_task.port }}</td>
+        <td>{{ import_task.username }}</td>
+        <td>{{ import_task.password }}</td>
+        <td>{{ import_task.ssh_key }}</td>
+        <td>{{ import_task.router_type }}</td>
+        <td>{{ import_task.backup_profile }}</td>
+        <td>{{ import_task.router_group }}</td>
+        <td>{{ import_task.monitoring }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
