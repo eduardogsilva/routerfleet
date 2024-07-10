@@ -41,6 +41,12 @@
                             {% endif %}
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-lg-12" style="padding-top: 10px">
+                            <a href="/router/import_tool/details/?uuid={{ csv_data.uuid }}&action=create_tasks" class="btn btn-primary">Create import Tasks</a>
+                            <a href="/router/import_tool/details/?uuid={{ csv_data.uuid }}&action=start_tasks" class="btn btn-primary">start/resume</a>
+                            <a href="/router/import_tool/details/?uuid={{ csv_data.uuid }}&action=delete" onclick="return confirm('Are you sure you want to remove the current import task?\n\nThis action will remove all import data associated with this task, but will not affect routers that have already been imported.\n\nPress OK to confirm or Cancel to return.');" class="btn btn-primary">Delete import</a>
+                    </div>
                 </div>
             </div>
         </div>

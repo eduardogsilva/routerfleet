@@ -1,0 +1,43 @@
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th style="display: none;">UUID</th>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Status</th>
+        <th>Error message</th>
+        
+    </tr>
+    </thead>
+    <tbody>
+    {% for task in import_task_list %}
+        <tr>
+        <td>{{ task.import_id }}</td>
+        <td style="display: none;">{{ task.uuid }}</td>
+        <td>
+            {% if task.router %}
+            <a href="/router/details/?uuid={{ task.router.uuid }}" title="Task name: {{ task.name }}">{{ task.router.name }}</a>
+            {% else %}
+            {{ task.name }}
+            {% endif %}
+        </td>
+        <td>{{ task.address }}</td>
+        <td id="status-{{ task.uuid }}">
+            {% if task.import_success %}
+            <span class="badge badge-success">Success</span>
+            {% elif task.import_error %}
+            <span class="badge badge-danger">Error</span>
+            {% else %}
+            <span class="badge badge-warning">Pending</span>
+            {% endif %}
+            {% comment %}
+            <span class="badge badge-info">Working...</span>
+            {% endcomment %}
+        </td>
+        <td>{{ task.import_error_message|default_if_none:'' }}</td>
+        </tr>
+    
+    {% endfor %}
+    </tbody>
+</table>

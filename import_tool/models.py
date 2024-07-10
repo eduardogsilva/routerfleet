@@ -14,11 +14,12 @@ class CsvData(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
 
     def __str__(self):
-        return self.name
+        return str(self.id)
 
 
 class ImportTask(models.Model):
     csv_data = models.ForeignKey(CsvData, on_delete=models.CASCADE)
+    import_id = models.IntegerField(default=0)
     router = models.ForeignKey(Router, on_delete=models.SET_NULL, blank=True, null=True)
     name = models.CharField(max_length=100)
     ssh_key = models.ForeignKey(SSHKey, on_delete=models.SET_NULL, blank=True, null=True)
@@ -45,3 +46,5 @@ class ImportTask(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        unique_together = ['csv_data', 'import_id']
