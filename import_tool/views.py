@@ -4,6 +4,7 @@ from .models import CsvData, ImportTask
 from .forms import CsvDataForm
 from django.contrib import messages
 
+
 @login_required()
 def view_import_tool_list(request):
     import_list = []
