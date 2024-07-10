@@ -10,7 +10,7 @@ from monitoring.views import view_export_router_list, view_update_router_status,
 from backup_data.views import view_generate_backup_schedule, view_create_backup_tasks, view_perform_backup_tasks, view_housekeeping
 from routerfleet_tools.views import cron_check_updates
 from message_center.views import view_message_channel_list, view_manage_message_settings, view_manage_message_channel, view_debug_test_messages, view_cron_concatenate_notifications, view_cron_send_messages, view_cron_daily_reports, view_message_history
-from import_tool.views import view_import_tool_list, view_import_csv_file, view_import_details
+from import_tool.views import view_import_tool_list, view_import_csv_file, view_import_details, run_import_task
 
 
 urlpatterns = [
@@ -36,6 +36,7 @@ urlpatterns = [
     path('router/import_tool/', view_import_tool_list, name='import_tool_list'),
     path('router/import_tool/csv/', view_import_csv_file, name='import_csv_file'),
     path('router/import_tool/details/', view_import_details, name='import_details'),
+    path('router/import_tool/run_import_task/', run_import_task, name='run_import_task'),
     path('backup/profile_list/', view_backup_profile_list, name='backup_profile_list'),
     path('backup/manage_profile/', view_manage_backup_profile, name='manage_backup_profile'),
     path('backup/backup_list/', view_backup_list, name='backup_list'),

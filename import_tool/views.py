@@ -1,8 +1,128 @@
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+
+from backup.models import BackupProfile
+from router_manager.models import Router, SSHKey, SUPPORTED_ROUTER_TYPES, RouterGroup
+from routerlib.functions import test_authentication
 from .models import CsvData, ImportTask
 from .forms import CsvDataForm
 from django.contrib import messages
+import ipaddress
+import socket
+
+SUPPORTED_ROUTER_TYPES = [rt[0] for rt in SUPPORTED_ROUTER_TYPES]
+
+
+@login_required()
+def run_import_task(request):
+    import_task = get_object_or_404(ImportTask, uuid=request.GET.get('uuid'), import_success=False, import_error=False)
+    ssh_key = None
+    backup_profile = None
+    router_group = None
+
+    name = import_task.name.strip()
+
+    if Router.objects.filter(name=name).exists():
+        error_message = f'Router with name "{name}" already exists.'
+        import_task.import_error = True
+        import_task.import_error_message = error_message
+        import_task.save()
+        return JsonResponse({'status': 'error', 'error_message': error_message})
+
+    if import_task.ssh_key_name:
+        ssh_key = SSHKey.objects.filter(name=import_task.ssh_key_name).first()
+        if not ssh_key:
+            error_message = f'SSH Key with name "{import_task.ssh_key_name}" not found.'
+            import_task.import_error = True
+            import_task.import_error_message = error_message
+            import_task.save()
+            return JsonResponse({'status': 'error', 'error_message': error_message})
+
+    address = import_task.address.lower()
+    try:
+        socket.gethostbyname(address)
+    except socket.gaierror:
+        try:
+            ipaddress.ip_address(address)
+        except ValueError:
+            error_message = 'The address field must be a valid hostname or IP address.'
+            import_task.import_error = True
+            import_task.import_error_message = error_message
+            import_task.save()
+            return JsonResponse({'status': 'error', 'error_message': error_message})
+
+    if not 1 <= import_task.port <= 65535:
+        error_message = 'Invalid port number'
+        import_task.import_error = True
+        import_task.import_error_message = error_message
+        import_task.save()
+        return JsonResponse({'status': 'error', 'error_message': error_message})
+
+    if import_task.router_type not in SUPPORTED_ROUTER_TYPES:
+        error_message = f'Invalid router_type "{import_task.router_type}"'
+        import_task.import_error = True
+        import_task.import_error_message = error_message
+        import_task.save()
+        return JsonResponse({'status': 'error', 'error_message': error_message})
+
+    if import_task.backup_profile_name:
+        backup_profile = BackupProfile.objects.filter(name=import_task.backup_profile_name).first()
+        if not backup_profile:
+            error_message = f'Backup Profile with name "{import_task.backup_profile_name}" not found.'
+            import_task.import_error = True
+            import_task.import_error_message = error_message
+            import_task.save()
+            return JsonResponse({'status': 'error', 'error_message': error_message})
+
+    if import_task.router_group_name:
+        router_group = RouterGroup.objects.filter(name=import_task.router_group_name).first()
+        if not router_group:
+            error_message = f'Router Group with name "{import_task.router_group_name}" not found.'
+            import_task.import_error = True
+            import_task.import_error_message = error_message
+            import_task.save()
+            return JsonResponse({'status': 'error', 'error_message': error_message})
+
+    if not import_task.password and not ssh_key:
+        error_message = 'You must provide a password or an SSH Key'
+        import_task.import_error = True
+        import_task.import_error_message = error_message
+        import_task.save()
+        return JsonResponse({'status': 'error', 'error_message': error_message})
+
+    test_authentication_success, test_authentication_message = test_authentication(
+        import_task.router_type, address, import_task.port, import_task.username, import_task.password, ssh_key
+    )
+    if not test_authentication_success:
+        if test_authentication_message:
+            error_message = 'Could not authenticate: ' + test_authentication_message
+        else:
+            error_message = 'Could not authenticate to the router. Please check the credentials and try again.'
+        import_task.import_error = True
+        import_task.import_error_message = error_message
+        import_task.save()
+        return JsonResponse({'status': 'error', 'error_message': error_message})
+
+
+    new_router = Router.objects.create(
+        name=import_task.name, username=import_task.username, password=import_task.password, ssh_key=ssh_key,
+        address=address, port=import_task.port, router_type=import_task.router_type, backup_profile=backup_profile,
+        monitoring=import_task.monitoring
+    )
+
+    if router_group:
+        router_group.routers.add(new_router)
+        router_group.save()
+
+    import_task.router = new_router
+    import_task.import_success = True
+    import_task.ssh_key = ssh_key
+    import_task.backup_profile = backup_profile
+    import_task.router_group = router_group
+    import_task.save()
+
+    return JsonResponse({'status': 'success', 'message': 'Task completed successfully.'})
 
 
 @login_required()
@@ -64,9 +184,22 @@ def view_import_details(request):
         else:
             messages.warning(request, 'No new tasks created.')
         return redirect(f'/router/import_tool/details/?uuid={csv_data.uuid}')
+
     elif request.GET.get('action') == 'start_import':
         import_view = 'tasks'
         pass
+
+    elif request.GET.get('action') == 'delete_errors':
+        tasks_deleted = 0
+        for task in import_task_list.filter(import_error=True):
+            task.delete()
+            tasks_deleted += 1
+        if tasks_deleted > 0:
+            messages.success(request, f'Error tasks deleted: {tasks_deleted}')
+        else:
+            messages.warning(request, 'No error tasks deleted.')
+        return redirect(f'/router/import_tool/details/?uuid={csv_data.uuid}')
+
     elif request.GET.get('action') == 'delete':
         #import_task_list.delete()
         #csv_data.delete()

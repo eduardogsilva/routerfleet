@@ -35,7 +35,7 @@
             <span class="badge badge-info">Working...</span>
             {% endcomment %}
         </td>
-        <td>{{ task.import_error_message|default_if_none:'' }}</td>
+        <td id="errormessage-{{ task.uuid }}">{{ task.import_error_message|default_if_none:'' }}</td>
         </tr>
     
     {% endfor %}
