@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from backup.models import BackupProfile
 from router_manager.models import Router, SSHKey, SUPPORTED_ROUTER_TYPES, RouterGroup
 from routerlib.functions import test_authentication
+from user_manager.models import UserAcl
 from .models import CsvData, ImportTask
 from .forms import CsvDataForm
 from django.contrib import messages
@@ -16,6 +17,8 @@ SUPPORTED_ROUTER_TYPES = [rt[0] for rt in SUPPORTED_ROUTER_TYPES]
 
 @login_required()
 def run_import_task(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=50).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     import_task = get_object_or_404(ImportTask, uuid=request.GET.get('uuid'), import_success=False, import_error=False)
     ssh_key = None
     backup_profile = None
@@ -127,6 +130,8 @@ def run_import_task(request):
 
 @login_required()
 def view_import_tool_list(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=50).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     import_list = []
     for csv_data in CsvData.objects.all().order_by('-created'):
         import_summary = {
@@ -140,7 +145,10 @@ def view_import_tool_list(request):
         elif import_summary['error_count'] > 0:
             import_summary['status'] = 'Completed with Errors'
         else:
-            import_summary['status'] = 'Completed'
+            if import_summary['task_count'] == 0:
+                import_summary['status'] = 'Not started'
+            else:
+                import_summary['status'] = 'Completed'
         import_list.append(import_summary)
     data = {
         'import_list': import_list,
@@ -151,8 +159,11 @@ def view_import_tool_list(request):
 
 @login_required()
 def view_import_details(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=50).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     csv_data = get_object_or_404(CsvData, uuid=request.GET.get('uuid'))
     import_task_list = ImportTask.objects.filter(csv_data=csv_data).order_by('import_id')
+    action = None
     if request.GET.get('view') == 'raw':
         import_view = 'raw'
     elif request.GET.get('view') == 'processed':
@@ -186,6 +197,7 @@ def view_import_details(request):
         return redirect(f'/router/import_tool/details/?uuid={csv_data.uuid}')
 
     elif request.GET.get('action') == 'start_import':
+        action = 'start_import'
         import_view = 'tasks'
         pass
 
@@ -201,13 +213,14 @@ def view_import_details(request):
         return redirect(f'/router/import_tool/details/?uuid={csv_data.uuid}')
 
     elif request.GET.get('action') == 'delete':
-        #import_task_list.delete()
-        #csv_data.delete()
-        messages.warning(request, 'Delete action not implemented yet.')
+        import_task_list.delete()
+        csv_data.delete()
+        messages.success(request, 'CSV data and all tasks deleted.')
         return redirect('/router/import_tool')
 
     data = {
         'csv_data': csv_data,
+        'action': action,
         'import_task_list': import_task_list,
         'import_view': import_view,
         'page_title': f'Import Details - {csv_data.id}',
@@ -217,15 +230,49 @@ def view_import_details(request):
 
 @login_required()
 def view_import_csv_file(request):
+    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=50).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
+
+    form_description_content = '''
+    <strong>CSV Formatting guide</strong>
+    <p>For best results, we recommend always using double quotes and coma. ex: "","",""</p>
+    <p>
+    The header line is required, and the order of the columns must match the following:<br>
+    "name","username","password","ssh_key","address","port","router_type","backup_profile","router_group","monitoring"
+    </p>
+    
+    <strong>Example</strong>
+    <pre>
+    "name","username","password","ssh_key","address","port","router_type","backup_profile","router_group","monitoring"
+    "example host A","admin","","ssh key name","192.168.2.17","22","routeros","default","","true"
+    "example host B","admin","mysecret","","192.168.2.18","22","routeros","default","group a","false"
+    </pre>
+    
+    <strong>After importing</strong>
+    <p>After importing, you will be able to review the data and create the import tasks.</p>
+    
+    <strong>Delete CSV</strong>
+    <p>If you want to delete the CSV data and all tasks, you can do so from the details page. Successfully imported routers will not be removed.</p>
+    '''
+
     form = CsvDataForm(request.POST or None)
-    data = {'form': form, 'page_title': 'Import CSV File'}
     if form.is_valid():
         csv_data_instance = form.save(commit=False)
         csv_data_instance.import_data = form.cleaned_data['import_data']
         csv_data_instance.save()
 
         messages.success(request, 'CSV data successfully processed and saved.')
-        return redirect('success_url')
+        return redirect('/router/import_tool/details/?uuid=' + str(csv_data_instance.uuid))
+
+    data = {
+        'form': form,
+        'page_title': 'Import CSV File',
+        'form_description': {
+            'size': '',
+            'content': form_description_content
+        },
+
+    }
 
     return render(request, 'generic_form.html', context=data)
 

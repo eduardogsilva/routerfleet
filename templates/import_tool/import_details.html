@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 
-
 {% block content %}
     <div class='row'>
         <div class='col-lg-12'>
@@ -44,12 +43,65 @@
                     <div class="row">
                         <div class="col-lg-12" style="padding-top: 10px">
                             <a href="/router/import_tool/details/?uuid={{ csv_data.uuid }}&action=create_tasks" class="btn btn-primary">Create import Tasks</a>
-                            <a href="/router/import_tool/details/?uuid={{ csv_data.uuid }}&action=start_tasks" class="btn btn-primary">start/resume</a>
-                            <a href="/router/import_tool/details/?uuid={{ csv_data.uuid }}&action=delete_errors" onclick="return confirm('Remove failed tasks?\n\nAfter removing the failed tasks, you can click on Create import Tasks to retry only this tasks.')" class="btn btn-primary">Delete failed tasks</a>
-                            <a href="/router/import_tool/details/?uuid={{ csv_data.uuid }}&action=delete" onclick="return confirm('Are you sure you want to remove the current import task?\n\nThis action will remove all import data associated with this task, but will not affect routers that have already been imported.\n\nPress OK to confirm or Cancel to return.');" class="btn btn-primary">Delete import</a>
+                            <a href="/router/import_tool/details/?uuid={{ csv_data.uuid }}&action=start_import" class="btn btn-primary">start/resume</a>
+                            <a href="/router/import_tool/" class="btn btn-default">Back</a>
+                            <a href="/router/import_tool/details/?uuid={{ csv_data.uuid }}&action=delete_errors" onclick="return confirm('Remove failed tasks?\n\nAfter removing the failed tasks, you can click on Create import Tasks to retry only this tasks.')" class="btn btn-outline-danger">Delete failed tasks</a>
+                            <a href="/router/import_tool/details/?uuid={{ csv_data.uuid }}&action=delete" onclick="return confirm('Are you sure you want to remove the current import task?\n\nThis action will remove all import data associated with this task, but will not affect routers that have already been imported.\n\nPress OK to confirm or Cancel to return.');" class="btn btn-danger">Delete import</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    </div>
+
+
+    {% if action == 'start_import' %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // Function to fetch and update the status
+                async function fetchAndProcessStatus(uuid) {
+                    // Set the status to "Working..."
+                    let statusCell = document.getElementById(`status-${uuid}`);
+                    statusCell.innerHTML = '<span class="badge badge-info">Working...</span>';
+
+                    try {
+                        let response = await fetch(`/router/import_tool/run_import_task/?uuid=${uuid}`);
+                        let data = await response.json();
+
+                        if (data.status === 'success') {
+                            statusCell.innerHTML = '<span class="badge badge-success">Success</span>';
+                        } else if (data.status === 'error') {
+                            statusCell.innerHTML = '<span class="badge badge-danger">Error</span>';
+                            let errorMessageCell = document.getElementById(`errormessage-${uuid}`);
+                            errorMessageCell.textContent = data.error_message;
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        statusCell.innerHTML = '<span class="badge badge-danger">Error</span>';
+                        let errorMessageCell = document.getElementById(`errormessage-${uuid}`);
+                        errorMessageCell.textContent = 'Request failed.';
+                    }
+                }
+
+                // Function to process all rows synchronously
+                async function processRows() {
+                    let rows = document.querySelectorAll('table tbody tr');
+                    for (let row of rows) {
+                        let uuidCell = row.querySelector('td:nth-child(2)');
+                        let uuid = uuidCell.textContent.trim();
+                        let statusCell = document.getElementById(`status-${uuid}`);
+                        let statusBadge = statusCell.querySelector('.badge');
+
+                        if (statusBadge && statusBadge.textContent.trim() === 'Pending') {
+                            await fetchAndProcessStatus(uuid);
+                        }
+                    }
+                }
+
+                // Start processing rows
+                processRows();
+            });
+        </script>
+    {% endif %}
+
 {% endblock %}
