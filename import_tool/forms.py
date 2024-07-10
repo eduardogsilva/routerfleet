@@ -1,5 +1,5 @@
-from router_manager.models import SUPPORTED_ROUTER_TYPES
-
+from backup.models import BackupProfile
+from router_manager.models import SUPPORTED_ROUTER_TYPES, SSHKey, RouterGroup
 from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Row, Column, HTML
@@ -59,6 +59,12 @@ class CsvDataForm(forms.ModelForm):
             valid_fields = required_fields | optional_fields | {'password', 'ssh_key'}
             seen_names = set()
 
+            import_data = []
+            import_id = 0
+            ssh_key_list = []
+            router_group_list = []
+            backup_profile_list = []
+
             for line_number, row in enumerate(reader, start=2):  # start=2 to account for the header
                 if not any(row.values()):
                     continue  # Skip empty lines
@@ -92,6 +98,31 @@ class CsvDataForm(forms.ModelForm):
                 if not row['port'].isdigit() or not (1 <= int(row['port']) <= 65535):
                     raise ValidationError(f"Invalid port '{row['port']}' on line {line_number}")
 
+                if row['ssh_key']:
+                    if row['ssh_key'] not in ssh_key_list:
+                        ssh_key_list.append(row['ssh_key'])
+                if row['router_group']:
+                    if row['router_group'] not in router_group_list:
+                        router_group_list.append(row['router_group'])
+                if row['backup_profile']:
+                    if row['backup_profile'] not in backup_profile_list:
+                        backup_profile_list.append(row['backup_profile'])
+
+                import_id += 1
+                row['import_id'] = import_id
+                import_data.append(row)
+
+            for ssh_key in ssh_key_list:
+                if not SSHKey.objects.filter(name=ssh_key).exists():
+                    raise ValidationError(f"SSH Key '{ssh_key}' does not exist")
+            for router_group in router_group_list:
+                if not RouterGroup.objects.filter(name=router_group).exists():
+                    raise ValidationError(f"Router Group '{router_group}' does not exist")
+            for backup_profile in backup_profile_list:
+                if not BackupProfile.objects.filter(name=backup_profile).exists():
+                    raise ValidationError(f"Backup Profile '{backup_profile}' does not exist")
+
+            cleaned_data['import_data'] = import_data
         return cleaned_data
 
     def _is_valid_ip_or_hostname(self, value):
