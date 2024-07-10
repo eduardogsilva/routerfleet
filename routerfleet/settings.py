@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'integration_manager',
     'routerfleet_tools',
     'message_center',
+    'import_tool'
 ]
 
 MIDDLEWARE = [
