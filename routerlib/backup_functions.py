@@ -80,11 +80,18 @@ def execute_backup(router_backup: RouterBackup):
     backup_name = gen_backup_name(router_backup)
     file_extension = get_router_backup_file_extension(router.router_type)
     ssh_client = None
+    additional_parameters = ""
     try:
         if router_backup.router.router_type == 'routeros':
+            if router.backup_profile:
+                if router.backup_profile.parameter_sensitive:
+                    additional_parameters += ' show-sensitive'
+                if router.backup_profile.parameter_terse:
+                    additional_parameters += ' terse'
+
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
             ssh_client.exec_command(f'/system backup save name={backup_name}.{file_extension["binary"]}')
-            ssh_client.exec_command(f'/export file={backup_name}.{file_extension["text"]}')
+            ssh_client.exec_command(f'/export file={backup_name}.{file_extension["text"]} {additional_parameters}')
             return True, [f'{backup_name}.{file_extension["binary"]}', f'{backup_name}.{file_extension["text"]}'], error_message
         elif router_backup.router.router_type == 'openwrt':
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)

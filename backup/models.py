@@ -23,6 +23,9 @@ class BackupProfile(models.Model):
     instant_retention = models.IntegerField(default=3650)
     retain_backups_on_error = models.BooleanField(default=True)
 
+    parameter_sensitive = models.BooleanField(default=False)
+    parameter_terse = models.BooleanField(default=False)
+
     daily_day_monday = models.BooleanField(default=True)
     daily_day_tuesday = models.BooleanField(default=True)
     daily_day_wednesday = models.BooleanField(default=True)

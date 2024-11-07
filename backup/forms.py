@@ -14,7 +14,8 @@ class BackupProfileForm(forms.ModelForm):
             'daily_day_wednesday', 'daily_day_thursday', 'daily_day_friday',
             'daily_day_saturday', 'daily_day_sunday', 'weekly_day',
             'monthly_day', 'daily_hour', 'weekly_hour', 'monthly_hour',
-            'max_retry', 'retry_interval', 'backup_interval', 'retrieve_interval', 'instant_retention'
+            'max_retry', 'retry_interval', 'backup_interval', 'retrieve_interval', 'instant_retention',
+            'parameter_sensitive', 'parameter_terse'
         ]
         # widgets = {
         #     'weekly_day': forms.Select(),
@@ -50,6 +51,8 @@ class BackupProfileForm(forms.ModelForm):
         self.fields['weekly_retention'].label = 'Retention (days)'
         self.fields['monthly_retention'].label = 'Retention (days)'
         self.fields['instant_retention'].label = 'Instant Retention (days)'
+        self.fields['parameter_sensitive'].label = 'sensitive'
+        self.fields['parameter_terse'].label = 'terse'
         if self.instance.pk and self.instance.name == 'default':
             self.fields['name'].widget.attrs['readonly'] = True
 
@@ -94,6 +97,13 @@ class BackupProfileForm(forms.ModelForm):
             ),
 
             Div(
+                Div(HTML('<hr><h4>Parameters</h4>'), css_class='col-md-12'),
+                Div('parameter_sensitive', css_class='col-md-6'),
+                Div('parameter_terse', css_class='col-md-6'),
+                css_id='misc_settings', css_class='row'
+            ),
+
+            Div(
                 Div(HTML('<hr><h4>Backup Settings</h4>'), css_class='col-md-12'),
                 Div('max_retry', css_class='col-md-6'),
                 Div('retry_interval', css_class='col-md-6'),
@@ -103,6 +113,7 @@ class BackupProfileForm(forms.ModelForm):
                 Div('retain_backups_on_error', css_class='col-md-12'),
                 css_id='misc_settings', css_class='row'
             ),
+
             Row(
                 Column(
                     Submit('submit', 'Save', css_class='btn btn-success'),
