@@ -118,15 +118,10 @@ To maintain security, performance, and access to new features in RouterFleet, it
 
 ### Step 1: Prepare the Environment
   
-Begin by navigating to your routerfleet directory:
+   Begin by navigating to your routerfleet directory:
    ```bash
    cd path/to/routerfleet
    ```
-   If you're upgrading from an existing git clone installation, navigate to your current project directory. 
-   ```bash
-   cd /path/to/routerfleet_git_clone
-   ```
-   
 
 ### Step 2: Backup Database
 
@@ -141,10 +136,33 @@ docker exec -e PGPASSWORD=your_password routerfleet-postgres pg_dump -U routerfl
    ```bash
    docker compose down
    ```
-### Step 4: Deploy using Docker Compose
-Follow the previously outlined [Deployment Instructions](#deployment-instructions).
 
-Don't forget to update the `docker-compose.yml` file to the latest version by re-downloading it from the repository.
+### Step 4: Update Docker Compose File
+
+   Download the latest `docker-compose.yml` file from the repository to ensure you're using the most recent version:
+   ```bash
+   wget -O docker-compose.yml https://raw.githubusercontent.com/eduardogsilva/routerfleet/main/docker-compose.yml
+   ```
+   Alternatively, if you're using SQLite or a remote database, download the `docker-compose-no-postgres.yml` file:
+   ```bash
+   # (alternative) No postgres container 
+   wget -O docker-compose.yml https://raw.githubusercontent.com/eduardogsilva/routerfleet/main/docker-compose-no-postgres.yml
+   ```
+
+### Step 5: Update image files
+
+   Pull the latest images to ensure you're using the most recent versions:
+   ```bash
+   docker compose pull
+   ```
+
+### Step 6: Run Docker Compose
+
+   Start the RouterFleet services using Docker Compose:
+
+   ```bash
+   docker compose up -d
+   ```
 
 ### Post-Upgrade Checks
 
