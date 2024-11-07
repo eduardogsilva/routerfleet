@@ -3,7 +3,7 @@ PRODUCTION_SETTINGS_FILE="/app/routerfleet/production_settings.py"
 
 set -e
 
-if [[ "$COMPOSE_VERSION" != "02d" ]]; then
+if [[ "$COMPOSE_VERSION" != "08a" ]]; then
     echo "ERROR: Please upgrade your docker compose file. Exiting."
     exit 1
 fi

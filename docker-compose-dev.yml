@@ -2,7 +2,7 @@ services:
   routerfleet-postgres:
     container_name: routerfleet-postgres
     restart: unless-stopped
-    image: postgres:latest
+    image: postgres:16
     volumes:
       - postgres_data:/var/lib/postgresql/data
     environment:
@@ -26,7 +26,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - TZ=${TIMEZONE}
-      - COMPOSE_VERSION=02d
+      - COMPOSE_VERSION=08a
       - COMPOSE_TYPE=with-postgres
 
     volumes:
