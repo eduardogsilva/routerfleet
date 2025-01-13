@@ -5,14 +5,14 @@ import telnetlib
 
 
 def get_router_features(router_type):
-    if router_type in ['openwrt', 'routeros']:
+    if router_type in ['openwrt', 'routeros', 'routeros-branded']:
         return ['backup', 'reverse_monitoring', 'ssh', 'ssh_key']
     else:
         return []
 
 
 def get_router_backup_file_extension(router_type):
-    if router_type == 'routeros':
+    if router_type == 'routeros' or router_type == 'routeros-branded':
         return {'text': 'rsc', 'binary': 'backup'}
     elif router_type == 'openwrt':
         return {'text': 'txt', 'binary': 'tar.gz'}
@@ -69,13 +69,22 @@ def test_authentication(router_type, address, port, username, password, sshkey=N
 def test_ssh_authentication(router_type, address, port, username, password, sshkey=None):
     try:
         ssh_client = connect_to_ssh(address, port, username, password, sshkey)
-        if router_type == 'routeros':
+        if router_type == 'routeros' or router_type == 'routeros-branded':
             stdin, stdout, stderr = ssh_client.exec_command('/system resource print')
             output = stdout.read().decode()
-            if 'platform: MikroTik' in output:
-                result = True, 'Success: MikroTik device confirmed'
+            if router_type == 'routeros':
+                if 'platform: MikroTik' in output:
+                    result = True, 'Success: MikroTik device confirmed'
+                else:
+                    result = False, 'Device is not MikroTik'
             else:
-                result = False, 'Device is not MikroTik'
+                if 'platform: MikroTik' in output:
+                    result = False, 'Device is not branded. Please select Mikrotik (RouterOS)'
+                elif 'platform: ' in output:
+                    result = True, 'Success: MikroTik branded device confirmed'
+                else:
+                    result = False, 'Device is not MikroTik'
+
         elif router_type == 'openwrt':
             stdin, stdout, stderr = ssh_client.exec_command('ubus call system board')
             output = stdout.read().decode()

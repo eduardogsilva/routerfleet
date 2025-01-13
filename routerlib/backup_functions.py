@@ -82,7 +82,7 @@ def execute_backup(router_backup: RouterBackup):
     ssh_client = None
     additional_parameters = ""
     try:
-        if router_backup.router.router_type == 'routeros':
+        if router_backup.router.router_type == 'routeros' or router_backup.router.router_type == 'routeros-branded':
             if router.backup_profile:
                 if router.backup_profile.parameter_sensitive:
                     additional_parameters += ' show-sensitive'
@@ -125,7 +125,7 @@ def retrieve_backup(router_backup: RouterBackup):
     ssh_client = None
 
     try:
-        if router_backup.router.router_type == 'routeros':
+        if router_backup.router.router_type == 'routeros' or router_backup.router.router_type == 'routeros-branded':
             rsc_file_path = f'/tmp/{backup_name}.{file_extension["text"]}'
             backup_file_path = f'/tmp/{backup_name}.{file_extension["binary"]}'
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
@@ -180,7 +180,7 @@ def clean_up_backup_files(router_backup: RouterBackup):
     router = router_backup.router
     ssh_client = None
     try:
-        if router_backup.router.router_type == 'routeros':
+        if router_backup.router.router_type == 'routeros' or router_backup.router.router_type == 'routeros-branded':
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
             ssh_client.exec_command('file remove [find where name~"routerfleet-backup-"]')
         elif router_backup.router.router_type == 'openwrt':

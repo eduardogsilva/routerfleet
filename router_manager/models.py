@@ -5,6 +5,7 @@ import uuid
 SUPPORTED_ROUTER_TYPES = (
     ('monitoring', 'Monitoring Only'),
     ('routeros', 'Mikrotik (RouterOS)'),
+    ('routeros-branded', 'Mikrotik (Branded)'),
     ('openwrt', 'OpenWRT')
 )
 
