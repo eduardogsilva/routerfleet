@@ -17,6 +17,7 @@
                             <table class="table table-hover datatables-no-export">
                                 <thead>
                                 <tr>
+                                    <th>Select</th>
                                     <th>Name</th>
                                     <th>Type</th>
                                     <th>Address</th>
@@ -31,6 +32,7 @@
                                 <tbody>
                                 {% for router in router_list %}
                                     <tr {% if not router.enabled %}style="text-decoration: line-through;"{% endif %}>
+                                        <td><input type="checkbox" class="router-checkbox" data-uuid="{{ router.uuid }}"></td>
                                         <td>
                                             <a href="/router/details/?uuid={{ router.uuid }}">{{ router.name }}</a>
                                         </td>
@@ -88,7 +90,10 @@
                         </div>
 
                     </div>
-
+                    <div class="form-group mb-0" id="backup-type-container" style="display: none;">
+                    </div>
+                    <button id="create-backup" class="btn btn-warning mr-2" style="display: none;">Create Backup Task</button>
+                </div>
                 </div>
             </div>
         </div>
@@ -158,6 +163,52 @@
         setInterval(checkStatusChange, 30000);
         $(document).ready(function() {
             checkStatusChange();
+        });
+    </script>
+<script>
+        $(document).ready(function() {
+            $('.router-checkbox').prop('checked', false);
+            // Check checkbox change event
+            $('.router-checkbox').change(function() {
+                var checkedCount = $('.router-checkbox:checked').length;
+                
+                // Show the backup type selector and the backup button only if 2 or more routers are selected
+                if (checkedCount >= 2) {
+                    $('#backup-type-container').show();  // Show the backup type dropdown
+                    $('#create-backup').show();  // Show the backup button
+                } else {
+                    $('#backup-type-container').hide();  // Hide the backup type dropdown
+                    $('#create-backup').hide();  // Hide the backup button
+                }
+            });
+    
+            // Backup button click event
+            $('#create-backup').click(function() {
+                var selectedRouters = [];
+                $('.router-checkbox:checked').each(function() {
+                    selectedRouters.push($(this).data('uuid')); // Collect UUIDs of selected routers
+                });
+    
+                // Perform the backup operation (AJAX or redirect)
+                alert('Creating ' + backupType + ' backup for routers: ' + selectedRouters.join(', '));
+    
+                // Example AJAX request
+                $.ajax({
+                    url: '/router/create_instant_backup/multiple/',
+                    method: 'POST',
+                    data: {
+                        routers: selectedRouters,
+                        csrfmiddlewaretoken: '{{ csrf_token }}' // Ensure CSRF token is included for Django
+                    },
+                    success: function(response) {
+                        alert('Backup started for selected routers');
+
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Error starting backup: ' + error);
+                    }
+                });
+            });
         });
     </script>
 {% endblock %}
