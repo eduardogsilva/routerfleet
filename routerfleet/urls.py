@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path
 from dashboard.views import view_dashboard, view_status
+from dashboard.views import view_dashboard, view_status,backup_statistics_data,router_status_data
+
 from integration_manager.views import view_wireguard_webadmin_launcher, view_manage_wireguard_integration, view_launch_wireguard_webadmin
 from user_manager.views import view_manage_user, view_user_list
 from accounts.views import view_login, view_logout, view_create_first_user
@@ -19,6 +21,8 @@ urlpatterns = [
     path('debug/test_messages/', view_debug_test_messages, name='debug_test_messages'),
     path('', view_dashboard, name='dashboard'),
     path('status/', view_status, name='status'),
+    path('router_status_data/', router_status_data, name='router_status_data'),
+    path('backup_statistics_data/', backup_statistics_data, name='backup_statistics_data'),
     path('user/list/', view_user_list, name='user_list'),
     path('user/manage/', view_manage_user, name='manage_user'),
     path('accounts/create_first_user/', view_create_first_user, name='create_first_user'),
