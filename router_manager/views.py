@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.db.models import Sum
+from django.http import JsonResponse
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
@@ -227,3 +228,44 @@ def view_create_instant_backup_task(request):
     messages.success(request, 'Backup task created successfully')
     return redirect(router_details_url)
 
+@login_required
+def view_create_instant_backup_multiple_routers(request):
+    if request.method == 'POST':
+        if not UserAcl.objects.filter(user=request.user, user_level__gte=20).exists():
+            return JsonResponse({'error': 'Permission denied.'}, status=403)
+
+        uuids = request.POST.getlist('routers[]')  # Ajustat pentru a primi lista corect
+
+        if not uuids:
+            return JsonResponse({'error': 'No routers selected.'}, status=400)
+
+        results = []
+        for uuid in uuids:
+            router = get_object_or_404(Router, uuid=uuid)
+            
+            if RouterBackup.objects.filter(router=router, success=False, error=False).exists():
+                results.append({'router': router.name, 'status': 'active backup task exists'})
+                continue
+
+            if router.routerstatus.backup_lock:
+                results.append({'router': router.name, 'status': 'backup locked'})
+                continue
+
+            if not router.backup_profile:
+                results.append({'router': router.name, 'status': 'no backup profile'})
+                continue
+
+            router_backup = RouterBackup.objects.create(
+                router=router,
+                schedule_time=timezone.now(),
+                schedule_type='instant'
+            )
+
+            router.routerstatus.backup_lock = router_backup.schedule_time
+            router.routerstatus.save()
+
+            results.append({'router': router.name, 'status': 'backup started'})
+
+        return JsonResponse({'results': results})
+
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
