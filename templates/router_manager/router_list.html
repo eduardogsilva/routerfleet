@@ -157,83 +157,94 @@
         });
     </script>
 
-    <script>
-        $(document).ready(function() {
-            $('.router-checkbox').prop('checked', false);
+<script>
+$(document).ready(function() {
+    var table = dataTable;
 
-            $('#select-all').click(function() {
-                $('.router-checkbox').prop('checked', true).trigger('change');
-            });
+    function updateCheckboxes(checked) {
+         table.$('.router-checkbox').prop('checked', checked).trigger('change');
+    }
 
-            $('#select-none').click(function() {
-                $('.router-checkbox').prop('checked', false).trigger('change');
-            });
+    $('#select-all').on('click', function(e) {
+         e.preventDefault();
+         updateCheckboxes(true);
+    });
 
-            $('.router-checkbox').change(function() {
-                var checkedCount = $('.router-checkbox:checked').length;
-                $('#create-backup').toggle(checkedCount >= 1);
-            });
+    $('#select-none').on('click', function(e) {
+         e.preventDefault();
+         updateCheckboxes(false);
+    });
 
-            $('#create-backup').click(function() {
-                var selectedRouters = $('.router-checkbox:checked').map(function() {
-                    return $(this).data('uuid');
-                }).get();
+    $(document).on('change', '.router-checkbox', function() {
+         var checkedCount = table.$('.router-checkbox:checked').length;
+         if (checkedCount >= 1) {
+             $('#create-backup').show();
+         } else {
+             $('#create-backup').hide();
+         }
+    });
 
-                $.ajax({
-                    url: '/router/create_instant_backup/multiple/',
-                    method: 'POST',
-                    data: {
-                        routers: selectedRouters,
-                        csrfmiddlewaretoken: '{{ csrf_token }}'
-                    },
-                    success: function(response) {
-                        let successRouters = [];
-                        let errorMessages = [];
+    $('#create-backup').on('click', function(e) {
+         e.preventDefault();
+         var selectedRouters = table.$('.router-checkbox:checked').map(function() {
+              return $(this).data('uuid');
+         }).get();
 
-                        response.results.forEach(function(item) {
-                            if (item.status === null || item.status === undefined || item.status === '') {
-                                successRouters.push(item.router);
-                            } else {
-                                errorMessages.push(item.router + ': ' + item.status);
-                            }
-                        });
+         $.ajax({
+              url: '/router/create_instant_backup/multiple/',
+              method: 'POST',
+              data: {
+                   routers: selectedRouters,
+                   csrfmiddlewaretoken: '{{ csrf_token }}'
+              },
+              success: function(response) {
+                   var successRouters = [];
+                   var errorMessages = [];
 
-                        if (successRouters.length > 0) {
-                            $(document).Toasts('create', {
-                                class: 'bg-success',
-                                title: 'Backup Started',
-                                body: 'Backup started for:<br>' + successRouters.join('<br>'),
-                                delay: 10000,
-                                autohide: true
-                            });
-                        }
+                   response.results.forEach(function(item) {
+                         if (!item.status) {
+                              successRouters.push(item.router);
+                         } else {
+                              errorMessages.push(item.router + ': ' + item.status);
+                         }
+                   });
 
-                        if (errorMessages.length > 0) {
-                            $(document).Toasts('create', {
-                                class: 'bg-danger',
-                                title: 'Backup Errors',
-                                body: 'Problems:<br>' + errorMessages.join('<br>'),
-                                delay: 10000,
-                                autohide: true
-                            });
-                        }
+                   if (successRouters.length > 0) {
+                         $(document).Toasts('create', {
+                              class: 'bg-success',
+                              title: 'Backup Started',
+                              body: 'Backup started for:<br>' + successRouters.join('<br>'),
+                              delay: 10000,
+                              autohide: true
+                         });
+                   }
 
-                        $('.router-checkbox').prop('checked', false).trigger('change');
-                    },
-                    error: function(xhr) {
-                        $(document).Toasts('create', {
-                            class: 'bg-danger',
-                            title: 'Error',
-                            body: 'Error: ' + xhr.responseJSON.error,
-                            delay: 10000,
-                            autohide: true
-                        });
-                        $('.router-checkbox').prop('checked', false).trigger('change');
-                    }
-                });
-            });
-        });
-    </script>
+                   if (errorMessages.length > 0) {
+                         $(document).Toasts('create', {
+                              class: 'bg-danger',
+                              title: 'Backup Errors',
+                              body: 'Problems:<br>' + errorMessages.join('<br>'),
+                              delay: 10000,
+                              autohide: true
+                         });
+                   }
+
+                   updateCheckboxes(false);
+              },
+              error: function(xhr) {
+                   $(document).Toasts('create', {
+                        class: 'bg-danger',
+                        title: 'Error',
+                        body: 'Error: ' + xhr.responseJSON.error,
+                        delay: 10000,
+                        autohide: true
+                   });
+                   updateCheckboxes(false);
+              }
+         });
+    });
+});
+</script>
 
 
 {% endblock %}
