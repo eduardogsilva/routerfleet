@@ -1,17 +1,16 @@
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
 
 from backup.models import BackupProfile
 from backup_data.models import RouterBackup
-from monitoring.models import RouterDownTime
 from routerfleet_tools.models import WebadminSettings
-from .models import Router, RouterGroup, RouterStatus, SSHKey, BackupSchedule
-from .forms import RouterForm, RouterGroupForm, SSHKeyForm
 from user_manager.models import UserAcl
+from .forms import RouterForm, RouterGroupForm, SSHKeyForm
+from .models import Router, RouterGroup, RouterStatus, SSHKey, BackupSchedule
 
 
 @login_required
@@ -206,27 +205,44 @@ def view_manage_sshkey(request):
     return render(request, 'generic_form.html', context=context)
 
 
-@login_required()
-def view_create_instant_backup_task(request):
-    if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=20).exists():
-        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
-    router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
-    router_details_url = f'/router/details/?uuid={router.uuid}'
+def create_instant_backup(router):
     if RouterBackup.objects.filter(router=router, success=False, error=False).exists():
-        messages.warning(request, 'Backup task not created|Active router backup task already exists')
-        return redirect(router_details_url)
-    if router.routerstatus.backup_lock is not None:
-        messages.warning(request, 'Backup task not created|Router backup is currently locked')
-        return redirect(router_details_url)
-    if not router.backup_profile:
-        messages.warning(request, 'Backup task not created|Router has no backup profile')
-        return redirect(router_details_url)
+        return 'Active router backup task already exists'
 
-    router_backup = RouterBackup.objects.create(router=router, schedule_time=timezone.now(), schedule_type='instant')
+    if router.routerstatus.backup_lock:
+        return 'Router backup is currently locked'
+
+    if not router.backup_profile:
+        return 'Router has no backup profile'
+
+    router_backup = RouterBackup.objects.create(
+        router=router,
+        schedule_time=timezone.now(),
+        schedule_type='instant'
+    )
+
     router.routerstatus.backup_lock = router_backup.schedule_time
     router.routerstatus.save()
-    messages.success(request, 'Backup task created successfully')
+
+    return None
+
+
+@login_required()
+def view_create_instant_backup_task(request):
+    if not UserAcl.objects.filter(user=request.user, user_level__gte=20).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
+
+    router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
+    router_details_url = f'/router/details/?uuid={router.uuid}'
+
+    error = create_instant_backup(router)
+    if error:
+        messages.warning(request, f'Backup task not created | {error}')
+    else:
+        messages.success(request, 'Backup task created successfully')
+
     return redirect(router_details_url)
+
 
 @login_required
 def view_create_instant_backup_multiple_routers(request):
@@ -234,37 +250,18 @@ def view_create_instant_backup_multiple_routers(request):
         if not UserAcl.objects.filter(user=request.user, user_level__gte=20).exists():
             return JsonResponse({'error': 'Permission denied.'}, status=403)
 
-        uuids = request.POST.getlist('routers[]')  # Ajustat pentru a primi lista corect
-
+        uuids = request.POST.getlist('routers[]')
         if not uuids:
             return JsonResponse({'error': 'No routers selected.'}, status=400)
 
         results = []
         for uuid in uuids:
             router = get_object_or_404(Router, uuid=uuid)
-            
-            if RouterBackup.objects.filter(router=router, success=False, error=False).exists():
-                results.append({'router': router.name, 'status': 'active backup task exists'})
-                continue
-
-            if router.routerstatus.backup_lock:
-                results.append({'router': router.name, 'status': 'backup locked'})
-                continue
-
-            if not router.backup_profile:
-                results.append({'router': router.name, 'status': 'no backup profile'})
-                continue
-
-            router_backup = RouterBackup.objects.create(
-                router=router,
-                schedule_time=timezone.now(),
-                schedule_type='instant'
-            )
-
-            router.routerstatus.backup_lock = router_backup.schedule_time
-            router.routerstatus.save()
-
-            results.append({'router': router.name, 'status': 'backup started'})
+            error = create_instant_backup(router)
+            if error:
+                results.append({'router': router.name, 'status': error})
+            else:
+                results.append({'router': router.name, 'status': 'backup started'})
 
         return JsonResponse({'results': results})
 
