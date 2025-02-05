@@ -74,17 +74,14 @@
                                 {% endfor %}
                                 </tbody>
                             </table>
-
                         </div>
                         <div class="row mb-3">
                         <div class="col-lg-12 text-right">
-                            <div class="btn-group" role="group">
-                                <a href="/router/manage/" class="btn btn-primary">Add Router</a>
-                                <a href="/router/import_tool/" class="btn btn-warning">Import Tool</a>
-                                <button id="select-all" class="btn btn-outline-success"><i class="fas fa-check-square"></i> Select All</button>
-                                <button id="select-none" class="btn btn-outline-danger"><i class="fas fa-square"></i> Select None</button>
-                                <button id="create-backup" class="btn btn-warning" style="display: none;">Create Backup Task</button>
-                            </div>
+                            <a href="/router/manage/" class="btn btn-primary">Add Router</a>
+                            <a href="/router/import_tool/" class="btn btn-primary">Import Tool</a>
+                            <button id="select-all" class="btn btn-outline-primary" title="Select All"><i class="fas fa-check-square"></i></button>
+                            <button id="select-none" class="btn btn-outline-primary" title="Select None"><i class="fas fa-square"></i></button>
+                            <button id="create-backup" class="btn btn-warning" style="display: none;">Create Backup Task</button>
                         </div>
                     </div>
                     </div>
@@ -159,58 +156,84 @@
             checkStatusChange();
         });
     </script>
-<script>
-    $(document).ready(function() {
-        $('.router-checkbox').prop('checked', false);
-    
-        $('#select-all').click(function() {
-            $('.router-checkbox').prop('checked', true).trigger('change');
-        });
-    
-        $('#select-none').click(function() {
-            $('.router-checkbox').prop('checked', false).trigger('change');
-        });
-    
-        $('.router-checkbox').change(function() {
-            var checkedCount = $('.router-checkbox:checked').length;
-            $('#create-backup').toggle(checkedCount >= 1);
-        });
-    
-        $('#create-backup').click(function() {
-            var selectedRouters = $('.router-checkbox:checked').map(function() {
-                return $(this).data('uuid');
-            }).get();
-    
-            $.ajax({
-                url: '/router/create_instant_backup/multiple/',
-                method: 'POST',
-                data: {
-                    routers: selectedRouters,
-                    csrfmiddlewaretoken: '{{ csrf_token }}'
-                },
-                success: function(response) {
-                    let messages = response.results.map(item => `${item.router}: ${item.status}`).join('\n');
-                    // Create success toast
-                    $(document).Toasts('create', {
-                        class: 'bg-success',
-                        title: 'Backup Status',
-                        body: 'The following routers were backed up: ' + messages,
-                        delay: 10000,
-                        autohide: true
-                    });
-                },
-                error: function(xhr) {
-                    // Create error toast
-                    $(document).Toasts('create', {
-                        class: 'bg-danger',
-                        title: 'Error',
-                        body: 'Error: ' + xhr.responseJSON.error,
-                        delay: 10000,
-                        autohide: true
-                    });
-                }
+
+    <script>
+        $(document).ready(function() {
+            $('.router-checkbox').prop('checked', false);
+
+            $('#select-all').click(function() {
+                $('.router-checkbox').prop('checked', true).trigger('change');
+            });
+
+            $('#select-none').click(function() {
+                $('.router-checkbox').prop('checked', false).trigger('change');
+            });
+
+            $('.router-checkbox').change(function() {
+                var checkedCount = $('.router-checkbox:checked').length;
+                $('#create-backup').toggle(checkedCount >= 1);
+            });
+
+            $('#create-backup').click(function() {
+                var selectedRouters = $('.router-checkbox:checked').map(function() {
+                    return $(this).data('uuid');
+                }).get();
+
+                $.ajax({
+                    url: '/router/create_instant_backup/multiple/',
+                    method: 'POST',
+                    data: {
+                        routers: selectedRouters,
+                        csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        let successRouters = [];
+                        let errorMessages = [];
+
+                        response.results.forEach(function(item) {
+                            if (item.status === null || item.status === undefined || item.status === '') {
+                                successRouters.push(item.router);
+                            } else {
+                                errorMessages.push(item.router + ': ' + item.status);
+                            }
+                        });
+
+                        if (successRouters.length > 0) {
+                            $(document).Toasts('create', {
+                                class: 'bg-success',
+                                title: 'Backup Started',
+                                body: 'Backup started for:<br>' + successRouters.join('<br>'),
+                                delay: 10000,
+                                autohide: true
+                            });
+                        }
+
+                        if (errorMessages.length > 0) {
+                            $(document).Toasts('create', {
+                                class: 'bg-danger',
+                                title: 'Backup Errors',
+                                body: 'Problems:<br>' + errorMessages.join('<br>'),
+                                delay: 10000,
+                                autohide: true
+                            });
+                        }
+
+                        $('.router-checkbox').prop('checked', false).trigger('change');
+                    },
+                    error: function(xhr) {
+                        $(document).Toasts('create', {
+                            class: 'bg-danger',
+                            title: 'Error',
+                            body: 'Error: ' + xhr.responseJSON.error,
+                            delay: 10000,
+                            autohide: true
+                        });
+                        $('.router-checkbox').prop('checked', false).trigger('change');
+                    }
+                });
             });
         });
-    });
     </script>
+
+
 {% endblock %}

@@ -258,10 +258,7 @@ def view_create_instant_backup_multiple_routers(request):
         for uuid in uuids:
             router = get_object_or_404(Router, uuid=uuid)
             error = create_instant_backup(router)
-            if error:
-                results.append({'router': router.name, 'status': error})
-            else:
-                results.append({'router': router.name, 'status': 'backup started'})
+            results.append({'router': router.name, 'status': error})
 
         return JsonResponse({'results': results})
 
