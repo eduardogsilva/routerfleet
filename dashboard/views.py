@@ -1,22 +1,14 @@
-from django.http import HttpResponseBadRequest, JsonResponse
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_protect
-from backup.models import BackupProfile
-from backup_data.models import RouterBackup
-from router_manager.models import Router, RouterGroup, RouterStatus, BackupSchedule, SSHKey
-from user_manager.models import User
-from django.conf import settings
-from django.utils import timezone
 from datetime import timedelta
 
-import os
-import shutil
-ALLOWED_DAYS = [3,5,7,10, 15, 30]  # Define allowed values
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseBadRequest, JsonResponse
+from django.shortcuts import render
+from django.utils import timezone
 
-import os
-import shutil
-from django.conf import settings
+from backup_data.models import RouterBackup
+from router_manager.models import Router, RouterStatus
+
+ALLOWED_DAYS = [3,5,7,10, 15, 30]  # Define allowed values
 
 import os
 import shutil
