@@ -20,6 +20,7 @@
                                     <th>Select</th>
                                     <th>Name</th>
                                     <th>Type</th>
+                                    <th>Version</th>
                                     <th>Address</th>
                                     <th>Status</th>
                                     <th>Backup</th>
@@ -34,6 +35,11 @@
                                         <td><input type="checkbox" class="router-checkbox" data-uuid="{{ router.uuid }}"></td>
                                         <td><a href="/router/details/?uuid={{ router.uuid }}">{{ router.name }}</a></td>
                                         <td>{{ router.get_router_type_display }}</td>
+                                    <td>
+                                        {% if router.router_type != 'monitoring' %}
+                                        {{ router.routerinformation.os_version|default_if_none:'' }}
+                                    {% endif %}
+                                    </td>
                                         <td>{{ router.address }}</td>
                                         <td id="status-{{ router.uuid }}">
                                             {% if router.monitoring %}

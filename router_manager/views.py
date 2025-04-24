@@ -60,6 +60,7 @@ def view_router_details(request):
     router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
     router_status, _ = RouterStatus.objects.get_or_create(router=router)
     router_backup_list = router.routerbackup_set.all().order_by('-created')
+    router_information = RouterInformation.objects.filter(router=router).first()
     downtime_last_week = router.routerdowntime_set.filter(start_time__gte=timezone.now() - timezone.timedelta(days=7)).aggregate(total=Sum('total_down_time'))['total']
     if downtime_last_week is None:
         downtime_last_week = 0
@@ -76,6 +77,7 @@ def view_router_details(request):
 
     context = {
         'router': router,
+        'router_information': router_information,
         'router_status': router_status,
         'router_backup_list': router_backup_list,
         'page_title': 'Router Details',
@@ -106,6 +108,16 @@ def view_manage_router(request):
             else:
                 messages.warning(request, 'Router not deleted|Invalid confirmation')
                 return redirect('router_list')
+        elif request.GET.get('action') == 'refresh_information':
+            router_information, created = RouterInformation.objects.get_or_create(router=router)
+            router_information.next_retry = timezone.now()
+            router_information.retry_count = 0
+            router_information.success = False
+            router_information.error = False
+            router_information.error_message = ''
+            router_information.save()
+            messages.success(request, 'Router information will be updated shortly')
+            return redirect('/router/details/?uuid=' + str(router.uuid))
     else:
         router = None
 
@@ -115,6 +127,8 @@ def view_manage_router(request):
         messages.success(request, 'Router saved successfully|It may take a few minutes until monitoring starts for this router.')
         router_status, _ = RouterStatus.objects.get_or_create(router=form.instance)
         BackupSchedule.objects.filter(router=form.instance).delete()
+        if form.instance.router_type == 'monitoring':
+            RouterInformation.objects.filter(router=form.instance).delete()
         webadmin_settings.router_config_last_updated = timezone.now()
         webadmin_settings.save()
         return redirect('router_list')

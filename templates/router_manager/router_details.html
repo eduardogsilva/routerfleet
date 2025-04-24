@@ -3,41 +3,43 @@
 {% block content %}
     <div class='row'>
         <div class='col-xl-5'>
-            <div class="card card-primary card-outline">
-                <div class="card-header">
-                    <h3 class="card-title">{{ router.name }}
-                    </h3>
-                    <span class="float-right">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h3 class="card-title">{{ router.name }}
+                            </h3>
+                            <span class="float-right">
                         <a href="/router/manage/?uuid={{ router.uuid }}" >
                             <i class="fas fa-edit"></i>
                         </a>
                     </span>
-                </div>
-                <div class="card-body row">
-                    <div class="col-lg-12">
-                        <ul class="list-group list-group-unbordered mb-3">
-                            <li class="list-group-item">
-                                <b>Enabled</b>
-                                <span class="float-right">
+                        </div>
+                        <div class="card-body row">
+                            <div class="col-lg-12">
+                                <ul class="list-group list-group-unbordered mb-3">
+                                    <li class="list-group-item">
+                                        <b>Enabled</b>
+                                        <span class="float-right">
                                     {% if router.enabled %}
                                         <i class="far fa-check-circle text-success" ></i>
                                     {% else %}
                                         <i class="far fa-times-circle text-danger" ></i>
                                     {% endif %}
                                 </span>
-                            </li>
-                            <li class="list-group-item">
-                                <b>Address</b>
-                                <span class="float-right">{{ router.address }}</span>
-                            </li>
-                            {% if router.router_type != 'monitoring' %}
-                            <li class="list-group-item">
-                                <b>username</b>
-                                <span class="float-right">{{ router.username }}</span>
-                            </li>
-                            <li class="list-group-item">
-                                <b>Authentication</b>
-                                <span class="float-right">
+                                    </li>
+                                    <li class="list-group-item">
+                                        <b>Address</b>
+                                        <span class="float-right">{{ router.address }}</span>
+                                    </li>
+                                    {% if router.router_type != 'monitoring' %}
+                                        <li class="list-group-item">
+                                            <b>username</b>
+                                            <span class="float-right">{{ router.username }}</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <b>Authentication</b>
+                                            <span class="float-right">
                                     {% if router.ssh_key %}
                                         <i class="fas fa-key"></i> SSH Key: {{ router.ssh_key }}
                                     {% elif router.password %}
@@ -46,11 +48,11 @@
                                         <i class="fas fa-exclamation-triangle text-warning"></i> Missing authentication
                                     {% endif %}
                                 </span>
-                            </li>
-                            {% endif %}
-                            <li class="list-group-item">
-                                <b>Monitoring</b>
-                                <span class="float-right">
+                                        </li>
+                                    {% endif %}
+                                    <li class="list-group-item">
+                                        <b>Monitoring</b>
+                                        <span class="float-right">
                                 {% if router.monitoring %}
                                     {% if router.routerstatus.status_online %}
                                         <i class="far fa-check-circle text-success" title="Host is Online"></i>
@@ -61,34 +63,34 @@
                                     Disabled
                                 {% endif %}
                                 </span>
-                            </li>
-                            {% if router.monitoring %}
-                            <li class="list-group-item">
-                                <b>Availability (last 7 days)</b>
-                                <span class="float-right">
+                                    </li>
+                                    {% if router.monitoring %}
+                                        <li class="list-group-item">
+                                            <b>Availability (last 7 days)</b>
+                                            <span class="float-right">
                                     <a href="/router/availability/?uuid={{ router.uuid }}">
                                     {{ last_week_availability }}%
                                     </a>
                                 </span>
-                            </li>
-                            {% endif %}
-                            <li class="list-group-item">
-                                <b>Router Type</b>
-                                <span class="float-right">{{ router.get_router_type_display }}</span>
-                            </li>
-                            
-                            <li class="list-group-item">
-                                <b>Groups</b>
-                                <span class="float-right">
+                                        </li>
+                                    {% endif %}
+                                    <li class="list-group-item">
+                                        <b>Router Type</b>
+                                        <span class="float-right">{{ router.get_router_type_display }}</span>
+                                    </li>
+
+                                    <li class="list-group-item">
+                                        <b>Groups</b>
+                                        <span class="float-right">
                                 {% for router_group in router.routergroup_set.all %}
                                     <span class="badge badge-primary">{{ router_group.name }}</span>
                                 {% endfor %}
                                 </span>
-                            </li>
-                            {% if router.router_type != 'monitoring' %}
-                            <li class="list-group-item">
-                                <b>Backup Profile</b>
-                                <span class="float-right">
+                                    </li>
+                                    {% if router.router_type != 'monitoring' %}
+                                        <li class="list-group-item">
+                                            <b>Backup Profile</b>
+                                            <span class="float-right">
                                 {% if router.backup_profile %}
                                     {{ router.backup_profile }}
                                     {% if router.routerstatus.last_backup_failed %}
@@ -98,120 +100,231 @@
                                     <i class="fas fa-exclamation-triangle text-warning" title="No backup profile selected"></i>
                                 {% endif %}
                                 </span>
-                            </li>
-                            <li class="list-group-item">
-                                <b>Instant Backup</b>
-                                <span class="float-right">
+                                        </li>
+                                        <li class="list-group-item">
+                                            <b>Instant Backup</b>
+                                            <span class="float-right">
                                     <a href="/router/create_instant_backup/?uuid={{ router.uuid }}">
                                         Backup now
                                     </a>
                                 </span>
-                            </li>
-                            {% endif %}
-                            <li class="list-group-item">
-                                <b>Notes</b>
-                                <span class="float-right">{{ router.internal_notes|default_if_none:""|linebreaksbr }}</span>
-                            </li>
-                        </ul>
+                                        </li>
+                                    {% endif %}
+                                    <li class="list-group-item">
+                                        <b>Notes</b>
+                                        <span class="float-right">{{ router.internal_notes|default_if_none:""|linebreaksbr }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                <div class="col-lg-12">
+                    {% if router_information %}
+                        <div class="card card-primary card-outline">
+                            <div class="card-header">
+                                <h3 class="card-title">Router Information
+                                </h3>
+                                <span class="float-right">
+                                    {% if not router_information.success and not router_information.error %}
+                                        <i class="far fa-clock" title="Fetching router information on next cron"></i>
+
+                                        {% else %}
+                                    <a href="/router/manage/?uuid={{ router.uuid }}&action=refresh_information" ><i class="fas fa-sync"></i></a>
+                                    {% endif %}
+                            </div>
+                            <div class="card-body row">
+                                <div class="col-lg-12">
+                                    <ul class="list-group list-group-unbordered mb-3">
+                                        <li class="list-group-item">
+                                            <b>Model Name</b>
+                                            <span class="float-right">
+                                                {{ router_information.model_name|default_if_none:"" }}
+                                            </span>
+                                        </li>
+
+                                        <li class="list-group-item">
+                                            <b>Version</b>
+                                            <span class="float-right">
+                                                {{ router_information.model_version|default_if_none:"" }}
+                                            </span>
+                                        </li>
+
+                                        <li class="list-group-item">
+                                            <b>Serial</b>
+                                            <span class="float-right">
+                                                {{ router_information.serial_number|default_if_none:"" }}
+                                            </span>
+                                        </li>
+
+                                        <li class="list-group-item">
+                                            <b>OS Version</b>
+                                            <span class="float-right">
+                                                {{ router_information.os_version|default_if_none:"" }}
+                                            </span>
+                                        </li>
+
+                                        <li class="list-group-item">
+                                            <b>Firmware Version</b>
+                                            <span class="float-right">
+                                                {{ router_information.firmware_version|default_if_none:"" }}
+                                            </span>
+                                        </li>
+
+                                        <li class="list-group-item">
+                                            <b>Architeture</b>
+                                            <span class="float-right">
+                                                {{ router_information.architecture|default_if_none:"" }}
+                                            </span>
+                                        </li>
+
+                                        <li class="list-group-item">
+                                            <b>CPU</b>
+                                            <span class="float-right">
+                                                {{ router_information.cpu|default_if_none:"" }}
+                                            </span>
+                                        </li>
+
+                                        <li class="list-group-item">
+                                            <b>Last Update</b>
+                                            <span class="float-right">
+                                                {% if router_information.success %}
+                                                    {{ router_information.last_retrieval }}
+                                                {% elif router_information.error %}
+                                                    <i class="far fa-times-circle text-danger" title="Last update failed: {{ router_information.error_message }}"></i>
+                                                {% else %}
+                                                    <i class="far fa-clock" title="Fetching router information on next cron"></i>
+                                                {% endif %}
+                                            </span>
+                                        </li>
+
+                                        <li class="list-group-item">
+                                            <div>
+                                                <b>Source Data</b>
+                                                <span class="float-right">
+                                        <a href="#" onclick="$('#router_information_json').slideToggle()">
+                                            <i class="far fa-eye"></i></a>
+                                    </span>
+                                            </div>
+                                            <span id="router_information_json" style="display: none;">
+                                    {{ router_information.json_data|default_if_none:"" }}
+                                </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
             </div>
+
+
+
         </div>
         <div class='col-xl-7'>
-        {% if router_backup_list or router.router_type != 'monitoring' %}
-            <div class="card card-primary card-outline">
-                <div class="card-header">
-                    <h3 class="card-title">Backup history</h3>
-                    <span class="float-right">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    {% if router_backup_list or router.router_type != 'monitoring' %}
+                        <div class="card card-primary card-outline">
+                            <div class="card-header">
+                                <h3 class="card-title">Backup history</h3>
+                                <span class="float-right">
                         {% if router.backupschedule %}
-                        <a onclick="$('.backup-schedule-information').slideToggle();" href="#">
+                            <a onclick="$('.backup-schedule-information').slideToggle();" href="#">
                             show schedule <i class="far fa-clock"></i>
                         </a>
                         {% else %}
-                        <a onclick="alert('There\'s no backup schedule for this equipment.');" href="#">
+                            <a onclick="alert('There\'s no backup schedule for this equipment.');" href="#">
                             show schedule <i class="far fa-clock"></i>
                         </a>
                         {% endif %}
-                        
-                    </span>
-                </div>
-                <div class="card-body row">
-                    <div class="col-lg-12">
-                        <table class="table table-hover datatables-no-export" >
-                            <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Schedule</th>
-                                <th>Time</th>
-                                <th>Status</th>
-                                <th><i class="fas fa-code-branch" title="backup hash"></i></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% if router.backupschedule.next_daily_backup %}
-                            <tr class="backup-schedule-information"  style="display: none;">
-                                <td><i class="far fa-clock text-info"></i></td>
-                                <td>Daily</td>
-                                <td>{{ router.backupschedule.next_daily_backup }}</td>
-                                <td><i class="far fa-clock text-info"></i></td>
-                                <td>-</td>
-                            </tr>
-                            {% endif %}
-                            {% if router.backupschedule.next_weekly_backup %}
-                            <tr class="backup-schedule-information"  style="display: none;">
-                                <td><i class="far fa-clock text-info"></i></td>
-                                <td>Weekly</td>
-                                <td>{{ router.backupschedule.next_weekly_backup }}</td>
-                                <td><i class="far fa-clock text-info"></i></td>
-                                <td>-</td>
-                            </tr>
-                            {% endif %}
-                            {% if router.backupschedule.next_monthly_backup %}
-                            <tr class="backup-schedule-information" style="display: none;">
-                                <td><i class="far fa-clock text-info"></i></td>
-                                <td>Monthly</td>
-                                <td>{{ router.backupschedule.next_monthly_backup }}</td>
-                                <td><i class="far fa-clock text-info"></i></td>
-                                <td>-</td>
-                            </tr>
-                            {% endif %}
 
-                            {% for backup in router_backup_list %}
-                                <tr>
-                                    <td class="min-width">
-                                        <a href="/backup/backup_details/?uuid={{ backup.uuid }}">
-                                            {{ backup.id }}
-                                        </a>
-                                    </td>
-                                    <td>{{ backup.get_schedule_type_display }}</td>
-                                    <td>{% if backup.finish_time %}{{ backup.finish_time }}{% else %}
-                                        {% if not backup.error %}<i class="far fa-clock text-warning"></i>{% endif %}{% endif %}</td>
-                                    <td>
-                                        {% if backup.success %}
-                                            <i class="far fa-check-circle text-success"></i>
-                                        {% elif backup.error %}
-                                            <i class="far fa-times-circle text-danger"
-                                               title="{{ backup.error_message }}"></i>
-                                        {% elif backup.backup_pending_retrieval %}
-                                            <i class="fas fa-cloud-download-alt text-info"
-                                               title="Backup pending Retrieval"></i>
-                                        {% else %}
-                                            <i class="far fa-clock text-warning"></i>
+                    </span>
+                            </div>
+                            <div class="card-body row">
+                                <div class="col-lg-12">
+                                    <table class="table table-hover datatables-no-export" >
+                                        <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Schedule</th>
+                                            <th>Time</th>
+                                            <th>Status</th>
+                                            <th><i class="fas fa-code-branch" title="backup hash"></i></th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% if router.backupschedule.next_daily_backup %}
+                                            <tr class="backup-schedule-information"  style="display: none;">
+                                                <td><i class="far fa-clock text-info"></i></td>
+                                                <td>Daily</td>
+                                                <td>{{ router.backupschedule.next_daily_backup }}</td>
+                                                <td><i class="far fa-clock text-info"></i></td>
+                                                <td>-</td>
+                                            </tr>
                                         {% endif %}
-                                    </td>
-                                    <td class="min-width">
-                                        {% if backup.backup_text_hash %}
-                                            <a href="#" title="{{ backup.backup_text_hash }}">{{ backup.backup_text_hash|default_if_none:""|slice:":8" }}...</a>
+                                        {% if router.backupschedule.next_weekly_backup %}
+                                            <tr class="backup-schedule-information"  style="display: none;">
+                                                <td><i class="far fa-clock text-info"></i></td>
+                                                <td>Weekly</td>
+                                                <td>{{ router.backupschedule.next_weekly_backup }}</td>
+                                                <td><i class="far fa-clock text-info"></i></td>
+                                                <td>-</td>
+                                            </tr>
                                         {% endif %}
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                                        {% if router.backupschedule.next_monthly_backup %}
+                                            <tr class="backup-schedule-information" style="display: none;">
+                                                <td><i class="far fa-clock text-info"></i></td>
+                                                <td>Monthly</td>
+                                                <td>{{ router.backupschedule.next_monthly_backup }}</td>
+                                                <td><i class="far fa-clock text-info"></i></td>
+                                                <td>-</td>
+                                            </tr>
+                                        {% endif %}
+
+                                        {% for backup in router_backup_list %}
+                                            <tr>
+                                                <td class="min-width">
+                                                    <a href="/backup/backup_details/?uuid={{ backup.uuid }}">
+                                                        {{ backup.id }}
+                                                    </a>
+                                                </td>
+                                                <td>{{ backup.get_schedule_type_display }}</td>
+                                                <td>{% if backup.finish_time %}{{ backup.finish_time }}{% else %}
+                                                    {% if not backup.error %}<i class="far fa-clock text-warning"></i>{% endif %}{% endif %}</td>
+                                                <td>
+                                                    {% if backup.success %}
+                                                        <i class="far fa-check-circle text-success"></i>
+                                                    {% elif backup.error %}
+                                                        <i class="far fa-times-circle text-danger"
+                                                           title="{{ backup.error_message }}"></i>
+                                                    {% elif backup.backup_pending_retrieval %}
+                                                        <i class="fas fa-cloud-download-alt text-info"
+                                                           title="Backup pending Retrieval"></i>
+                                                    {% else %}
+                                                        <i class="far fa-clock text-warning"></i>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="min-width">
+                                                    {% if backup.backup_text_hash %}
+                                                        <a href="#" title="{{ backup.backup_text_hash }}">{{ backup.backup_text_hash|default_if_none:""|slice:":8" }}...</a>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
                 </div>
             </div>
-        {% endif %}
+
+
         </div>
     </div>
 {% endblock %}
