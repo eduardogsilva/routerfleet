@@ -80,3 +80,31 @@ class BackupSchedule(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
 
+
+class RouterInformation(models.Model):
+    router = models.OneToOneField(Router, on_delete=models.CASCADE)
+
+    success = models.BooleanField(default=False)
+    error = models.BooleanField(default=False)
+    error_message = models.TextField(blank=True, null=True)
+    retry_count = models.IntegerField(default=0)
+    next_retry = models.DateTimeField(blank=True, null=True)
+    last_retrieval = models.DateTimeField(blank=True, null=True)
+
+    model_name = models.CharField(max_length=100, null=True, blank=True)
+    model_version = models.CharField(max_length=100, null=True, blank=True)
+    serial_number = models.CharField(max_length=100, null=True, blank=True)
+
+    os_version = models.CharField(max_length=100, null=True, blank=True)
+    firmware_version = models.CharField(max_length=100, null=True, blank=True)
+    architecture = models.CharField(max_length=100, null=True, blank=True)
+    cpu = models.CharField(max_length=100, null=True, blank=True)
+
+    json_data = models.TextField(null=True, blank=True)
+
+    updated = models.DateTimeField(auto_now=True)
+    created = models.DateTimeField(auto_now_add=True)
+    uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
+
+    def __str__(self):
+        return str(self.router)

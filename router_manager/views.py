@@ -8,9 +8,11 @@ from django.utils import timezone
 from backup.models import BackupProfile
 from backup_data.models import RouterBackup
 from routerfleet_tools.models import WebadminSettings
+from routerlib.router_functions import update_router_information
 from user_manager.models import UserAcl
 from .forms import RouterForm, RouterGroupForm, SSHKeyForm
-from .models import Router, RouterGroup, RouterStatus, SSHKey, BackupSchedule
+from .models import Router, RouterGroup, RouterInformation, RouterStatus, SSHKey, BackupSchedule
+from django.conf import settings
 
 
 @login_required
@@ -263,3 +265,28 @@ def view_create_instant_backup_multiple_routers(request):
         return JsonResponse({'results': results})
 
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
+
+
+def view_cron_update_router_information(request):
+    data = {'status': 'success'}
+    refresh_interval = 24 #hours
+
+    router_list = Router.objects.filter(enabled=True).exclude(router_type='monitoring').exclude(routerstatus__status_online=False)
+    router = router_list.filter(routerinformation__isnull=True).first()
+    if not router:
+        router = router_list.filter(routerinformation__next_retry__lt=timezone.now()).first()
+    if not router:
+        router = router_list.filter(routerinformation__last_retrieval__isnull=True).first()
+    if not router:
+        router = router_list.filter(routerinformation__last_retrieval__lt=timezone.now() - timezone.timedelta(hours=refresh_interval)).first()
+
+    if router:
+        router_information, created = RouterInformation.objects.get_or_create(router=router)
+        success, error_message = update_router_information(router_information)
+        if not success:
+            data['status'] = 'error'
+            data['message'] = 'Failed to update router'
+    else:
+        data['message'] = 'No routers need update'
+
+    return JsonResponse(data)

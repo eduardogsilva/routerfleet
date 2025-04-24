@@ -1,5 +1,12 @@
 from django.contrib import admin
-from .models import Router, SSHKey, RouterStatus, BackupSchedule
+from .models import Router, SSHKey, RouterStatus, BackupSchedule, RouterInformation
+
+
+class RouterInformationAdmin(admin.ModelAdmin):
+    list_display = ('router', 'model_name', 'model_version', 'serial_number', 'os_version', 'firmware_version', 'architecture')
+    search_fields = ('router__name', 'model_name', 'model_version', 'serial_number', 'os_version', 'firmware_version', 'architecture')
+    list_filter = ('router__name', 'model_name', 'model_version', 'serial_number', 'os_version', 'firmware_version', 'architecture')
+admin.site.register(RouterInformation, RouterInformationAdmin)
 
 
 class RouterAdmin(admin.ModelAdmin):
