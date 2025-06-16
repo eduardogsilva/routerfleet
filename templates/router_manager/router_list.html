@@ -17,13 +17,14 @@
                             <table class="table table-hover datatables-no-export">
                                 <thead>
                                 <tr>
-                                    <th>Select</th>
+                                    <th></th>
                                     <th>Name</th>
                                     <th>Type</th>
                                     <th>Version</th>
                                     <th>Address</th>
                                     <th>Status</th>
                                     <th>Backup</th>
+                                    <th>Last Backup</th>
                                     <th>Groups</th>
                                     <th>Auth</th>
                                     <th></th>
@@ -61,7 +62,22 @@
                                                 {% endif %}
                                             {% endif %}
                                         </td>
-                                        <td>{{ router.routergroup_set.count }}</td>
+                                        <td>
+                                            {% if router.router_type != 'monitoring' and router.routerstatus.last_backup %}
+                                                {{ router.routerstatus.last_backup|date:"Y-m-d H:i:s" }}
+                                            {% else %}
+                                                ---
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if router.routergroup_set.exists %}
+                                                {% for group in router.routergroup_set.all %}
+                                                    {{ group.name }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                ---
+                                            {% endif %}
+                                        </td>
                                         <td class="min-width">
                                             {% if router.router_type != 'monitoring' %}
                                                 {% if router.ssh_key %}
@@ -143,7 +159,7 @@
 
                         if (currentStatus !== newStatus) {
                             $cell.html(newStatusHtml);
-                            
+
                             $(document).Toasts('create', {
                                 class: router.online ? 'bg-success' : 'bg-danger',
                                 title: 'Host status updated',
@@ -156,7 +172,7 @@
                 }
             }
         }
-        
+
         setInterval(checkStatusChange, 30000);
         $(document).ready(function() {
             checkStatusChange();
