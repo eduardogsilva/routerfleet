@@ -24,7 +24,7 @@ def view_router_list(request):
     else:
         last_status_change_timestamp = 0
 
-    default_backup_profile, _ = BackupProfile.objects.get_or_create(name='default')
+    default_backup_profile, default_backup_profile_created = BackupProfile.objects.get_or_create(name='default')
     filter_group = None
     if request.GET.get('filter_group'):
         if request.GET.get('filter_group') == 'all':
@@ -58,7 +58,7 @@ def view_router_availability(request):
 @login_required()
 def view_router_details(request):
     router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
-    router_status, _ = RouterStatus.objects.get_or_create(router=router)
+    router_status, router_status_created = RouterStatus.objects.get_or_create(router=router)
     router_backup_list = router.routerbackup_set.all().order_by('-created')
     router_information = RouterInformation.objects.filter(router=router).first()
     downtime_last_week = router.routerdowntime_set.filter(start_time__gte=timezone.now() - timezone.timedelta(days=7)).aggregate(total=Sum('total_down_time'))['total']
@@ -94,7 +94,7 @@ def view_router_details(request):
 def view_manage_router(request):
     if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=30).exists():
         return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
-    webadmin_settings, _ = WebadminSettings.objects.get_or_create(name='webadmin_settings')
+    webadmin_settings, webadmin_settings_created = WebadminSettings.objects.get_or_create(name='webadmin_settings')
 
     if request.GET.get('uuid'):
         router = get_object_or_404(Router, uuid=request.GET.get('uuid'))
@@ -125,7 +125,7 @@ def view_manage_router(request):
     if form.is_valid():
         form.save()
         messages.success(request, 'Router saved successfully|It may take a few minutes until monitoring starts for this router.')
-        router_status, _ = RouterStatus.objects.get_or_create(router=form.instance)
+        router_status, router_status_created = RouterStatus.objects.get_or_create(router=form.instance)
         BackupSchedule.objects.filter(router=form.instance).delete()
         if form.instance.router_type == 'monitoring':
             RouterInformation.objects.filter(router=form.instance).delete()
