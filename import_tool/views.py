@@ -3,7 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 
 from backup.models import BackupProfile
-from router_manager.models import Router, SSHKey, SUPPORTED_ROUTER_TYPES, RouterGroup
+from router_manager.models import Router, SSHKey, SUPPORTED_ROUTER_TYPES, RouterGroup, RouterStatus
 from routerlib.functions import test_authentication
 from user_manager.models import UserAcl
 from .models import CsvData, ImportTask
@@ -107,12 +107,12 @@ def run_import_task(request):
         import_task.save()
         return JsonResponse({'status': 'error', 'error_message': error_message})
 
-
     new_router = Router.objects.create(
         name=import_task.name, username=import_task.username, password=import_task.password, ssh_key=ssh_key,
         address=address, port=import_task.port, router_type=import_task.router_type, backup_profile=backup_profile,
         monitoring=import_task.monitoring
     )
+    router_status, router_status_created = RouterStatus.objects.get_or_create(router=new_router)
 
     if router_group:
         router_group.routers.add(new_router)
