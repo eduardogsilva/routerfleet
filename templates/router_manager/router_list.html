@@ -20,13 +20,22 @@
                                     <th></th>
                                     <th>Name</th>
                                     <th>Type</th>
-                                    <th>Version</th>
                                     <th>Address</th>
                                     <th>Status</th>
                                     <th>Backup</th>
                                     <th>Last Backup</th>
+                                    <th>Next Daily Backup</th>
+                                    <th>Next Weekly Backup</th>
+                                    <th>Next Monthly Backup</th>
                                     <th>Groups</th>
                                     <th>Auth</th>
+                                    <th>OS Version</th>
+                                    <th>Model Name</th>
+                                    <th>Model Version</th>
+                                    <th>Serial Number</th>
+                                    <th>Firmware Version</th>
+                                    <th>Architecture</th>
+                                    <th>CPU</th>
                                     <th></th>
                                 </tr>
                                 </thead>
@@ -36,11 +45,7 @@
                                         <td><input type="checkbox" class="router-checkbox" data-uuid="{{ router.uuid }}"></td>
                                         <td><a href="/router/details/?uuid={{ router.uuid }}">{{ router.name }}</a></td>
                                         <td>{{ router.get_router_type_display }}</td>
-                                    <td>
-                                        {% if router.router_type != 'monitoring' %}
-                                        {{ router.routerinformation.os_version|default_if_none:'' }}
-                                    {% endif %}
-                                    </td>
+
                                         <td>{{ router.address }}</td>
                                         <td id="status-{{ router.uuid }}">
                                             {% if router.monitoring %}
@@ -70,6 +75,27 @@
                                             {% endif %}
                                         </td>
                                         <td>
+                                            {% if router.router_type != 'monitoring' and router.backupschedule.next_daily_backup %}
+                                                {{ router.backupschedule.next_daily_backup|date:"Y-m-d H:i:s" }}
+                                            {% else %}
+                                                ---
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if router.router_type != 'monitoring' and router.backupschedule.next_weekly_backup %}
+                                                {{ router.backupschedule.next_weekly_backup|date:"Y-m-d H:i:s" }}
+                                            {% else %}
+                                                ---
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if router.router_type != 'monitoring' and router.backupschedule.next_monthly_backup %}
+                                                {{ router.backupschedule.next_monthly_backup|date:"Y-m-d H:i:s" }}
+                                            {% else %}
+                                                ---
+                                            {% endif %}
+                                        </td>
+                                        <td>
                                             {% if router.routergroup_set.exists %}
                                                 {% for group in router.routergroup_set.all %}
                                                     {{ group.name }}{% if not forloop.last %}, {% endif %}
@@ -89,6 +115,42 @@
                                                 {% endif %}
                                             {% endif %}
                                         </td>
+                                        <td>
+                                            {% if router.router_type != 'monitoring' %}
+                                                {{ router.routerinformation.os_version|default_if_none:'' }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if router.router_type != 'monitoring' %}
+                                                {{ router.routerinformation.model_name|default_if_none:'' }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if router.router_type != 'monitoring' %}
+                                                {{ router.routerinformation.model_version|default_if_none:'' }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if router.router_type != 'monitoring' %}
+                                                {{ router.routerinformation.serial_number|default_if_none:'' }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if router.router_type != 'monitoring' %}
+                                                {{ router.routerinformation.firmware_version|default_if_none:'' }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if router.router_type != 'monitoring' %}
+                                                {{ router.routerinformation.architecture|default_if_none:'' }}
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if router.router_type != 'monitoring' %}
+                                                {{ router.routerinformation.cpu|default_if_none:'' }}
+                                            {% endif %}
+                                        </td>
+
                                         <td class="min-width">
                                             <a href="/router/manage/?uuid={{ router.uuid }}"><i class="fas fa-edit"></i></a>
                                         </td>
@@ -98,14 +160,14 @@
                             </table>
                         </div>
                         <div class="row mb-3">
-                        <div class="col-lg-12 text-right">
-                            <a href="/router/manage/" class="btn btn-primary">Add Router</a>
-                            <a href="/router/import_tool/" class="btn btn-primary">Import Tool</a>
-                            <button id="select-all" class="btn btn-outline-primary" title="Select All"><i class="fas fa-check-square"></i></button>
-                            <button id="select-none" class="btn btn-outline-primary" title="Select None"><i class="fas fa-square"></i></button>
-                            <button id="create-backup" class="btn btn-warning" style="display: none;">Create Backup Task</button>
+                            <div class="col-lg-12 text-right">
+                                <a href="/router/manage/" class="btn btn-primary">Add Router</a>
+                                <a href="/router/import_tool/" class="btn btn-primary">Import Tool</a>
+                                <button id="select-all" class="btn btn-outline-primary" title="Select All"><i class="fas fa-check-square"></i></button>
+                                <button id="select-none" class="btn btn-outline-primary" title="Select None"><i class="fas fa-square"></i></button>
+                                <button id="create-backup" class="btn btn-warning" style="display: none;">Create Backup Task</button>
+                            </div>
                         </div>
-                    </div>
                     </div>
                 </div>
             </div>

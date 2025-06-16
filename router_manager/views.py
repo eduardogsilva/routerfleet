@@ -17,7 +17,13 @@ from django.conf import settings
 
 @login_required
 def view_router_list(request):
-    router_list = Router.objects.all().order_by('name')
+    router_list = Router.objects.all().prefetch_related(
+        'routerstatus', 
+        'routerinformation', 
+        'backupschedule', 
+        'routergroup_set'
+    ).order_by('name')
+
     last_router_status_change = RouterStatus.objects.filter(last_status_change__isnull=False).order_by('-last_status_change').first()
     if last_router_status_change:
         last_status_change_timestamp = last_router_status_change.last_status_change.isoformat()
