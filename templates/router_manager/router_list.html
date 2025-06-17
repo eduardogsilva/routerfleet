@@ -12,30 +12,90 @@
                 {% endif %}
                 <div class="card-body">
                     {% include 'router_manager/router_nav_tabs.html' %}
+
+                    <!-- Column Visibility Modal -->
+                    <div class="modal fade" id="columnVisibilityModal" tabindex="-1" role="dialog" aria-labelledby="columnVisibilityModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="columnVisibilityModalLabel">Show/Hide Columns</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <div id="columnCheckboxes">
+                                        <!-- Checkboxes will be added here dynamically -->
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-danger" id="resetColumnVisibility">Reset</button>
+                                    <button type="button" class="btn btn-primary" id="applyColumnVisibility">Apply</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-lg-12">
                             <table class="table table-hover datatables-no-export">
                                 <thead>
                                 <tr>
                                     <th></th>
-                                    <th>Name</th>
-                                    <th>Type</th>
-                                    <th>Address</th>
-                                    <th>Status</th>
-                                    <th>Backup</th>
-                                    <th>Last Backup</th>
-                                    <th>Next Daily Backup</th>
-                                    <th>Next Weekly Backup</th>
-                                    <th>Next Monthly Backup</th>
-                                    <th>Groups</th>
-                                    <th>Auth</th>
-                                    <th>OS Version</th>
-                                    <th>Model Name</th>
-                                    <th>Model Version</th>
-                                    <th>Serial Number</th>
-                                    <th>Firmware Version</th>
-                                    <th>Architecture</th>
-                                    <th>CPU</th>
+                                    {% if "name" in visible_columns %}
+                                    <th data-column="name">Name</th>
+                                    {% endif %}
+                                    {% if "type" in visible_columns %}
+                                    <th data-column="type">Type</th>
+                                    {% endif %}
+                                    {% if "address" in visible_columns %}
+                                    <th data-column="address">Address</th>
+                                    {% endif %}
+                                    {% if "status" in visible_columns %}
+                                    <th data-column="status">Status</th>
+                                    {% endif %}
+                                    {% if "backup" in visible_columns %}
+                                    <th data-column="backup">Backup</th>
+                                    {% endif %}
+                                    {% if "last_backup" in visible_columns %}
+                                    <th data-column="last_backup">Last Backup</th>
+                                    {% endif %}
+                                    {% if "next_daily_backup" in visible_columns %}
+                                    <th data-column="next_daily_backup">Next Daily Backup</th>
+                                    {% endif %}
+                                    {% if "next_weekly_backup" in visible_columns %}
+                                    <th data-column="next_weekly_backup">Next Weekly Backup</th>
+                                    {% endif %}
+                                    {% if "next_monthly_backup" in visible_columns %}
+                                    <th data-column="next_monthly_backup">Next Monthly Backup</th>
+                                    {% endif %}
+                                    {% if "groups" in visible_columns %}
+                                    <th data-column="groups">Groups</th>
+                                    {% endif %}
+                                    {% if "auth" in visible_columns %}
+                                    <th data-column="auth">Auth</th>
+                                    {% endif %}
+                                    {% if "os_version" in visible_columns %}
+                                    <th data-column="os_version">OS Version</th>
+                                    {% endif %}
+                                    {% if "model_name" in visible_columns %}
+                                    <th data-column="model_name">Model Name</th>
+                                    {% endif %}
+                                    {% if "model_version" in visible_columns %}
+                                    <th data-column="model_version">Model Version</th>
+                                    {% endif %}
+                                    {% if "serial_number" in visible_columns %}
+                                    <th data-column="serial_number">Serial Number</th>
+                                    {% endif %}
+                                    {% if "firmware_version" in visible_columns %}
+                                    <th data-column="firmware_version">Firmware Version</th>
+                                    {% endif %}
+                                    {% if "architecture" in visible_columns %}
+                                    <th data-column="architecture">Architecture</th>
+                                    {% endif %}
+                                    {% if "cpu" in visible_columns %}
+                                    <th data-column="cpu">CPU</th>
+                                    {% endif %}
                                     <th></th>
                                 </tr>
                                 </thead>
@@ -43,11 +103,17 @@
                                 {% for router in router_list %}
                                     <tr {% if not router.enabled %}style="text-decoration: line-through;"{% endif %}>
                                         <td><input type="checkbox" class="router-checkbox" data-uuid="{{ router.uuid }}"></td>
-                                        <td><a href="/router/details/?uuid={{ router.uuid }}">{{ router.name }}</a></td>
-                                        <td>{{ router.get_router_type_display }}</td>
-
-                                        <td>{{ router.address }}</td>
-                                        <td id="status-{{ router.uuid }}">
+                                        {% if "name" in visible_columns %}
+                                        <td data-column="name"><a href="/router/details/?uuid={{ router.uuid }}">{{ router.name }}</a></td>
+                                        {% endif %}
+                                        {% if "type" in visible_columns %}
+                                        <td data-column="type">{{ router.get_router_type_display }}</td>
+                                        {% endif %}
+                                        {% if "address" in visible_columns %}
+                                        <td data-column="address">{{ router.address }}</td>
+                                        {% endif %}
+                                        {% if "status" in visible_columns %}
+                                        <td data-column="status" id="status-{{ router.uuid }}">
                                             {% if router.monitoring %}
                                                 {% if router.routerstatus.status_online %}
                                                     <span style="display: none">online</span><i class="far fa-check-circle text-success" title="Host is Online"></i>
@@ -58,7 +124,9 @@
                                                 ---
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "backup" in visible_columns %}
+                                        <td data-column="backup">
                                             {% if router.router_type != 'monitoring' %}
                                                 {% if router.backup_profile %}
                                                     {{ router.backup_profile }} {% if router.routerstatus.last_backup_failed %}<i class="fas fa-exclamation-triangle text-danger" title="Last backup failed to complete"></i>{% endif %}
@@ -67,35 +135,45 @@
                                                 {% endif %}
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "last_backup" in visible_columns %}
+                                        <td data-column="last_backup">
                                             {% if router.router_type != 'monitoring' and router.routerstatus.last_backup %}
                                                 {{ router.routerstatus.last_backup|date:"Y-m-d H:i:s" }}
                                             {% else %}
                                                 ---
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "next_daily_backup" in visible_columns %}
+                                        <td data-column="next_daily_backup">
                                             {% if router.router_type != 'monitoring' and router.backupschedule.next_daily_backup %}
                                                 {{ router.backupschedule.next_daily_backup|date:"Y-m-d H:i:s" }}
                                             {% else %}
                                                 ---
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "next_weekly_backup" in visible_columns %}
+                                        <td data-column="next_weekly_backup">
                                             {% if router.router_type != 'monitoring' and router.backupschedule.next_weekly_backup %}
                                                 {{ router.backupschedule.next_weekly_backup|date:"Y-m-d H:i:s" }}
                                             {% else %}
                                                 ---
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "next_monthly_backup" in visible_columns %}
+                                        <td data-column="next_monthly_backup">
                                             {% if router.router_type != 'monitoring' and router.backupschedule.next_monthly_backup %}
                                                 {{ router.backupschedule.next_monthly_backup|date:"Y-m-d H:i:s" }}
                                             {% else %}
                                                 ---
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "groups" in visible_columns %}
+                                        <td data-column="groups">
                                             {% if router.routergroup_set.exists %}
                                                 {% for group in router.routergroup_set.all %}
                                                     {{ group.name }}{% if not forloop.last %}, {% endif %}
@@ -104,7 +182,9 @@
                                                 ---
                                             {% endif %}
                                         </td>
-                                        <td class="min-width">
+                                        {% endif %}
+                                        {% if "auth" in visible_columns %}
+                                        <td data-column="auth" class="min-width">
                                             {% if router.router_type != 'monitoring' %}
                                                 {% if router.ssh_key %}
                                                     <span style="display: none">sshkey</span><i class="fas fa-key" title="SSH Key: {{ router.ssh_key }}"></i>
@@ -115,42 +195,56 @@
                                                 {% endif %}
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "os_version" in visible_columns %}
+                                        <td data-column="os_version">
                                             {% if router.router_type != 'monitoring' %}
                                                 {{ router.routerinformation.os_version|default_if_none:'' }}
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "model_name" in visible_columns %}
+                                        <td data-column="model_name">
                                             {% if router.router_type != 'monitoring' %}
                                                 {{ router.routerinformation.model_name|default_if_none:'' }}
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "model_version" in visible_columns %}
+                                        <td data-column="model_version">
                                             {% if router.router_type != 'monitoring' %}
                                                 {{ router.routerinformation.model_version|default_if_none:'' }}
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "serial_number" in visible_columns %}
+                                        <td data-column="serial_number">
                                             {% if router.router_type != 'monitoring' %}
                                                 {{ router.routerinformation.serial_number|default_if_none:'' }}
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "firmware_version" in visible_columns %}
+                                        <td data-column="firmware_version">
                                             {% if router.router_type != 'monitoring' %}
                                                 {{ router.routerinformation.firmware_version|default_if_none:'' }}
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "architecture" in visible_columns %}
+                                        <td data-column="architecture">
                                             {% if router.router_type != 'monitoring' %}
                                                 {{ router.routerinformation.architecture|default_if_none:'' }}
                                             {% endif %}
                                         </td>
-                                        <td>
+                                        {% endif %}
+                                        {% if "cpu" in visible_columns %}
+                                        <td data-column="cpu">
                                             {% if router.router_type != 'monitoring' %}
                                                 {{ router.routerinformation.cpu|default_if_none:'' }}
                                             {% endif %}
                                         </td>
-
+                                        {% endif %}
                                         <td class="min-width">
                                             <a href="/router/manage/?uuid={{ router.uuid }}"><i class="fas fa-edit"></i></a>
                                         </td>
@@ -181,6 +275,28 @@
         var group_uuid = "{{ filter_group.uuid|default_if_none:'' }}";
         var status_online_text = '<span style="display: none">online</span><i class="far fa-check-circle text-success" title="Host is Online"></i>';
         var status_offline_text = '<span style="display: none">offline</span><i class="far fa-times-circle text-danger" title="Host is unavailable"></i>';
+
+        // Column definitions for the router table
+        var columnDefinitions = [
+            { name: "name", label: "Name", default: true },
+            { name: "type", label: "Type", default: true },
+            { name: "address", label: "Address", default: false },
+            { name: "status", label: "Status", default: true },
+            { name: "backup", label: "Backup", default: true },
+            { name: "last_backup", label: "Last Backup", default: false },
+            { name: "next_daily_backup", label: "Next Daily Backup", default: false },
+            { name: "next_weekly_backup", label: "Next Weekly Backup", default: false },
+            { name: "next_monthly_backup", label: "Next Monthly Backup", default: false },
+            { name: "groups", label: "Groups", default: true },
+            { name: "auth", label: "Auth", default: false },
+            { name: "os_version", label: "OS Version", default: false },
+            { name: "model_name", label: "Model Name", default: false },
+            { name: "model_version", label: "Model Version", default: false },
+            { name: "serial_number", label: "Serial Number", default: false },
+            { name: "firmware_version", label: "Firmware Version", default: false },
+            { name: "architecture", label: "Architecture", default: false },
+            { name: "cpu", label: "CPU", default: false }
+        ];
 
         function checkStatusChange() {
             $.ajax({
@@ -233,6 +349,8 @@
                     });
                 }
             }
+
+            // No need to reapply column visibility as it's now handled by Django template tags
         }
 
         setInterval(checkStatusChange, 30000);
@@ -245,6 +363,105 @@
 $(document).ready(function() {
     var table = dataTable;
 
+    // Column visibility functions
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function setCookie(name, value, days) {
+        var expires = "";
+        if (days) {
+            var date = new Date();
+            // Calculate expiration date: current date + days (in milliseconds)
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        // Set the cookie with the calculated expiration date
+        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/; max-age=" + (days * 24 * 60 * 60);
+    }
+
+    function getVisibleColumns() {
+        var cookieValue = getCookie('router_visible_columns');
+        if (cookieValue) {
+            return JSON.parse(cookieValue);
+        }
+        // Default columns if cookie doesn't exist
+        return columnDefinitions.filter(function(col) {
+            return col.default;
+        }).map(function(col) {
+            return col.name;
+        });
+    }
+
+    // No need for applyColumnVisibility function as column visibility is now handled by Django template tags
+
+    function populateColumnModal() {
+        var visibleColumns = getVisibleColumns();
+        var $container = $('#columnCheckboxes');
+        $container.empty();
+
+        columnDefinitions.forEach(function(col) {
+            var isChecked = visibleColumns.includes(col.name);
+            var $div = $('<div class="form-check">');
+            var $input = $('<input class="form-check-input" type="checkbox" id="col-' + col.name + '" value="' + col.name + '"' + (isChecked ? ' checked' : '') + '>');
+            var $label = $('<label class="form-check-label" for="col-' + col.name + '">' + col.label + '</label>');
+
+            $div.append($input).append($label);
+            $container.append($div);
+        });
+    }
+
+    // No need to initialize column visibility as it's now handled by Django template tags
+
+    // Show/Hide Columns button click handler
+    $('#showHideColumnsBtn').on('click', function(e) {
+        e.preventDefault();
+        populateColumnModal();
+        $('#columnVisibilityModal').modal('show');
+    });
+
+    // Apply button click handler
+    $('#applyColumnVisibility').on('click', function() {
+        var selectedColumns = [];
+        $('#columnCheckboxes input:checked').each(function() {
+            selectedColumns.push($(this).val());
+        });
+
+        // Save to cookie
+        setCookie('router_visible_columns', JSON.stringify(selectedColumns), 90);
+
+        // Reload the page with the same GET parameters
+        var currentUrl = window.location.href;
+        window.location.href = currentUrl;
+    });
+
+    // Function to delete a cookie
+    function deleteCookie(name) {
+        document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+    }
+
+    // Reset button click handler
+    $('#resetColumnVisibility').on('click', function() {
+        // Delete the router_visible_columns cookie
+        deleteCookie('router_visible_columns');
+
+        // Reload the page with the same GET parameters
+        var currentUrl = window.location.href;
+        window.location.href = currentUrl;
+    });
+
+    // Router selection functions
     function updateCheckboxes(checked) {
          table.$('.router-checkbox').prop('checked', checked).trigger('change');
     }

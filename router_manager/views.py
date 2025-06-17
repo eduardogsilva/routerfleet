@@ -13,7 +13,8 @@ from user_manager.models import UserAcl
 from .forms import RouterForm, RouterGroupForm, SSHKeyForm
 from .models import Router, RouterGroup, RouterInformation, RouterStatus, SSHKey, BackupSchedule
 from django.conf import settings
-
+import json
+from urllib.parse import unquote
 
 @login_required
 def view_router_list(request):
@@ -41,12 +42,25 @@ def view_router_list(request):
 
     if not filter_group and request.GET.get('filter_group') != 'all':
         filter_group = RouterGroup.objects.filter(default_group=True).first()
+    # Parse the router_visible_columns cookie
+    visible_columns = []
+    if 'router_visible_columns' in request.COOKIES:
+        try:
+            visible_columns = json.loads(unquote(request.COOKIES['router_visible_columns']))
+        except json.JSONDecodeError:
+            # If the cookie is invalid, use default columns
+            visible_columns = ["name", "type", "status", "backup", "groups"]
+    else:
+        # Default columns if cookie doesn't exist
+        visible_columns = ["name", "type", "status", "backup", "groups"]
+
     context = {
         'router_list': router_list,
         'page_title': 'Router List',
         'filter_group_list': RouterGroup.objects.all().order_by('name'),
         'filter_group': filter_group,
         'last_status_change_timestamp': last_status_change_timestamp,
+        'visible_columns': visible_columns,
     }
     return render(request, 'router_manager/router_list.html', context=context)
 
