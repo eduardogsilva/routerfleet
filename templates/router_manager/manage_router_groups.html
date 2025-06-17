@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class='row'>
+    <div class='col-lg-6'>
+        <div class="card card-primary card-outline">
+            <div class="card-header">
+                <h3 class="card-title">Manage Router Groups</h3>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h4>Selected Routers:</h4>
+                            <ul>
+                                {% for router in routers %}
+                                    <li>{{ router.name }}</li>
+                                    <input type="hidden" name="router_uuids" value="{{ router.uuid }}">
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="add_group">Add to Group:</label>
+                                <select class="form-control" id="add_group" name="add_group">
+                                    <option value="">-- Select Group --</option>
+                                    {% for group in groups %}
+                                        <option value="{{ group.uuid }}">{{ group.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="remove_group">Remove from Group:</label>
+                                <select class="form-control" id="remove_group" name="remove_group">
+                                    <option value="">-- Select Group --</option>
+                                    {% for group in groups %}
+                                        <option value="{{ group.uuid }}">{{ group.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="submit" class="btn btn-success">Apply Changes</button>
+                            <a href="/router/list/" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block custom_page_scripts %}
+<script>
+$(document).ready(function() {
+    // Prevent selecting the same group for both add and remove
+    $('#add_group, #remove_group').on('change', function() {
+        var addGroup = $('#add_group').val();
+        var removeGroup = $('#remove_group').val();
+
+        if (addGroup && removeGroup && addGroup === removeGroup) {
+            alert("You cannot select the same group for both adding and removing.");
+            $(this).val('');
+        }
+    });
+});
+</script>
+{% endblock %}

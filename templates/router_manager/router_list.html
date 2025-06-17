@@ -260,6 +260,7 @@
                                 <button id="select-all" class="btn btn-outline-primary" title="Select All"><i class="fas fa-check-square"></i></button>
                                 <button id="select-none" class="btn btn-outline-primary" title="Select None"><i class="fas fa-square"></i></button>
                                 <button id="create-backup" class="btn btn-warning" style="display: none;">Create Backup Task</button>
+                                <button id="manage-groups" class="btn btn-primary" style="display: none;">Groups</button>
                             </div>
                         </div>
                     </div>
@@ -478,8 +479,10 @@ $(document).ready(function() {
          var checkedCount = table.$('.router-checkbox:checked').length;
          if (checkedCount >= 1) {
              $('#create-backup').show();
+             $('#manage-groups').show();
          } else {
              $('#create-backup').hide();
+             $('#manage-groups').hide();
          }
     });
 
@@ -541,6 +544,16 @@ $(document).ready(function() {
                    updateCheckboxes(false);
               }
          });
+    });
+
+    $('#manage-groups').on('click', function(e) {
+         e.preventDefault();
+         var selectedRouters = table.$('.router-checkbox:checked').map(function() {
+              return $(this).data('uuid');
+         }).get();
+
+         // Redirect to the manage groups page with the selected routers
+         window.location.href = '/router/manage_groups/multiple/?routers[]=' + selectedRouters.join('&routers[]=');
     });
 });
 </script>

@@ -301,6 +301,67 @@ def view_create_instant_backup_multiple_routers(request):
     return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 
+@login_required
+def view_manage_router_groups_multiple(request):
+    if not UserAcl.objects.filter(user=request.user, user_level__gte=20).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
+
+    if request.method == 'POST':
+        router_uuids = request.POST.getlist('router_uuids')
+        add_group_uuid = request.POST.get('add_group')
+        remove_group_uuid = request.POST.get('remove_group')
+
+        if not router_uuids:
+            messages.warning(request, 'No routers selected')
+            return redirect('router_list')
+
+        # Validate that the same group is not selected for both add and remove
+        if add_group_uuid and remove_group_uuid and add_group_uuid == remove_group_uuid:
+            messages.warning(request, 'Cannot add and remove from the same group')
+            return redirect('router_list')
+
+        routers = Router.objects.filter(uuid__in=router_uuids)
+
+        # Process add to group
+        if add_group_uuid:
+            try:
+                group = RouterGroup.objects.get(uuid=add_group_uuid)
+                for router in routers:
+                    group.routers.add(router)
+                messages.success(request, f'Added {routers.count()} router(s) to group {group.name}')
+            except RouterGroup.DoesNotExist:
+                messages.error(request, 'Group not found')
+
+        # Process remove from group
+        if remove_group_uuid:
+            try:
+                group = RouterGroup.objects.get(uuid=remove_group_uuid)
+                for router in routers:
+                    group.routers.remove(router)
+                messages.success(request, f'Removed {routers.count()} router(s) from group {group.name}')
+            except RouterGroup.DoesNotExist:
+                messages.error(request, 'Group not found')
+
+        return redirect('router_list')
+
+    # GET request - display form
+    router_uuids = request.GET.getlist('routers[]')
+    if not router_uuids:
+        messages.warning(request, 'No routers selected')
+        return redirect('router_list')
+
+    routers = Router.objects.filter(uuid__in=router_uuids)
+    groups = RouterGroup.objects.all().order_by('name')
+
+    context = {
+        'routers': routers,
+        'groups': groups,
+        'page_title': 'Manage Router Groups',
+    }
+
+    return render(request, 'router_manager/manage_router_groups.html', context)
+
+
 def view_cron_update_router_information(request):
     data = {'status': 'success'}
     refresh_interval = 24 #hours

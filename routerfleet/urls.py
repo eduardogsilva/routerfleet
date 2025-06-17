@@ -6,7 +6,7 @@ from dashboard.views import view_dashboard, view_status,backup_statistics_data,r
 from integration_manager.views import view_wireguard_webadmin_launcher, view_manage_wireguard_integration, view_launch_wireguard_webadmin
 from user_manager.views import view_manage_user, view_user_list
 from accounts.views import view_login, view_logout, view_create_first_user
-from router_manager.views import view_create_instant_backup_multiple_routers, view_router_list, view_manage_router, view_router_group_list, view_ssh_key_list, view_manage_router_group, view_manage_sshkey, view_router_details, view_create_instant_backup_task, view_router_availability, view_cron_update_router_information
+from router_manager.views import view_create_instant_backup_multiple_routers, view_router_list, view_manage_router, view_router_group_list, view_ssh_key_list, view_manage_router_group, view_manage_sshkey, view_router_details, view_create_instant_backup_task, view_router_availability, view_cron_update_router_information, view_manage_router_groups_multiple
 from backup.views import view_backup_profile_list, view_manage_backup_profile, view_backup_list, view_backup_details, view_debug_run_backups, view_compare_backups, view_backup_download, view_backup_delete
 from monitoring.views import view_export_router_list, view_update_router_status, view_router_config_timestamp, view_router_last_status_change
 from backup_data.views import view_generate_backup_schedule, view_create_backup_tasks, view_perform_backup_tasks, view_housekeeping
@@ -38,6 +38,7 @@ urlpatterns = [
     path('router/manage_sshkey/', view_manage_sshkey, name='manage_sshkey'),
     path('router/create_instant_backup/', view_create_instant_backup_task, name='create_instant_backup_task'),
     path('router/create_instant_backup/multiple/', view_create_instant_backup_multiple_routers, name='create_instant_backup_multiple'),
+    path('router/manage_groups/multiple/', view_manage_router_groups_multiple, name='manage_router_groups_multiple'),
     path('router/import_tool/', view_import_tool_list, name='import_tool_list'),
     path('router/import_tool/csv/', view_import_csv_file, name='import_csv_file'),
     path('router/import_tool/details/', view_import_details, name='import_details'),
