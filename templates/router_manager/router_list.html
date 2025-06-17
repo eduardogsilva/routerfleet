@@ -380,15 +380,13 @@ $(document).ready(function() {
     }
 
     function setCookie(name, value, days) {
-        var expires = "";
+        let expires = "";
         if (days) {
-            var date = new Date();
-            // Calculate expiration date: current date + days (in milliseconds)
+            const date = new Date();
             date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
             expires = "; expires=" + date.toUTCString();
         }
-        // Set the cookie with the calculated expiration date
-        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/; max-age=" + (days * 24 * 60 * 60);
+        document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
     }
 
     function getVisibleColumns() {
@@ -439,7 +437,7 @@ $(document).ready(function() {
         });
 
         // Save to cookie
-        setCookie('router_visible_columns', JSON.stringify(selectedColumns), 90);
+        setCookie('router_visible_columns', JSON.stringify(selectedColumns), 365);
 
         // Reload the page with the same GET parameters
         var currentUrl = window.location.href;
