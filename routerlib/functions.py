@@ -27,7 +27,6 @@ def gen_backup_name(router_backup):
 def load_private_key_from_string(key_str):
     key_types = [
         paramiko.RSAKey,
-        paramiko.DSSKey,
         paramiko.ECDSAKey,
         paramiko.Ed25519Key,
     ]
