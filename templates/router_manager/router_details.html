@@ -216,11 +216,7 @@
                         </div>
                     {% endif %}
                 </div>
-
             </div>
-
-
-
         </div>
         <div class='col-xl-7'>
 
@@ -292,8 +288,16 @@
                                                     </a>
                                                 </td>
                                                 <td>{{ backup.get_schedule_type_display }}</td>
-                                                <td>{% if backup.finish_time %}{{ backup.finish_time }}{% else %}
-                                                    {% if not backup.error %}<i class="far fa-clock text-warning"></i>{% endif %}{% endif %}</td>
+                                                <td>
+                                                    {% if backup.finish_time %}
+                                                        {{ backup.finish_time }}
+                                                    {% else %}
+                                                        {% if not backup.error %}
+                                                            <i class="far fa-clock text-warning" title="Missing backup finish time"></i>
+                                                        {% endif %}
+                                                        {{ backup.created }}
+                                                    {% endif %}
+                                                </td>
                                                 <td>
                                                     {% if backup.success %}
                                                         <i class="far fa-check-circle text-success"></i>
