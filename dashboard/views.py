@@ -23,6 +23,15 @@ def human_readable_size(size):
     return f"{size:.2f} TB"  # For sizes larger than GB
 
 def get_directory_statistics(directory_path):
+    if not directory_path or not os.path.isdir(directory_path):
+        return {
+            "total": "0 B",
+            "used": "0 B",
+            "free": "0 B",
+            "usage_percentage": 0,
+            "storage_warning": "Invalid path"
+        }
+
     # Get total disk usage
     total, used, free = shutil.disk_usage(directory_path)
     
