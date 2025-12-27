@@ -8,6 +8,7 @@ IMAGES=(
 )
 
 build_images() {
+  cat .gitignore > .dockerignore
   echo "Starting the build of the images..."
   docker compose -f docker-compose-build.yml build
   if [ $? -eq 0 ]; then
