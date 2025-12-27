@@ -16,16 +16,22 @@ while true; do
         echo "Executing: $localhost_line"
         eval "$localhost_line"
         echo ""
-        sleep 5
+        if [ "$1" = "fast" ]; then
+          sleep 1
+        else
+          sleep 5
+        fi
     done
 
     elapsed_time=$(( $(date +%s) - start_time ))
 
-    if [ $elapsed_time -lt 60 ]; then
-        sleep_time=$(( 60 - elapsed_time ))
-        echo "Waiting $sleep_time seconds to complete the cycle."
-        sleep $sleep_time
-    else
-        echo "Cycle took more than 60 seconds. Resuming immediately."
+    if [ "$1" != "fast" ]; then
+      if [ $elapsed_time -lt 60 ]; then
+          sleep_time=$(( 60 - elapsed_time ))
+          echo "Waiting $sleep_time seconds to complete the cycle."
+          sleep $sleep_time
+      else
+          echo "Cycle took more than 60 seconds. Resuming immediately."
+      fi
     fi
 done
