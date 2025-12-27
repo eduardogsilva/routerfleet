@@ -7,4 +7,4 @@ shopt -s nullglob
 # Django startup
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
-exec python manage.py runserver 0.0.0.0:8001
+exec gunicorn routerfleet.wsgi:application --bind 0.0.0.0:8001 --workers 2 --threads 2 --timeout 90 --log-level info --capture-output --access-logfile - --error-logfile -
