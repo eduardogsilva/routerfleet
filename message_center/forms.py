@@ -146,7 +146,11 @@ class MessageChannelForm(forms.ModelForm):
 
         channel_type = cleaned_data.get('channel_type')
         if channel_type == 'ntfy':
-            self.add_error('channel_type', 'This channel type is not supported. Support will be added soon.')
+            if not destination:
+                 self.add_error('destination', 'ntfy.sh requires a destination (topic name).')
+            
+            if token:
+                 self.cleaned_data['token'] = ''
 
         test_message = 'Test message from RouterFleet'
         remote_error = 'No error message received'
@@ -161,7 +165,7 @@ class MessageChannelForm(forms.ModelForm):
                     remote_error = message.text[:200]
                 raise forms.ValidationError(f'Test message failed. CallMeBot API status code {message.status_code}. Error: {remote_error}')
 
-        elif channel_type == 'telegram':
+        elif channel_type == 'telegram' and enabled:
             if not token or not destination:
                 raise forms.ValidationError('Telegram requires a token and destination.')
             message = requests.get(f'https://api.telegram.org/bot{token}/sendMessage?chat_id={destination}&text={test_message}')
@@ -169,5 +173,18 @@ class MessageChannelForm(forms.ModelForm):
                 if message.text:
                     remote_error = message.text[:200]
                 raise forms.ValidationError(f'Test message failed. Telegram API status code {message.status_code}. Error: {remote_error}')
+
+        elif channel_type == 'ntfy' and enabled:
+            if not destination:
+                raise forms.ValidationError('ntfy.sh requires a destination.')
+
+            try:
+                message = requests.post(f'https://ntfy.sh/{destination}', data=test_message.encode('utf-8'))
+                if message.status_code != 200:
+                   if message.text:
+                       remote_error = message.text[:200]
+                   raise forms.ValidationError(f'Test message failed. ntfy.sh API status code {message.status_code}. Error: {remote_error}')
+            except requests.exceptions.RequestException as e:
+                raise forms.ValidationError(f'Test message failed. Network error: {str(e)}')
 
         return cleaned_data

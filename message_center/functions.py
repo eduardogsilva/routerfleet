@@ -134,10 +134,22 @@ def send_notification_message(message: Message):
         return
 
     message_response = {'status': 'pending', 'error_message': '', 'error_status_code': 0}
+    
+    url = ''
+    method = 'GET'
+    headers = {}
+    data = None
+
     if message.channel.channel_type == 'callmebot':
         url = f'https://api.callmebot.com/whatsapp.php?phone={message.channel.destination}&text={message.message}&apikey={message.channel.token}'
     elif message.channel.channel_type == 'telegram':
         url = f'https://api.telegram.org/bot{message.channel.token}/sendMessage?chat_id={message.channel.destination}&text={message.message}'
+    elif message.channel.channel_type == 'ntfy':
+        url = f'https://ntfy.sh/{message.channel.destination}'
+        method = 'POST'
+        data = message.message.encode('utf-8')
+        if message.subject:
+             headers = {'Title': message.subject}
     else:
         message_response['status'] = 'failed'
         message_response['error_message'] = 'Failed to send message: Invalid channel type'
@@ -145,16 +157,20 @@ def send_notification_message(message: Message):
 
     if message_response['status'] == 'pending':
         try:
-            response = requests.get(url)
+            if method == 'GET':
+                response = requests.get(url)
+            elif method == 'POST':
+                response = requests.post(url, data=data, headers=headers)
+            
             if response.status_code == 200:
                 message_response['status'] = 'sent'
             else:
                 message_response['status'] = 'failed'
                 message_response['error_message'] = response.text
                 message_response['error_status_code'] = response.status_code
-        except:
+        except Exception as e:
             message_response['status'] = 'failed'
-            message_response['error_message'] = 'Failed to send message: Request exception'
+            message_response['error_message'] = f'Failed to send message: Request exception {str(e)}'
             message_response['error_status_code'] = 0
 
     if message_response['status'] == 'sent':

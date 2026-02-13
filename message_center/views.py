@@ -15,7 +15,7 @@ from backup_data.models import RouterBackup
 import datetime
 from django.utils import timezone
 from django.db.models import Q
-
+import uuid
 
 @login_required()
 def view_debug_test_messages(request):
@@ -265,11 +265,17 @@ def view_manage_message_channel(request):
         form.save()
         messages.success(request, 'Message Channel saved successfully')
         return redirect('/message_center/channel_list/')
-    form_description_content = '''
+    form_description_content = f'''
     <strong>Destination</strong>
-    <p>Destination address for the message channel. For CallMeBot, this is the phone number. For Telegram, this is the chat ID.</p>
+    <p>Destination address for the message channel. 
+    <ul>
+    <li>For CallMeBot, this is the phone number.</li>
+    <li>For Telegram, this is the chat ID.</li>
+    <li>For ntfy.sh, this is the topic name. Consider using something <strong>very</strong> unique, like: routerfleet-{uuid.uuid4()}</li>
+    </ul>
+    </p>
     <strong>Token</strong>
-    <p>For CallMeBot, this is the API token. For Telegram, this is the bot token.</p>
+    <p>For CallMeBot, this is the API token. For Telegram, this is the bot token. For ntfy.sh, leave this blank.</p>
     <strong>Status Change and Backup Fail</strong>
     <p>Enable or disable notifications for status changes and backup failures.</p>
     <strong>Daily Status and Backup Report</strong>
