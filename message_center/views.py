@@ -21,19 +21,23 @@ from django.db.models import Q
 def view_debug_test_messages(request):
     if not settings.DEBUG:
         raise Http404
-    data = {'status': 'success'}
+    data = {'status': 'success', 'message': ''}
     router = None
     router_backup = None
     if request.GET.get('router_uuid'):
         router = get_object_or_404(Router, uuid=request.GET.get('router_uuid'))
-        print(f'Creating test message for router {router.name}')
+        data['message'] = f'Sending status update notification for router {router.name}'
         notify_router_status_update(router)
     elif request.GET.get('backup_id'):
         router_backup = get_object_or_404(RouterBackup, id=request.GET.get('backup_id'))
+        data['message'] = f'Sending backup fail notification for backup {router_backup.id} of router {router_backup.router.name}'
         notify_backup_fail(router_backup)
     else:
-        for message in Message.objects.filter(status='pending'):
-            send_notification_message(message)
+        data['message'] = 'No router_uuid or backup_id provided.'
+
+    # Process pending messages to send the test notification immediately
+    for message in Message.objects.filter(status='pending'):
+        send_notification_message(message)
     return JsonResponse(data)
 
 
