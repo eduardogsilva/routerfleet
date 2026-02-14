@@ -12,6 +12,8 @@ from typing import Optional, Tuple
 
 def run_scp_get(scp_client: SCPClient, remote_path: str, local_path: str, router_backup: Optional["RouterBackup"] = None,) -> None:
     if router_backup is not None:
+        if router_backup.task_console_output is None:
+            router_backup.task_console_output = ""
         router_backup.task_console_output += f"$ scp get {remote_path} -> {local_path}\n"
         router_backup.save(update_fields=["task_console_output"])
 
@@ -32,6 +34,8 @@ def run_scp_get(scp_client: SCPClient, remote_path: str, local_path: str, router
 def run_ssh_command(ssh_client, command: str, router_backup: Optional["RouterBackup"] = None, *, skip_stdout: bool = False,) -> Tuple[int, str, str]:
     # 1) Log command BEFORE executing, and persist it (so it survives failures)
     if router_backup is not None:
+        if router_backup.task_console_output is None:
+            router_backup.task_console_output = ""
         router_backup.task_console_output += f"$ {command}\n"
         router_backup.save(update_fields=["task_console_output"])
 
@@ -65,6 +69,8 @@ def append_task_console_output(router_backup: RouterBackup, text: str, *, new_li
     if new_line:
         text += "\n"
 
+    if router_backup.task_console_output is None:
+        router_backup.task_console_output = ""
     router_backup.task_console_output += text
     router_backup.save(update_fields=["task_console_output"])
 
