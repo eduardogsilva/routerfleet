@@ -22,6 +22,7 @@ class RouterBackup(models.Model):
     backup_text_hash = models.CharField(max_length=64, blank=True, db_index=True)
     backup_text_filename = models.CharField(max_length=255, blank=True, null=True)
     backup_binary = models.FileField(upload_to='backups/', blank=True, null=True)
+    task_console_output = models.TextField(blank=True, null=True, default='')
 
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)

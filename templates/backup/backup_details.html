@@ -85,7 +85,7 @@
                                     <span class="float-right">
                                     {% if backup.next_retry %}
                                         {% if backup.next_retry > now %}
-                                            <a href="/backup/backup_details/?uuid={{ backup.uuid }}&action=anticipate">
+                                            <a href="/backup/backup_details/?uuid={{ backup.uuid }}&action=anticipate&show_console={{ show_console|yesno:"true,false" }}">
                                             (anticipate)
                                             </a>
                                             <span class="text-success" style="text-decoration: underline" title="This backup is scheduled to execute after {{ backup.next_retry }}">
@@ -180,6 +180,15 @@
                             </li>
 
                             <li class="list-group-item">
+                                <b>Show Console</b>
+                                <span class="float-right">
+                                    <a href='/backup/backup_details/?uuid={{ backup.uuid }}&show_console={% if show_console %}false{% else %}true{% endif %}'>
+                                        {% if show_console %}hide{% else %}show{% endif %}
+                                    </a>
+                                </span>
+                            </li>
+
+                            <li class="list-group-item">
                                 <b>Delete backup</b>
                                 <span class="float-right">
 
@@ -189,7 +198,6 @@
 
                                 </span>
                             </li>
-
 
                         </ul>
                     </div>
@@ -247,6 +255,19 @@
             </div>
         </div>
         <div class='col-xl-8'>
+            {% if show_console %}
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Task Console</h3>
+                    </div>
+
+                    <div class="card-body row">
+                        <div class="col-lg-12">
+                            <pre>{{ backup.task_console_output|default_if_none:"" }}</pre>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
             <div class="card card-primary card-outline">
 
                 <div class="card-header">

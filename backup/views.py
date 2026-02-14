@@ -94,6 +94,12 @@ def view_backup_details(request):
     if not UserAcl.objects.filter(user=request.user).filter(user_level__gte=20).exists():
         return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
     backup = get_object_or_404(RouterBackup, uuid=request.GET.get('uuid'))
+
+    if request.GET.get('show_console') == 'true':
+        show_console = True
+    else:
+        show_console = False
+
     if request.GET.get('action') == 'anticipate':
         if not backup.success and not backup.error:
             backup.next_retry = timezone.now()
@@ -101,7 +107,7 @@ def view_backup_details(request):
             messages.success(request, 'Backup task anticipated|Backup task will be retried shortly')
         else:
             messages.warning(request, 'Backup task not anticipated|Task is already completed')
-        return redirect(f'/backup/backup_details/?uuid={backup.uuid}')
+        return redirect(f'/backup/backup_details/?uuid={backup.uuid}&show_console={str(show_console).lower()}')
     hash_list = [backup.backup_text_hash]
     backup_list = []
     for backup_item in RouterBackup.objects.filter(router=backup.router, success=True).order_by('-created'):
@@ -116,6 +122,7 @@ def view_backup_details(request):
         'webadmin_settings': webadmin_settings,
         'now': timezone.now(),
         '5_minutes_ago': timezone.now() - timezone.timedelta(minutes=5),
+        'show_console': show_console
     }
     return render(request, 'backup/backup_details.html', context)
 

@@ -7,6 +7,66 @@ from django.core.files.base import ContentFile
 
 from message_center.functions import notify_backup_fail
 from routerlib.functions import gen_backup_name, connect_to_ssh, get_router_backup_file_extension
+from typing import Optional, Tuple
+
+
+def run_scp_get(scp_client: SCPClient, remote_path: str, local_path: str, router_backup: Optional["RouterBackup"] = None,) -> None:
+    if router_backup is not None:
+        router_backup.task_console_output += f"$ scp get {remote_path} -> {local_path}\n"
+        router_backup.save(update_fields=["task_console_output"])
+
+    try:
+        scp_client.get(remote_path, local_path)
+
+        if router_backup is not None:
+            router_backup.task_console_output += "[scp_ok]\n\n"
+            router_backup.save(update_fields=["task_console_output"])
+
+    except Exception as e:
+        if router_backup is not None:
+            router_backup.task_console_output += f"[scp_error] {str(e)}\n\n"
+            router_backup.save(update_fields=["task_console_output"])
+        raise
+
+
+def run_ssh_command(ssh_client, command: str, router_backup: Optional["RouterBackup"] = None, *, skip_stdout: bool = False,) -> Tuple[int, str, str]:
+    # 1) Log command BEFORE executing, and persist it (so it survives failures)
+    if router_backup is not None:
+        router_backup.task_console_output += f"$ {command}\n"
+        router_backup.save(update_fields=["task_console_output"])
+
+    # 2) Execute
+    stdin, stdout, stderr = ssh_client.exec_command(command)
+
+    # 3) Wait and collect outputs
+    exit_code = stdout.channel.recv_exit_status()
+    stdout_text = stdout.read().decode("utf-8", errors="replace")
+    stderr_text = stderr.read().decode("utf-8", errors="replace")
+
+    # 4) Log outputs AFTER executing
+    if router_backup is not None:
+        if skip_stdout:
+            if stdout_text:
+                router_backup.task_console_output += "[stdout suppressed]\n"
+        else:
+            if stdout_text:
+                router_backup.task_console_output += stdout_text.rstrip("\n") + "\n"
+
+        if stderr_text:
+            router_backup.task_console_output += "[stderr]\n" + stderr_text.rstrip("\n") + "\n"
+
+        router_backup.task_console_output += f"[exit_code={exit_code}]\n\n"
+        router_backup.save(update_fields=["task_console_output"])
+
+    return exit_code, stdout_text, stderr_text
+
+
+def append_task_console_output(router_backup: RouterBackup, text: str, *, new_line: bool = True,) -> None:
+    if new_line:
+        text += "\n"
+
+    router_backup.task_console_output += text
+    router_backup.save(update_fields=["task_console_output"])
 
 
 def perform_backup(router_backup: RouterBackup):
@@ -72,9 +132,11 @@ def handle_backup_failure(router_backup: RouterBackup, error_message):
     router_backup.retry_count += 1
     router_backup.next_retry = timezone.now() + datetime.timedelta(minutes=router_backup.router.backup_profile.retry_interval)
     router_backup.save()
+    append_task_console_output(router_backup, f"Backup failed: {error_message}")
 
 
 def execute_backup(router_backup: RouterBackup):
+    append_task_console_output(router_backup, '=== Starting remote backup ===')
     error_message = ""
     router = router_backup.router
     backup_name = gen_backup_name(router_backup)
@@ -90,20 +152,24 @@ def execute_backup(router_backup: RouterBackup):
                     additional_parameters += ' terse'
 
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
-            ssh_client.exec_command(f'/system backup save name={backup_name}.{file_extension["binary"]}')
-            ssh_client.exec_command(f'/export file={backup_name}.{file_extension["text"]} {additional_parameters}')
+            command = f'/system backup save name={backup_name}.{file_extension["binary"]}'
+            run_ssh_command(ssh_client, command, router_backup)
+            command = f'/export file={backup_name}.{file_extension["text"]} {additional_parameters}'
+            run_ssh_command(ssh_client, command, router_backup)
             return True, [f'{backup_name}.{file_extension["binary"]}', f'{backup_name}.{file_extension["text"]}'], error_message
         elif router_backup.router.router_type == 'openwrt':
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
-            stdin, stdout, stderr = ssh_client.exec_command('uci export')
-            backup_text = stdout.read().decode('utf-8')
+            command = 'uci export'
+            exit_code, stdout_text, stderr_text = run_ssh_command(ssh_client, command, router_backup, skip_stdout=True)
+            backup_text = stdout_text
             if backup_text:
                 router_backup.backup_text = backup_text
                 router_backup.backup_text_filename = f'{backup_name}.{file_extension["text"]}'
                 router_backup.save()
             else:
                 return False, [], "Failed to execute backup: Empty backup text"
-            ssh_client.exec_command(f'sysupgrade --create-backup /tmp/{backup_name}.{file_extension["binary"]}')
+            command = f'sysupgrade --create-backup /tmp/{backup_name}.{file_extension["binary"]}'
+            run_ssh_command(ssh_client, command, router_backup)
             return True, [f'/tmp/{backup_name}.{file_extension["binary"]}', f'{backup_name}.{file_extension["text"]}'], error_message
         else:
             error_message = f"Router type not supported: {router_backup.router.get_router_type_display()}"
@@ -117,6 +183,7 @@ def execute_backup(router_backup: RouterBackup):
 
 
 def retrieve_backup(router_backup: RouterBackup):
+    append_task_console_output(router_backup, '=== Retrieving backup files ===')
     error_message = ""
     router = router_backup.router
     backup_name = gen_backup_name(router_backup)
@@ -130,8 +197,8 @@ def retrieve_backup(router_backup: RouterBackup):
             backup_file_path = f'/tmp/{backup_name}.{file_extension["binary"]}'
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
             scp_client = SCPClient(ssh_client.get_transport())
-            scp_client.get(f'/{backup_name}.{file_extension["text"]}', rsc_file_path)
-            scp_client.get(f'/{backup_name}.{file_extension["binary"]}', backup_file_path)
+            run_scp_get(scp_client, f'/{backup_name}.{file_extension["text"]}', rsc_file_path, router_backup)
+            run_scp_get(scp_client, f'/{backup_name}.{file_extension["binary"]}', backup_file_path, router_backup)
 
             with open(rsc_file_path, 'r') as rsc_file:
                 rsc_content = rsc_file.read()
@@ -146,8 +213,10 @@ def retrieve_backup(router_backup: RouterBackup):
             router_backup.save()
             os.remove(rsc_file_path)
             os.remove(backup_file_path)
-            ssh_client.exec_command(f'/file remove "{backup_name}.{file_extension["text"]}"')
-            ssh_client.exec_command(f'/file remove "{backup_name}.{file_extension["binary"]}"')
+            command = f'/file remove "{backup_name}.{file_extension["text"]}"'
+            run_ssh_command(ssh_client, command, router_backup)
+            command = f'/file remove "{backup_name}.{file_extension["binary"]}"'
+            run_ssh_command(ssh_client, command, router_backup)
             success = True
 
         elif router_backup.router.router_type == 'openwrt':
@@ -155,14 +224,14 @@ def retrieve_backup(router_backup: RouterBackup):
             local_backup_file_path = f'/tmp/{backup_name}.{file_extension["binary"]}'
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
             scp_client = SCPClient(ssh_client.get_transport())
-            scp_client.get(remote_backup_file_path, local_backup_file_path)
+            run_scp_get(scp_client, remote_backup_file_path, local_backup_file_path, router_backup)
             with open(local_backup_file_path, 'rb') as backup_file:
                 router_backup.backup_binary.save(f"{backup_name}.{file_extension['binary']}", ContentFile(backup_file.read()))
             router_backup.save()
             os.remove(local_backup_file_path)
-            ssh_client.exec_command(f'rm {remote_backup_file_path}')
+            command = f'rm {remote_backup_file_path}'
+            run_ssh_command(ssh_client, command, router_backup)
             success = True
-
         else:
             error_message = f"Router type not supported: {router_backup.router.get_router_type_display()}"
             return success, error_message
@@ -177,19 +246,22 @@ def retrieve_backup(router_backup: RouterBackup):
 
 
 def clean_up_backup_files(router_backup: RouterBackup):
+    append_task_console_output(router_backup, '=== Cleaning up leftover backup files on the router ===')
     router = router_backup.router
     ssh_client = None
     try:
         if router_backup.router.router_type == 'routeros' or router_backup.router.router_type == 'routeros-branded':
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
-            ssh_client.exec_command('file remove [find where name~"routerfleet-backup-"]')
+            command = 'file remove [find where name~"routerfleet-backup-"]'
+            run_ssh_command(ssh_client, command, router_backup)
         elif router_backup.router.router_type == 'openwrt':
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
-            ssh_client.exec_command('rm /tmp/routerfleet-backup-*')
+            command = 'rm /tmp/routerfleet-backup-*'
+            run_ssh_command(ssh_client, command, router_backup)
         else:
-            print(f"Router type not supported: {router_backup.router.get_router_type_display()}")
+            append_task_console_output(router_backup, f"Router type not supported: {router_backup.router.get_router_type_display()}")
     except Exception as e:
-        print(f"Failed to clean up backup files: {str(e)}")
+        append_task_console_output(router_backup, f"Failed to clean up backup files: {str(e)}")
     finally:
         if ssh_client:
             ssh_client.close()
