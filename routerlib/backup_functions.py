@@ -163,6 +163,7 @@ def execute_backup(router_backup: RouterBackup):
             command = f'/export file={backup_name}.{file_extension["text"]} {additional_parameters}'
             run_ssh_command(ssh_client, command, router_backup)
             return True, [f'{backup_name}.{file_extension["binary"]}', f'{backup_name}.{file_extension["text"]}'], error_message
+
         elif router_backup.router.router_type == 'openwrt':
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
             command = 'uci export'
@@ -177,6 +178,11 @@ def execute_backup(router_backup: RouterBackup):
             command = f'sysupgrade --create-backup /tmp/{backup_name}.{file_extension["binary"]}'
             run_ssh_command(ssh_client, command, router_backup)
             return True, [f'/tmp/{backup_name}.{file_extension["binary"]}', f'{backup_name}.{file_extension["text"]}'], error_message
+
+        elif router_backup.router.router_type == 'ubiquiti-airos':
+            append_task_console_output(router_backup, '=== Skipping remote backup (airOS uses existing /tmp/system.cfg) ===')
+            return True, ['/tmp/system.cfg'], error_message
+
         else:
             error_message = f"Router type not supported: {router_backup.router.get_router_type_display()}"
             return False, [], error_message
@@ -238,6 +244,29 @@ def retrieve_backup(router_backup: RouterBackup):
             command = f'rm {remote_backup_file_path}'
             run_ssh_command(ssh_client, command, router_backup)
             success = True
+
+        elif router_backup.router.router_type == 'ubiquiti-airos':
+            remote_path = '/tmp/system.cfg'
+            local_path = f'/tmp/{backup_name}.{file_extension["text"]}'
+            ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
+            scp_client = SCPClient(ssh_client.get_transport())
+            run_scp_get(scp_client, remote_path, local_path, router_backup)
+            with open(local_path, 'rb') as f:
+                raw_bytes = f.read()
+
+            try:
+                text = raw_bytes.decode('utf-8')
+                append_task_console_output(router_backup, '[decode=utf-8]')
+            except UnicodeDecodeError:
+                text = raw_bytes.decode('latin-1', errors='replace')
+                append_task_console_output(router_backup, '[decode=latin-1 fallback]')
+
+            router_backup.backup_text = text
+            router_backup.backup_text_filename = f'{backup_name}.{file_extension["text"]}'
+            router_backup.save()
+            os.remove(local_path)
+            success = True
+
         else:
             error_message = f"Router type not supported: {router_backup.router.get_router_type_display()}"
             return success, error_message
@@ -264,6 +293,9 @@ def clean_up_backup_files(router_backup: RouterBackup):
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
             command = 'rm /tmp/routerfleet-backup-*'
             run_ssh_command(ssh_client, command, router_backup)
+        elif router_backup.router.router_type == 'ubiquiti-airos':
+            append_task_console_output(router_backup, 'airOS: skipping cleanup (no remote temp files created)')
+            return
         else:
             append_task_console_output(router_backup, f"Router type not supported: {router_backup.router.get_router_type_display()}")
     except Exception as e:

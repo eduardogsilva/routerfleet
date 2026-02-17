@@ -17,6 +17,8 @@ def get_router_backup_file_extension(router_type):
         return {'text': 'rsc', 'binary': 'backup'}
     elif router_type == 'openwrt':
         return {'text': 'txt', 'binary': 'tar.gz'}
+    elif router_type == 'ubiquiti-airos':
+        return {'text': 'cfg', 'binary': None}
     else:
         return {'text': 'txt', 'binary': 'bin'}
 
