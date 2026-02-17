@@ -1,11 +1,12 @@
 from io import StringIO
 
+import re
 import paramiko
 import telnetlib
 
 
 def get_router_features(router_type):
-    if router_type in ['openwrt', 'routeros', 'routeros-branded']:
+    if router_type in ['openwrt', 'routeros', 'routeros-branded', 'ubiquiti-airos']:
         return ['backup', 'reverse_monitoring', 'ssh', 'ssh_key']
     else:
         return []
@@ -91,6 +92,15 @@ def test_ssh_authentication(router_type, address, port, username, password, sshk
                 result = True, 'Success: OpenWRT device confirmed'
             else:
                 result = False, 'Device is not OpenWRT'
+
+        elif router_type == 'ubiquiti-airos':
+            stdin, stdout, stderr = ssh_client.exec_command('cat /etc/version')
+            output = stdout.read().decode().strip()
+            if re.match(r'^[A-Z]{2}\.v\d.*$', output):
+                result = True, f'Success: Ubiquiti airOS device confirmed ({output})'
+            else:
+                result = False, 'Device is not airOS'
+
         else:
             result = False, 'Unsupported device type'
 
