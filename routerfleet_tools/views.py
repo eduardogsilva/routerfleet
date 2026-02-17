@@ -6,7 +6,7 @@ from django.utils import timezone
 import requests
 
 
-def cron_check_updates(request):
+def view_cron_check_updates(request):
     webadmin_settings, webadmin_settings_created = WebadminSettings.objects.get_or_create(name='webadmin_settings')
     webadmin_settings.cron_last_run = timezone.now()
     webadmin_settings.save()

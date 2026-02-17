@@ -76,7 +76,7 @@ def calculate_next_backup(backup_profile):
     return next_daily_backup, next_weekly_backup, next_monthly_backup
 
 
-def view_generate_backup_schedule(request):
+def view_cron_generate_backup_schedule(request):
     data = {
         'backup_schedule_created': 0,
         'daily_backup_schedule_created': 0,
@@ -173,7 +173,7 @@ def create_backup_tasks_from_schedule_list(schedule_list, schedule_type):
     return tasks_created
 
 
-def view_create_backup_tasks(request):
+def view_cron_create_backup_tasks(request):
     data = {
         'daily_backup_tasks_created': 0,
         'weekly_backup_tasks_created': 0,
@@ -210,7 +210,7 @@ def view_create_backup_tasks(request):
     return JsonResponse(data)
 
 
-def view_perform_backup_tasks(request):
+def view_cron_perform_backup_tasks(request):
     data = {
         'backup_tasks_performed': 0
     }
@@ -239,7 +239,7 @@ def view_perform_backup_tasks(request):
     return JsonResponse(data)
 
 
-def view_housekeeping(requests):
+def view_cron_housekeeping(request):
     max_backup_task_age = timezone.now() - timedelta(hours=18)
     data = {
         'backup_tasks_expired': 0,
