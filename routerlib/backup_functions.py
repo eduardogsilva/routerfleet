@@ -10,24 +10,32 @@ from routerlib.functions import gen_backup_name, connect_to_ssh, get_router_back
 from typing import Optional, Tuple
 
 
+def append_task_console_output(router_backup: RouterBackup, text: str, *, new_line: bool = True,) -> None:
+    if new_line:
+        text += "\n"
+
+    timestamp = timezone.localtime(timezone.now()).strftime("%Y-%m-%d %H:%M:%S")
+    if router_backup.task_console_output is None:
+        router_backup.task_console_output = ""
+    router_backup.task_console_output += f'[{timestamp}] {text}'
+    router_backup.save(update_fields=["task_console_output"])
+
+
 def run_scp_get(scp_client: SCPClient, remote_path: str, local_path: str, router_backup: Optional["RouterBackup"] = None,) -> None:
     if router_backup is not None:
         if router_backup.task_console_output is None:
             router_backup.task_console_output = ""
-        router_backup.task_console_output += f"$ scp get {remote_path} -> {local_path}\n"
-        router_backup.save(update_fields=["task_console_output"])
+        append_task_console_output(router_backup, f"$ scp get {remote_path} -> {local_path}\n")
 
     try:
         scp_client.get(remote_path, local_path)
 
         if router_backup is not None:
-            router_backup.task_console_output += "[scp_ok]\n\n"
-            router_backup.save(update_fields=["task_console_output"])
+            append_task_console_output(router_backup, "[scp_ok]\n\n")
 
     except Exception as e:
         if router_backup is not None:
-            router_backup.task_console_output += f"[scp_error] {str(e)}\n\n"
-            router_backup.save(update_fields=["task_console_output"])
+            append_task_console_output(router_backup, f"[scp_error] {str(e)}\n\n")
         raise
 
 
@@ -36,8 +44,7 @@ def run_ssh_command(ssh_client, command: str, router_backup: Optional["RouterBac
     if router_backup is not None:
         if router_backup.task_console_output is None:
             router_backup.task_console_output = ""
-        router_backup.task_console_output += f"$ {command}\n"
-        router_backup.save(update_fields=["task_console_output"])
+        append_task_console_output(router_backup, f"$ {command}\n")
 
     # 2) Execute
     stdin, stdout, stderr = ssh_client.exec_command(command)
@@ -51,28 +58,18 @@ def run_ssh_command(ssh_client, command: str, router_backup: Optional["RouterBac
     if router_backup is not None:
         if skip_stdout:
             if stdout_text:
-                router_backup.task_console_output += "[stdout suppressed]\n"
+                append_task_console_output(router_backup, "[stdout suppressed]\n")
         else:
             if stdout_text:
-                router_backup.task_console_output += stdout_text.rstrip("\n") + "\n"
+                append_task_console_output(router_backup, stdout_text.rstrip("\n") + "\n")
 
         if stderr_text:
-            router_backup.task_console_output += "[stderr]\n" + stderr_text.rstrip("\n") + "\n"
+            append_task_console_output(router_backup, "[stderr]\n" + stderr_text.rstrip("\n") + "\n")
 
-        router_backup.task_console_output += f"[exit_code={exit_code}]\n\n"
+        append_task_console_output(router_backup, f"[exit_code={exit_code}]\n\n")
         router_backup.save(update_fields=["task_console_output"])
 
     return exit_code, stdout_text, stderr_text
-
-
-def append_task_console_output(router_backup: RouterBackup, text: str, *, new_line: bool = True,) -> None:
-    if new_line:
-        text += "\n"
-
-    if router_backup.task_console_output is None:
-        router_backup.task_console_output = ""
-    router_backup.task_console_output += text
-    router_backup.save(update_fields=["task_console_output"])
 
 
 def perform_backup(router_backup: RouterBackup):
@@ -208,7 +205,7 @@ def retrieve_backup(router_backup: RouterBackup):
             rsc_file_path = f'/tmp/{backup_name}.{file_extension["text"]}'
             backup_file_path = f'/tmp/{backup_name}.{file_extension["binary"]}'
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
-            scp_client = SCPClient(ssh_client.get_transport())
+            scp_client = SCPClient(ssh_client.get_transport(), socket_timeout=300)
             run_scp_get(scp_client, f'/{backup_name}.{file_extension["text"]}', rsc_file_path, router_backup)
             run_scp_get(scp_client, f'/{backup_name}.{file_extension["binary"]}', backup_file_path, router_backup)
 
@@ -235,7 +232,7 @@ def retrieve_backup(router_backup: RouterBackup):
             remote_backup_file_path = f'/tmp/{backup_name}.{file_extension["binary"]}'
             local_backup_file_path = f'/tmp/{backup_name}.{file_extension["binary"]}'
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
-            scp_client = SCPClient(ssh_client.get_transport())
+            scp_client = SCPClient(ssh_client.get_transport(), socket_timeout=300)
             run_scp_get(scp_client, remote_backup_file_path, local_backup_file_path, router_backup)
             with open(local_backup_file_path, 'rb') as backup_file:
                 router_backup.backup_binary.save(f"{backup_name}.{file_extension['binary']}", ContentFile(backup_file.read()))
@@ -249,7 +246,7 @@ def retrieve_backup(router_backup: RouterBackup):
             remote_path = '/tmp/system.cfg'
             local_path = f'/tmp/{backup_name}.{file_extension["text"]}'
             ssh_client = connect_to_ssh(router.address, router.port, router.username, router.password, router.ssh_key)
-            scp_client = SCPClient(ssh_client.get_transport())
+            scp_client = SCPClient(ssh_client.get_transport(), socket_timeout=300)
             run_scp_get(scp_client, remote_path, local_path, router_backup)
             with open(local_path, 'rb') as f:
                 raw_bytes = f.read()

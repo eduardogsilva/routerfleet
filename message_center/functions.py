@@ -235,3 +235,21 @@ def notify_backup_fail(router_backup: RouterBackup):
                 message=error_message
             )
     return
+
+def notify_backup_task_lock_expired(router_backup: RouterBackup):
+    message_settings, _ = MessageSettings.objects.get_or_create(name='message_settings')
+    message_channel_list = MessageChannel.objects.filter(enabled=True)
+
+    if not message_channel_list:
+        return
+
+    error_message = f'TASK LOCK EXPIRED: Backup task lock expired for backup {router_backup.id} of router {router_backup.router.name} ({router_backup.router.address}). This likely means that the backup task has been running for too long and has been marked as failed. Please check the router and the backup task for more details.'
+    if router_backup.error_message:
+        error_message += f'\n\nError message: {router_backup.error_message}'
+    for message_channel in message_channel_list:
+        Message.objects.create(
+            channel=message_channel,
+            subject=f'Backup lock expired: {router_backup.id}',
+            message=error_message
+        )
+    return

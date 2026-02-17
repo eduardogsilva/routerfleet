@@ -7,9 +7,9 @@ from django.utils import timezone
 
 from backup.models import BackupProfile
 from backup_data.models import RouterBackup
-from message_center.functions import notify_backup_fail
+from message_center.functions import notify_backup_fail, notify_backup_task_lock_expired
 from router_manager.models import Router, BackupSchedule, RouterStatus
-from routerlib.backup_functions import perform_backup
+from routerlib.backup_functions import perform_backup, append_task_console_output
 from message_center.models import Message
 
 
@@ -216,15 +216,20 @@ def view_cron_perform_backup_tasks(request):
     }
     max_execution_time = 45  # seconds
     execution_start_time = timezone.now()
-    pending_backup_list = RouterBackup.objects.filter(success=False, error=False).filter(
+    pending_backup_list = RouterBackup.objects.filter(success=False, error=False, task_lock__isnull=True).filter(
         Q(schedule_time__lte=timezone.now(), next_retry__isnull=True) | Q(next_retry__lte=timezone.now())
     ).filter(
         Q(router__monitoring=False) | Q(router__monitoring=True, router__routerstatus__status_online=True)
     )
 
     for backup in pending_backup_list:
+        backup.task_lock = timezone.now()
+        backup.save(update_fields=["task_lock"])
         perform_backup(backup)
         data['backup_tasks_performed'] += 1
+        backup.task_lock = None
+        backup.save(update_fields=["task_lock"])
+
         if backup.router.backup_profile.backup_interval >= 60:
             break
         else:
@@ -241,12 +246,22 @@ def view_cron_perform_backup_tasks(request):
 
 def view_cron_housekeeping(request):
     max_backup_task_age = timezone.now() - timedelta(hours=18)
+    max_backup_task_lock = timezone.now() - timedelta(hours=6)
     data = {
         'backup_tasks_expired': 0,
         'backup_locks_removed': 0,
+        'backup_task_locks_expired': 0,
         'messages_removed': 0,
     }
-    for backup in RouterBackup.objects.filter(created__lt=max_backup_task_age, success=False, error=False):
+
+    for backup in RouterBackup.objects.filter(task_lock__lt=max_backup_task_lock, success=False, error=False):
+        backup.task_lock = None
+        backup.save(update_fields=["task_lock"])
+        data['backup_task_locks_expired'] += 1
+        append_task_console_output(backup, '### WARNING: Backup task expired. This likely means that the backup task has been running for too long and has been marked as failed. Please check the router and the backup task for more details.')
+        notify_backup_task_lock_expired(backup)
+
+    for backup in RouterBackup.objects.filter(created__lt=max_backup_task_age, success=False, error=False, task_lock__isnull=True):
         backup.error = True
         backup.error_message = 'Backup task expired'
         backup.save()

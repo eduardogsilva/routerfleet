@@ -47,9 +47,9 @@ def connect_to_ssh(address, port, username, password, sshkey=None):
     ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     if sshkey:
         private_key = load_private_key_from_string(sshkey.private_key)
-        ssh_client.connect(address, port=port, username=username, pkey=private_key, look_for_keys=False, timeout=10, allow_agent=False)
+        ssh_client.connect(address, port=port, username=username, pkey=private_key, look_for_keys=False, timeout=10, banner_timeout=10, auth_timeout=15, allow_agent=False)
     else:
-        ssh_client.connect(address, port=port, username=username, password=password, look_for_keys=False, timeout=10, allow_agent=False)
+        ssh_client.connect(address, port=port, username=username, password=password, look_for_keys=False, timeout=10, banner_timeout=10, auth_timeout=15, allow_agent=False)
     return ssh_client
 
 
