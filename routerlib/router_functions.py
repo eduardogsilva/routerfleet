@@ -1,5 +1,6 @@
 import json
 import datetime
+import re
 from django.utils import timezone
 from router_manager.models import RouterInformation, Router
 from routerlib.functions import connect_to_ssh
@@ -95,6 +96,59 @@ def get_router_information(router_information: RouterInformation):
                 success = True
             if not success:
                 return False, 'Failed to retrieve router information'
+
+        elif router.router_type == 'ubiquiti-airos':
+            stdin, stdout, stderr = ssh.exec_command('cat /etc/version')
+            version_raw = stdout.read().decode('utf-8', errors='ignore').strip()
+            json_data['cat /etc/version'] = version_raw
+            stdin, stdout, stderr = ssh.exec_command('cat /etc/board.info')
+            board_raw = stdout.read().decode('utf-8', errors='ignore')
+            json_data['cat /etc/board.info'] = board_raw
+            board = {}
+            for line in board_raw.splitlines():
+                line = line.strip()
+                if not line or '=' not in line:
+                    continue
+                k, v = line.split('=', 1)
+                board[k.strip()] = v.strip()
+            if not board:
+                return False, 'Failed to retrieve router information from /etc/board.info'
+
+            stdin, stdout, stderr = ssh.exec_command('uname -r')
+            kernel_version = stdout.read().decode('utf-8', errors='ignore').strip()
+            json_data['uname -r'] = kernel_version
+
+            stdin, stdout, stderr = ssh.exec_command('cat /proc/cpuinfo')
+            cpuinfo_raw = stdout.read().decode('utf-8', errors='ignore')
+            json_data['cat /proc/cpuinfo'] = cpuinfo_raw
+            cpuinfo = {}
+
+            for line in cpuinfo_raw.splitlines():
+                if ':' not in line:
+                    continue
+                k, v = line.split(':', 1)
+                cpuinfo[k.strip().lower()] = v.strip()
+
+            router_information.model_name = board.get('board.name', '')[:field_max_length]
+            router_information.model_version = (
+                    board.get('board.model', '') or board.get('board.shortname', '')
+            )[:field_max_length]
+
+            router_information.serial_number = (
+                    board.get('board.device_id', '') or board.get('board.hwaddr', '')
+            )[:field_max_length]
+            router_information.firmware_version = version_raw[:field_max_length]
+            router_information.os_version = kernel_version[:field_max_length]
+            cpu_model = cpuinfo.get('cpu model', '')
+            router_information.architecture = (
+                cpu_model.split()[0] if cpu_model else ''
+            )[:field_max_length]
+            router_information.cpu = (
+                    cpuinfo.get('system type', '')
+                    or cpu_model
+                    or board.get('board.cpurevision', '')
+            )[:field_max_length]
+            success = True
         else:
             return False, f"Router type not supported: {router.get_router_type_display()}"
 
