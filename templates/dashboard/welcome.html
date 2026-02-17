@@ -1,23 +1,50 @@
 {% extends 'base.html' %}
 
-{%  block content %}
-    <div class='row'>
-        <div class='col-lg-6'>
+{% block content %}
+    <div class="row">
+        <div class="col-lg-6">
             <div class="card card-primary card-outline">
 
                 <div class="card-header">
-                    <h3 class="card-title">Welcome to RouterFleet!</h3>
+                    <h3 class="card-title">Welcome to RouterFleet</h3>
                 </div>
 
-                <div class="card-body row">
-                    <div class="col-lg-12">
-                        <p>Hello! Welcome to RouterFleet, an open source project designed to simplify router backups. We currently support <strong>Mikrotik and OpenWRT</strong> devices, and we're excited to expand this list soon.</p>
-                        <p>If you have a specific device you would like supported or suggestions for improvement, please visit our <a href="https://github.com/eduardogsilva/routerfleet" target="_blank"><i class="fab fa-github"></i> GitHub page</a> to share your thoughts. Your contributions help us enhance and evolve RouterFleet for all users.</p>
-                        <p>Thank you for your support and involvement in making RouterFleet better for everyone!</p>
+                <div class="card-body">
+                    <p>
+                        <strong>RouterFleet</strong> is an open-source platform designed to simplify and centralize router configuration backups,
+                        helping you keep your devices protected with reliable and automated backup routines.
+                    </p>
+
+                    <p class="mb-2"><strong>Currently supported platforms:</strong></p>
+                    <ul>
+                        <li>MikroTik (RouterOS)</li>
+                        <li>OpenWrt</li>
+                        <li>Ubiquiti (airOS)</li>
+                    </ul>
+
+                    <p>
+                        Support for additional devices is continuously evolving. If your hardware is not yet supported,
+                        you can request compatibility by following the submission guidelines described in the discussion.
+                    </p>
+
+                    <div>
+                        <a href="https://github.com/eduardogsilva/routerfleet" target="_blank" class="btn btn-outline-primary">
+                            <i class="fab fa-github"></i>
+                            Project Repository
+                        </a>
+
+                        <a href="https://github.com/eduardogsilva/routerfleet/discussions/85" target="_blank" class="btn btn-outline-info">
+                            <i class="fas fa-plus-circle"></i>
+                            Request Device Support
+                        </a>
                     </div>
+
+                    <p class="mt-3 mb-0 text-muted">
+                        RouterFleet is actively developed and community-driven. Feedback, suggestions, and contributions are always welcome.
+                    </p>
                 </div>
+
             </div>
         </div>
     </div>
-
 {% endblock %}
