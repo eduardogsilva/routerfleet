@@ -1,8 +1,14 @@
+import datetime
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
 
 from user_manager.models import UserAcl
+from .command_functions import create_jobs_from_schedules, execute_command_task
 from .forms import CommandForm, CommandVariantForm, CommandScheduleForm
 from .models import Command, CommandVariant, CommandSchedule, CommandJob, CommandTask
 
@@ -164,3 +170,29 @@ def view_task_details(request):
         'page_title': f'Task: {task.router_name or task.router_uuid}',
     }
     return render(request, 'fleet_commander/task_details.html', context)
+
+
+def view_cron_create_command_jobs(request):
+    data = create_jobs_from_schedules()
+    return JsonResponse(data)
+
+
+def view_cron_perform_command_tasks(request):
+    data = {'tasks_performed': 0}
+    max_execution_time = 45
+    execution_start_time = timezone.now()
+
+    pending_tasks = CommandTask.objects.filter(
+        status='pending',
+    ).filter(
+        Q(next_retry__isnull=True) | Q(next_retry__lte=timezone.now())
+    ).select_related('job__command', 'router', 'command_variant')
+
+    for task in pending_tasks:
+        execute_command_task(task)
+        data['tasks_performed'] += 1
+
+        if timezone.now() - execution_start_time > datetime.timedelta(seconds=max_execution_time):
+            break
+
+    return JsonResponse(data)
