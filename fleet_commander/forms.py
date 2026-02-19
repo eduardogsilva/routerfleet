@@ -1,0 +1,155 @@
+from django import forms
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Submit, Div, Field, HTML
+
+from .models import Command, CommandVariant, CommandSchedule
+
+
+class CommandForm(forms.ModelForm):
+    class Meta:
+        model = Command
+        fields = ['name', 'description', 'enabled', 'capture_output', 'max_retry', 'retry_interval']
+
+    def __init__(self, *args, **kwargs):
+        super(CommandForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+
+        if self.instance.pk:
+            delete_html = (
+                "<a href='javascript:void(0)' class='btn btn-outline-danger' "
+                "data-command='delete' onclick='openCommandDialog(this)'>Delete</a>"
+            )
+        else:
+            delete_html = ''
+
+        self.helper.layout = Layout(
+            Div(
+                Div(Field('name'), css_class='col-md-6'),
+                Div(Field('enabled'), css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Div(Field('description'), css_class='col-md-12'),
+                css_class='row',
+            ),
+            Div(
+                Div(Field('capture_output'), css_class='col-md-4'),
+                Div(Field('max_retry'), css_class='col-md-4'),
+                Div(Field('retry_interval'), css_class='col-md-4'),
+                css_class='row',
+            ),
+            Div(
+                Submit('submit', 'Save', css_class='btn btn-success'),
+                HTML(' <a class="btn btn-secondary" href="/fleet_commander/">Back</a> '),
+                HTML(delete_html),
+                css_class='row col-md-12',
+            ),
+        )
+
+
+class CommandVariantForm(forms.ModelForm):
+    class Meta:
+        model = CommandVariant
+        fields = ['router_type', 'payload', 'enabled']
+
+    def __init__(self, *args, command=None, **kwargs):
+        super(CommandVariantForm, self).__init__(*args, **kwargs)
+        self.command = command
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+
+        if self.instance.pk:
+            back_uuid = self.instance.command.uuid
+            delete_html = (
+                "<a href='javascript:void(0)' class='btn btn-outline-danger' "
+                "data-command='delete' onclick='openCommandDialog(this)'>Delete</a>"
+            )
+        else:
+            back_uuid = command.uuid if command else ''
+            delete_html = ''
+
+        self.helper.layout = Layout(
+            Div(
+                Div(Field('router_type'), css_class='col-md-6'),
+                Div(Field('enabled'), css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Div(Field('payload'), css_class='col-md-12'),
+                css_class='row',
+            ),
+            Div(
+                Submit('submit', 'Save', css_class='btn btn-success'),
+                HTML(f' <a class="btn btn-secondary" href="/fleet_commander/command/details/?uuid={back_uuid}">Back</a> '),
+                HTML(delete_html),
+                css_class='row col-md-12',
+            ),
+        )
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.command:
+            instance.command = self.command
+        if commit:
+            instance.save()
+        return instance
+
+
+class CommandScheduleForm(forms.ModelForm):
+    class Meta:
+        model = CommandSchedule
+        fields = ['enabled', 'router', 'router_group', 'start_at', 'end_at', 'repeat_interval']
+        widgets = {
+            'start_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'end_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+        }
+
+    def __init__(self, *args, command=None, **kwargs):
+        super(CommandScheduleForm, self).__init__(*args, **kwargs)
+        self.command = command
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+
+        if self.instance.pk:
+            back_uuid = self.instance.command.uuid
+            delete_html = (
+                "<a href='javascript:void(0)' class='btn btn-outline-danger' "
+                "data-command='delete' onclick='openCommandDialog(this)'>Delete</a>"
+            )
+        else:
+            back_uuid = command.uuid if command else ''
+            delete_html = ''
+
+        self.helper.layout = Layout(
+            Div(
+                Div(Field('enabled'), css_class='col-md-12'),
+                css_class='row',
+            ),
+            Div(
+                Div(Field('router'), css_class='col-md-6'),
+                Div(Field('router_group'), css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Div(Field('start_at'), css_class='col-md-4'),
+                Div(Field('end_at'), css_class='col-md-4'),
+                Div(Field('repeat_interval'), css_class='col-md-4'),
+                css_class='row',
+            ),
+            Div(
+                Submit('submit', 'Save', css_class='btn btn-success'),
+                HTML(f' <a class="btn btn-secondary" href="/fleet_commander/command/details/?uuid={back_uuid}">Back</a> '),
+                HTML(delete_html),
+                css_class='row col-md-12',
+            ),
+        )
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if self.command:
+            instance.command = self.command
+        if commit:
+            instance.save()
+            self.save_m2m()
+        return instance

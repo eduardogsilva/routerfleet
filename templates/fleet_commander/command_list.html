@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class='row'>
+        <div class='col-lg-12'>
+            <div class="card card-primary card-outline">
+                {% if page_title %}
+                    <div class="card-header">
+                        <h3 class="card-title">{{ page_title }}</h3>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <table class="table table-hover datatables-no-export">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Enabled</th>
+                                        <th>Variants</th>
+                                        <th>Schedules</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for command in command_list %}
+                                    <tr>
+                                        <td>
+                                            <a href="/fleet_commander/command/details/?uuid={{ command.uuid }}">
+                                                {{ command.name }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            {% if command.enabled %}
+                                                <i class="far fa-check-circle text-success"></i>
+                                            {% else %}
+                                                <i class="far fa-times-circle text-danger"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ command.variants.count }}</td>
+                                        <td>{{ command.schedules.count }}</td>
+                                        <td class="min-width">
+                                            <a href="/fleet_commander/command/manage/?uuid={{ command.uuid }}"><i class="fas fa-edit"></i></a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-lg-12">
+                            <a href="/fleet_commander/command/manage/" class="btn btn-primary">Add Command</a>
+                            <a href="/fleet_commander/job/list/" class="btn btn-outline-secondary ml-2">
+                                <i class="fas fa-history"></i> Job History
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

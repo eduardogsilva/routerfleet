@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class='row'>
+    <div class='col-xl-5'>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">{{ command.name }}</h3>
+                        <span class="float-right">
+                            <a href="/fleet_commander/command/manage/?uuid={{ command.uuid }}">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                        </span>
+                    </div>
+                    <div class="card-body row">
+                        <div class="col-lg-12">
+                            <ul class="list-group list-group-unbordered mb-3">
+                                <li class="list-group-item">
+                                    <b>Enabled</b>
+                                    <span class="float-right">
+                                        {% if command.enabled %}
+                                        <i class="far fa-check-circle text-success"></i>
+                                        {% else %}
+                                        <i class="far fa-times-circle text-danger"></i>
+                                        {% endif %}
+                                    </span>
+                                </li>
+                                <li class="list-group-item">
+                                    <b>Capture Output</b>
+                                    <span class="float-right">
+                                        {% if command.capture_output %}
+                                        <i class="far fa-check-circle text-success"></i>
+                                        {% else %}
+                                        <i class="far fa-times-circle text-danger"></i>
+                                        {% endif %}
+                                    </span>
+                                </li>
+                                <li class="list-group-item">
+                                    <b>Max Retry</b>
+                                    <span class="float-right">{{ command.max_retry }}</span>
+                                </li>
+                                <li class="list-group-item">
+                                    <b>Retry Interval</b>
+                                    <span class="float-right">{{ command.retry_interval }}s</span>
+                                </li>
+                                <li class="list-group-item">
+                                    <b>Description</b>
+                                    <span class="float-right">{{ command.description|default_if_none:""|linebreaksbr
+                                        }}</span>
+                                </li>
+                                <li class="list-group-item">
+                                    <b>Created</b>
+                                    <span class="float-right">{{ command.created }}</span>
+                                </li>
+                                <li class="list-group-item">
+                                    <b>Updated</b>
+                                    <span class="float-right">{{ command.updated }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class='col-xl-7'>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Variants</h3>
+                    </div>
+                    <div class="card-body row">
+                        <div class="col-lg-12">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Router Type</th>
+                                        <th>Enabled</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for variant in variant_list %}
+                                    <tr>
+                                        <td>{{ variant.get_router_type_display }}</td>
+                                        <td>
+                                            {% if variant.enabled %}
+                                            <i class="far fa-check-circle text-success"></i>
+                                            {% else %}
+                                            <i class="far fa-times-circle text-danger"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td class="min-width">
+                                            <a
+                                                href="/fleet_commander/variant/manage/?command_uuid={{ command.uuid }}&uuid={{ variant.uuid }}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-muted">No variants defined.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <a href="/fleet_commander/variant/manage/?command_uuid={{ command.uuid }}"
+                                class="btn btn-primary btn-sm mt-2">Add Variant</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-12">
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Schedules</h3>
+                    </div>
+                    <div class="card-body row">
+                        <div class="col-lg-12">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Enabled</th>
+                                        <th>Repeat Interval</th>
+                                        <th>Next Run</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for schedule in schedule_list %}
+                                    <tr>
+                                        <td>
+                                            {% if schedule.enabled %}
+                                            <i class="far fa-check-circle text-success"></i>
+                                            {% else %}
+                                            <i class="far fa-times-circle text-danger"></i>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if schedule.repeat_interval %}
+                                            {{ schedule.repeat_interval }} min
+                                            {% else %}
+                                            One-time
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ schedule.next_run|default_if_none:"—" }}</td>
+                                        <td class="min-width">
+                                            <a
+                                                href="/fleet_commander/schedule/manage/?command_uuid={{ command.uuid }}&uuid={{ schedule.uuid }}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-muted">No schedules defined.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <a href="/fleet_commander/schedule/manage/?command_uuid={{ command.uuid }}"
+                                class="btn btn-primary btn-sm mt-2">Add Schedule</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <a href="/fleet_commander/" class="btn btn-secondary">Back</a>
+    </div>
+</div>
+{% endblock %}
