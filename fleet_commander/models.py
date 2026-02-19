@@ -97,6 +97,7 @@ class CommandJob(models.Model):
     user_source = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, blank=True, null=True)
     user_source_name = models.CharField(max_length=150, blank=True, null=True)
     exec_source = models.CharField(max_length=100, choices=(('schedule', 'Schedule'), ('manual', 'Manual')), default='manual')
+    completed = models.DateTimeField(blank=True, null=True)
 
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
