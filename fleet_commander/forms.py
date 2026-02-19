@@ -1,7 +1,8 @@
-from django import forms
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit, Div, Field, HTML
+from django import forms
 
+from router_manager.models import Router
 from .models import Command, CommandVariant, CommandSchedule
 
 
@@ -16,11 +17,13 @@ class CommandForm(forms.ModelForm):
         self.helper.form_method = 'post'
 
         if self.instance.pk:
+            back_url = f'/fleet_commander/command/details/?uuid={self.instance.uuid}'
             delete_html = (
                 "<a href='javascript:void(0)' class='btn btn-outline-danger' "
                 "data-command='delete' onclick='openCommandDialog(this)'>Delete</a>"
             )
         else:
+            back_url = '/fleet_commander/'
             delete_html = ''
 
         self.helper.layout = Layout(
@@ -41,8 +44,45 @@ class CommandForm(forms.ModelForm):
             ),
             Div(
                 Submit('submit', 'Save', css_class='btn btn-success'),
-                HTML(' <a class="btn btn-secondary" href="/fleet_commander/">Back</a> '),
+                HTML(f' <a class="btn btn-secondary" href="{back_url}">Back</a> '),
                 HTML(delete_html),
+                css_class='row col-md-12',
+            ),
+        )
+
+
+class CommandExecuteForm(forms.Form):
+    routers = forms.ModelMultipleChoiceField(
+        queryset=Router.objects.filter(enabled=True).order_by('name'),
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'selectmultiple'})
+    )
+    router_groups = forms.ModelMultipleChoiceField(
+        queryset=forms.Field().initial,  # Placeholder, will be set in __init__
+        required=False,
+        widget=forms.SelectMultiple(attrs={'class': 'selectmultiple'})
+    )
+
+    def __init__(self, *args, command=None, **kwargs):
+        from router_manager.models import RouterGroup
+        super(CommandExecuteForm, self).__init__(*args, **kwargs)
+        self.command = command
+        self.fields['router_groups'].queryset = RouterGroup.objects.all().order_by('name')
+        
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        
+        back_url = f'/fleet_commander/command/details/?uuid={command.uuid}' if command else '/fleet_commander/'
+        
+        self.helper.layout = Layout(
+            Div(
+                Div(Field('routers'), css_class='col-md-6'),
+                Div(Field('router_groups'), css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Submit('submit', 'Execute Now', css_class='btn btn-primary'),
+                HTML(f' <a class="btn btn-secondary" href="{back_url}">Back</a> '),
                 css_class='row col-md-12',
             ),
         )

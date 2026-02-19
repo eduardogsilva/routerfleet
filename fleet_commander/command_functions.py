@@ -2,8 +2,7 @@ import datetime
 
 from django.utils import timezone
 
-from fleet_commander.models import Command, CommandJob, CommandSchedule, CommandTask, CommandVariant
-from router_manager.models import Router
+from fleet_commander.models import CommandJob, CommandSchedule, CommandTask, CommandVariant
 from routerlib.functions import connect_to_ssh
 
 
@@ -153,3 +152,33 @@ def create_jobs_from_schedules():
         schedule.update_next_run()
 
     return data
+
+
+def create_manual_job(command, routers=None, router_groups=None):
+    all_routers = set()
+    if routers:
+        all_routers.update(routers.filter(enabled=True))
+    if router_groups:
+        for group in router_groups:
+            all_routers.update(group.routers.filter(enabled=True))
+
+    if not all_routers:
+        return None
+
+    job = CommandJob.objects.create(
+        command=command,
+        exec_source='manual',
+    )
+
+    for router in all_routers:
+        variant = CommandVariant.objects.filter(
+            command=command, router_type=router.router_type, enabled=True
+        ).first()
+
+        CommandTask.objects.create(
+            job=job,
+            command_variant=variant,
+            router=router,
+            command_payload=variant.payload if variant else '',
+        )
+    return job

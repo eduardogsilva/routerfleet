@@ -8,8 +8,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
 from user_manager.models import UserAcl
-from .command_functions import create_jobs_from_schedules, execute_command_task
-from .forms import CommandForm, CommandVariantForm, CommandScheduleForm
+from .command_functions import create_jobs_from_schedules, execute_command_task, create_manual_job
+from .forms import CommandForm, CommandVariantForm, CommandScheduleForm, CommandExecuteForm
 from .models import Command, CommandVariant, CommandSchedule, CommandJob, CommandTask
 
 
@@ -57,14 +57,45 @@ def view_manage_command(request):
 
     form = CommandForm(request.POST or None, instance=command)
     if form.is_valid():
-        form.save()
+        saved = form.save()
         messages.success(request, 'Command saved successfully')
-        return redirect('/fleet_commander/')
+        if command:
+            return redirect(f'/fleet_commander/command/details/?uuid={saved.uuid}')
+        else:
+            return redirect('/fleet_commander/')
 
     context = {
         'form': form,
         'page_title': 'Manage Command',
         'instance': command,
+    }
+    return render(request, 'generic_form.html', context)
+
+
+@login_required()
+def view_execute_command(request):
+    if not UserAcl.objects.filter(user=request.user, user_level__gte=40).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
+
+    command = get_object_or_404(Command, uuid=request.GET.get('command_uuid'))
+    form = CommandExecuteForm(request.POST or None, command=command)
+
+    if form.is_valid():
+        job = create_manual_job(
+            command,
+            routers=form.cleaned_data['routers'],
+            router_groups=form.cleaned_data['router_groups']
+        )
+        if job:
+            messages.success(request, f'Job created for {job.tasks.count()} targets')
+            return redirect(f'/fleet_commander/job/details/?uuid={job.uuid}')
+        else:
+            messages.warning(request, 'No targets selected or found enabled')
+
+    context = {
+        'form': form,
+        'page_title': f'Execute Command: {command.name}',
+        'command': command,
     }
     return render(request, 'generic_form.html', context)
 

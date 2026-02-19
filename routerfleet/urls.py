@@ -1,20 +1,29 @@
 from django.contrib import admin
 from django.urls import path
-from dashboard.views import view_dashboard, view_status
-from dashboard.views import view_dashboard, view_status, backup_statistics_data, router_status_data
 
-from integration_manager.views import view_wireguard_webadmin_launcher, view_manage_wireguard_integration, view_launch_wireguard_webadmin
-from user_manager.views import view_manage_user, view_user_list
 from accounts.views import view_login, view_logout, view_create_first_user
-from router_manager.views import view_create_instant_backup_multiple_routers, view_router_list, view_manage_router, view_router_group_list, view_ssh_key_list, view_manage_router_group, view_manage_sshkey, view_router_details, view_create_instant_backup_task, view_router_availability, view_cron_update_router_information, view_manage_router_groups_multiple
-from backup.views import view_backup_profile_list, view_manage_backup_profile, view_backup_list, view_backup_details, view_debug_run_backups, view_compare_backups, view_backup_download, view_backup_delete
-from monitoring.views import view_export_router_list, view_update_router_status, view_router_config_timestamp, view_router_last_status_change
-from backup_data.views import view_cron_generate_backup_schedule, view_cron_create_backup_tasks, view_cron_perform_backup_tasks, view_cron_housekeeping
-from routerfleet_tools.views import view_cron_check_updates
-from message_center.views import view_message_channel_list, view_manage_message_settings, view_manage_message_channel, view_debug_test_messages, view_cron_concatenate_notifications, view_cron_send_messages, view_cron_daily_reports, view_message_history
+from backup.views import view_backup_profile_list, view_manage_backup_profile, view_backup_list, view_backup_details, \
+    view_debug_run_backups, view_compare_backups, view_backup_download, view_backup_delete
+from backup_data.views import view_cron_generate_backup_schedule, view_cron_create_backup_tasks, \
+    view_cron_perform_backup_tasks, view_cron_housekeeping
+from dashboard.views import view_dashboard, view_status, backup_statistics_data, router_status_data
+from fleet_commander.views import view_command_list, view_command_details, view_manage_command, \
+    view_manage_command_variant, view_manage_command_schedule, view_job_list, view_job_details, view_task_details, \
+    view_cron_create_command_jobs, view_cron_perform_command_tasks, view_execute_command
 from import_tool.views import view_import_tool_list, view_import_csv_file, view_import_details, run_import_task
-from fleet_commander.views import view_command_list, view_command_details, view_manage_command, view_manage_command_variant, view_manage_command_schedule, view_job_list, view_job_details, view_task_details, view_cron_create_command_jobs, view_cron_perform_command_tasks
-
+from integration_manager.views import view_wireguard_webadmin_launcher, view_manage_wireguard_integration, \
+    view_launch_wireguard_webadmin
+from message_center.views import view_message_channel_list, view_manage_message_settings, view_manage_message_channel, \
+    view_debug_test_messages, view_cron_concatenate_notifications, view_cron_send_messages, view_cron_daily_reports, \
+    view_message_history
+from monitoring.views import view_export_router_list, view_update_router_status, view_router_config_timestamp, \
+    view_router_last_status_change
+from router_manager.views import view_create_instant_backup_multiple_routers, view_router_list, view_manage_router, \
+    view_router_group_list, view_ssh_key_list, view_manage_router_group, view_manage_sshkey, view_router_details, \
+    view_create_instant_backup_task, view_router_availability, view_cron_update_router_information, \
+    view_manage_router_groups_multiple
+from routerfleet_tools.views import view_cron_check_updates
+from user_manager.views import view_manage_user, view_user_list
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -73,6 +82,7 @@ urlpatterns = [
     path('message_center/message_history/', view_message_history, name='message_history'),
     path('fleet_commander/', view_command_list, name='fleet_commander_command_list'),
     path('fleet_commander/command/details/', view_command_details, name='fleet_commander_command_details'),
+    path('fleet_commander/command/execute/', view_execute_command, name='fleet_commander_execute_command'),
     path('fleet_commander/command/manage/', view_manage_command, name='fleet_commander_manage_command'),
     path('fleet_commander/variant/manage/', view_manage_command_variant, name='fleet_commander_manage_variant'),
     path('fleet_commander/schedule/manage/', view_manage_command_schedule, name='fleet_commander_manage_schedule'),

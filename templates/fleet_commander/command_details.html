@@ -9,8 +9,13 @@
                     <div class="card-header">
                         <h3 class="card-title">{{ command.name }}</h3>
                         <span class="float-right">
-                            <a href="/fleet_commander/command/manage/?uuid={{ command.uuid }}">
-                                <i class="fas fa-edit"></i>
+                            <a href="/fleet_commander/command/execute/?command_uuid={{ command.uuid }}"
+                                class="btn btn-primary btn-sm mr-2">
+                                <i class="fas fa-play"></i> Execute
+                            </a>
+                            <a href="/fleet_commander/command/manage/?uuid={{ command.uuid }}"
+                                class="btn btn-default btn-sm">
+                                <i class="fas fa-edit"></i> Edit
                             </a>
                         </span>
                     </div>
@@ -47,8 +52,9 @@
                                 </li>
                                 <li class="list-group-item">
                                     <b>Description</b>
-                                    <span class="float-right">{{ command.description|default_if_none:""|linebreaksbr
-                                        }}</span>
+                                    <span class="float-right">
+                                        {{ command.description|default_if_none:""|linebreaksbr }}
+                                    </span>
                                 </li>
                                 <li class="list-group-item">
                                     <b>Created</b>
