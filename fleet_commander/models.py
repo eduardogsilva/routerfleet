@@ -1,9 +1,12 @@
-from django.conf import settings
-from django.utils import timezone
-from django.db import models
-from router_manager.models import Router, RouterGroup, SUPPORTED_ROUTER_TYPES
 import uuid
 from datetime import timedelta
+
+from django.conf import settings
+from django.db import models
+from django.utils import timezone
+
+from router_manager.models import Router, RouterGroup, SUPPORTED_ROUTER_TYPES
+
 
 class Command(models.Model):
     name = models.CharField(max_length=120, unique=True)
@@ -98,10 +101,25 @@ class CommandJob(models.Model):
     user_source_name = models.CharField(max_length=150, blank=True, null=True)
     exec_source = models.CharField(max_length=100, choices=(('schedule', 'Schedule'), ('manual', 'Manual')), default='manual')
     completed = models.DateTimeField(blank=True, null=True)
+    task_count = models.PositiveIntegerField(default=0)
+    success_count = models.PositiveIntegerField(default=0)
+    error_count = models.PositiveIntegerField(default=0)
 
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
+
+    def update_counters(self):
+        from django.db.models import Count, Q
+        tasks = self.tasks.aggregate(
+            total=Count('id'),
+            success=Count('id', filter=Q(status='success')),
+            error=Count('id', filter=Q(status='error')),
+        )
+        self.task_count = tasks['total']
+        self.success_count = tasks['success']
+        self.error_count = tasks['error']
+        self.save(update_fields=['task_count', 'success_count', 'error_count'])
 
 
 class CommandTask(models.Model):
@@ -145,6 +163,7 @@ class CommandTask(models.Model):
             self.router_name = self.router.name
         self.full_clean()
         super().save(*args, **kwargs)
+        self.job.update_counters()
 
     def __str__(self) -> str:
         return f"{self.job.command.name} -> {self.router_name or self.router_uuid} ({self.status})"
