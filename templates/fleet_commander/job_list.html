@@ -1,60 +1,88 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class='row'>
-    <div class='col-lg-12'>
-        <div class="card card-primary card-outline">
-            {% if page_title %}
-            <div class="card-header">
-                <h3 class="card-title">{{ page_title }}</h3>
-            </div>
-            {% endif %}
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <table class="table table-hover datatables-no-export">
-                            <thead>
+    <div class='row'>
+        <div class='col-lg-12'>
+            <div class="card card-primary card-outline">
+                {% if page_title %}
+                    <div class="card-header">
+                        <h3 class="card-title">{{ page_title }}</h3>
+                    </div>
+                {% endif %}
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <table class="table table-hover datatables-no-export">
+                                <thead>
                                 <tr>
+                                    <th><i class="fas fa-tachometer-alt" title="Status"></i></th>
                                     <th>Command</th>
                                     <th>Source</th>
-                                    <th>User</th>
+                                    <th><i class="fas fa-check-circle" title="Completed tasks"></i></th>
+                                    <th><i class="fas fa-exclamation-triangle" title="Failed tasks"></i></th>
+                                    <th><i class="fas fa-hand-paper" title="Aborted tasks"></i></th>
+                                    <th>Progress</th>
                                     <th>Created</th>
-                                    <th>Completed</th>
-                                    <th></th>
                                 </tr>
-                            </thead>
-                            <tbody>
+                                </thead>
+                                <tbody>
                                 {% for job in job_list %}
-                                <tr>
-                                    <td>{{ job.command.name }}</td>
-                                    <td>{{ job.get_exec_source_display }}</td>
-                                    <td>{{ job.user_source_name|default_if_none:"—" }}</td>
-                                    <td>{{ job.created }}</td>
-                                    <td>
-                                        {% if job.completed %}
-                                        <i class="far fa-check-circle text-success" title="{{ job.completed }}"></i>
-                                        {% else %}
-                                        <i class="far fa-clock text-warning"></i>
-                                        {% endif %}
-                                    </td>
-                                    <td class="min-width">
-                                        <a href="/fleet_commander/job/details/?uuid={{ job.uuid }}">
-                                            <i class="fas fa-search"></i>
-                                        </a>
-                                    </td>
-                                </tr>
+                                    <tr>
+                                        <td class="min-width">
+                                            {% if job.completed %}
+                                                {% if job.error_count > 0 %}
+                                                    <i class="far fa-check-circle text-danger" title="Job completed with errors"></i>
+                                                {% elif job.aborted_count > 0 %}
+                                                    <i class="far fa-check-circle text-warning"></i>
+                                                {% else %}
+                                                    <i class="far fa-check-circle text-success"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                {% if job.error_count > 0 or job.aborted_count > 0 %}
+                                                    <i class="far fa-clock text-danger"></i>
+                                                {% else %}
+                                                    <i class="far fa-clock text-info"></i>
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td><a href="/fleet_commander/job/details/?uuid={{ job.uuid }}">{{ job.command.name }}</a></td>
+                                        <td>
+                                            {% if job.exec_source == 'schedule' %}
+                                                <i class="far fa-calendar-alt text-warning"></i> Schedule
+                                            {% else %}
+                                                <i class="fas fa-user text-info"></i>
+                                                {% if job.user_source %}
+                                                    {{ job.user_source.username }}
+                                                {% else %}
+                                                    {{ job.user_source_name|default_if_none:"—" }}
+                                                {% endif %}
+                                            {% endif %}
+                                        </td>
+                                        <td class="min-width">{{ job.success_count }}</td>
+                                        <td class="min-width">
+                                        <span{% if job.error_count > 0 %} class="text-danger"{% endif %}>
+                                            {{ job.error_count }}
+                                        </span>
+                                        </td>
+                                        <td class="min-width">
+                                        <span{% if job.aborted_count > 0 %} class="text-warning"{% endif %}>
+                                            {{ job.aborted_count }}
+                                        </span>
+                                        <td class="min-width">{{ job.progress_percentage }}%</td>
+                                        <td class="min-width">{{ job.created }}</td>
+                                    </tr>
                                 {% endfor %}
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
-                <div class="row mt-3">
-                    <div class="col-lg-12">
-                        <a href="/fleet_commander/" class="btn btn-secondary">Back</a>
+                    <div class="row mt-3">
+                        <div class="col-lg-12">
+                            <a href="/fleet_commander/" class="btn btn-secondary">Back</a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 {% endblock %}
