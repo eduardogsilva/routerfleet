@@ -154,7 +154,7 @@ def create_jobs_from_schedules():
     return data
 
 
-def create_manual_job(command, routers=None, router_groups=None):
+def create_manual_job(command, routers=None, router_groups=None, user=None):
     all_routers = set()
     if routers:
         all_routers.update(routers.filter(enabled=True))
@@ -168,6 +168,8 @@ def create_manual_job(command, routers=None, router_groups=None):
     job = CommandJob.objects.create(
         command=command,
         exec_source='manual',
+        user_source=user,
+        user_source_name=user.username if user else None,
     )
 
     for router in all_routers:
