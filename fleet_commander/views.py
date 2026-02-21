@@ -84,7 +84,8 @@ def view_execute_command(request):
         job = create_manual_job(
             command,
             routers=form.cleaned_data['routers'],
-            router_groups=form.cleaned_data['router_groups']
+            router_groups=form.cleaned_data['router_groups'],
+            user=request.user
         )
         if job:
             messages.success(request, f'Job created for {job.tasks.count()} targets')
