@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db import models
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from router_manager.models import Router, RouterGroup, SUPPORTED_ROUTER_TYPES
@@ -104,22 +105,38 @@ class CommandJob(models.Model):
     task_count = models.PositiveIntegerField(default=0)
     success_count = models.PositiveIntegerField(default=0)
     error_count = models.PositiveIntegerField(default=0)
+    aborted_count = models.PositiveIntegerField(default=0)
 
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
 
     def update_counters(self):
-        from django.db.models import Count, Q
         tasks = self.tasks.aggregate(
             total=Count('id'),
             success=Count('id', filter=Q(status='success')),
             error=Count('id', filter=Q(status='error')),
+            aborted=Count('id', filter=Q(status='aborted')),
         )
         self.task_count = tasks['total']
         self.success_count = tasks['success']
         self.error_count = tasks['error']
-        self.save(update_fields=['task_count', 'success_count', 'error_count'])
+        self.aborted_count = tasks['aborted']
+
+        update_fields = ['task_count', 'success_count', 'error_count', 'aborted_count']
+
+        finished_count = tasks['success'] + tasks['error'] + tasks['aborted']
+        if finished_count >= tasks['total'] and not self.completed:
+            self.completed = timezone.now()
+            update_fields.append('completed')
+
+        self.save(update_fields=update_fields)
+
+    @property
+    def progress_percentage(self):
+        if self.task_count == 0:
+            return 0
+        return int(((self.success_count + self.error_count) / self.task_count) * 100)
 
 
 class CommandTask(models.Model):
