@@ -69,6 +69,17 @@ class CommandSchedule(models.Model):
         self.save(update_fields=["next_run"])
         return self.next_run
 
+    def disable_if_invalid(self) -> bool:
+        has_active_variant = self.command.variants.filter(enabled=True).exists()
+        has_active_router = (
+                self.router.filter(enabled=True).exists()
+                or self.router_group.filter(routers__enabled=True).exists()
+        )
+        if not has_active_variant or not has_active_router:
+            self.enabled = False
+            self.save(update_fields=["enabled"])
+        return self.enabled
+
 
 class CommandVariant(models.Model):
     command = models.ForeignKey(Command, on_delete=models.PROTECT, related_name="variants")
