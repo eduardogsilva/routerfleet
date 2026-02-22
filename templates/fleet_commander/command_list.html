@@ -19,7 +19,6 @@
                                         <th>Enabled</th>
                                         <th>Variants</th>
                                         <th>Schedules</th>
-                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -39,9 +38,6 @@
                                         </td>
                                         <td>{{ command.variants.count }}</td>
                                         <td>{{ command.schedules.count }}</td>
-                                        <td class="min-width">
-                                            <a href="/fleet_commander/command/manage/?uuid={{ command.uuid }}"><i class="fas fa-edit"></i></a>
-                                        </td>
                                     </tr>
                                 {% endfor %}
                                 </tbody>
