@@ -95,7 +95,7 @@ def execute_command_task(task):
 
 def handle_task_retry(task, command):
     task.retry_count += 1
-    if task.retry_count > command.max_retry:
+    if task.retry_count >= command.max_retry:
         task.status = 'error'
         task.finished_at = timezone.now()
     else:
