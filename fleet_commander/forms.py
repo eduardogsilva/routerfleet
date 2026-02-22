@@ -98,7 +98,15 @@ class CommandVariantForm(forms.ModelForm):
         super(CommandVariantForm, self).__init__(*args, **kwargs)
         self.command = command
         
-        valid_choices = [c for c in SUPPORTED_ROUTER_TYPES if c[0] != 'monitoring']
+        existing_types = []
+        if self.command:
+            existing_types = list(
+                CommandVariant.objects.filter(command=self.command)
+                .exclude(pk=self.instance.pk if self.instance.pk else None)
+                .values_list('router_type', flat=True)
+            )
+
+        valid_choices = [c for c in SUPPORTED_ROUTER_TYPES if c[0] != 'monitoring' and c[0] not in existing_types]
         self.fields['router_type'].choices = [('', '---------')] + valid_choices
         
         self.helper = FormHelper()
