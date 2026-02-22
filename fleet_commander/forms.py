@@ -3,6 +3,7 @@ from crispy_forms.layout import Layout, Submit, Div, Field, HTML
 from django import forms
 
 from router_manager.models import Router
+from router_manager.models import SUPPORTED_ROUTER_TYPES
 from .models import Command, CommandVariant, CommandSchedule
 
 
@@ -96,6 +97,10 @@ class CommandVariantForm(forms.ModelForm):
     def __init__(self, *args, command=None, **kwargs):
         super(CommandVariantForm, self).__init__(*args, **kwargs)
         self.command = command
+        
+        valid_choices = [c for c in SUPPORTED_ROUTER_TYPES if c[0] != 'monitoring']
+        self.fields['router_type'].choices = [('', '---------')] + valid_choices
+        
         self.helper = FormHelper()
         self.helper.form_method = 'post'
 
@@ -126,6 +131,19 @@ class CommandVariantForm(forms.ModelForm):
                 css_class='row col-md-12',
             ),
         )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        router_type = cleaned_data.get('router_type')
+
+        if router_type and self.command:
+            query = CommandVariant.objects.filter(command=self.command, router_type=router_type)
+            if self.instance.pk:
+                query = query.exclude(pk=self.instance.pk)
+            if query.exists():
+                self.add_error('router_type', 'A variant for this router type already exists for this command.')
+        
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
