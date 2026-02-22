@@ -109,10 +109,9 @@ def view_manage_command_variant(request):
     if not UserAcl.objects.filter(user=request.user, user_level__gte=40).exists():
         return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
 
-    command = get_object_or_404(Command, uuid=request.GET.get('command_uuid'))
-
     if request.GET.get('uuid'):
         variant = get_object_or_404(CommandVariant, uuid=request.GET.get('uuid'))
+        command = variant.command
         if request.GET.get('action') == 'delete':
             if request.GET.get('confirmation') == 'delete':
                 variant.delete()
@@ -122,6 +121,7 @@ def view_manage_command_variant(request):
             return redirect(f'/fleet_commander/command/details/?uuid={command.uuid}')
     else:
         variant = None
+        command = get_object_or_404(Command, uuid=request.GET.get('command_uuid'))
 
     form = CommandVariantForm(request.POST or None, instance=variant, command=command)
     if form.is_valid():
@@ -142,10 +142,9 @@ def view_manage_command_schedule(request):
     if not UserAcl.objects.filter(user=request.user, user_level__gte=40).exists():
         return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
 
-    command = get_object_or_404(Command, uuid=request.GET.get('command_uuid'))
-
     if request.GET.get('uuid'):
         schedule = get_object_or_404(CommandSchedule, uuid=request.GET.get('uuid'))
+        command = schedule.command
         if request.GET.get('action') == 'delete':
             if request.GET.get('confirmation') == 'delete':
                 schedule.delete()
@@ -155,6 +154,7 @@ def view_manage_command_schedule(request):
             return redirect(f'/fleet_commander/command/details/?uuid={command.uuid}')
     else:
         schedule = None
+        command = get_object_or_404(Command, uuid=request.GET.get('command_uuid'))
 
     form = CommandScheduleForm(request.POST or None, instance=schedule, command=command)
     if form.is_valid():
