@@ -197,13 +197,7 @@ class CommandScheduleForm(forms.ModelForm):
         self.fields['start_at'].required = True
 
         if self.instance.pk and self.instance.repeat_interval:
-            val = self.instance.repeat_interval
-            if val % 1440 == 0:
-                self.fields['repeat_interval'].initial = f"{int(val / 1440)}d"
-            elif val % 60 == 0:
-                self.fields['repeat_interval'].initial = f"{int(val / 60)}h"
-            else:
-                self.fields['repeat_interval'].initial = f"{val}m"
+            self.fields['repeat_interval'].initial = self.instance.repeat_interval_display
 
         if self.instance.pk:
             back_uuid = self.instance.command.uuid

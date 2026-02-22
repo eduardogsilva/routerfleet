@@ -161,11 +161,7 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% if schedule.repeat_interval %}
-                                            {{ schedule.repeat_interval }} min
-                                            {% else %}
-                                            One-time
-                                            {% endif %}
+                                            {{ schedule.repeat_interval_display }}
                                         </td>
                                         <td>{{ schedule.next_run|default_if_none:"—" }}</td>
                                         <td class="min-width">

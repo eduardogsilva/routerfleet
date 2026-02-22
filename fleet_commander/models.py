@@ -49,6 +49,15 @@ class CommandSchedule(models.Model):
     uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
 
     @property
+    def repeat_interval_display(self):
+        val = self.repeat_interval
+        if val % 1440 == 0:
+            return f"{int(val / 1440)}d"
+        elif val % 60 == 0:
+            return f"{int(val / 60)}h"
+        return f"{val}m"
+
+    @property
     def calculate_next_run(self):
         if not self.enabled or self.repeat_interval <= 0:
             return None
