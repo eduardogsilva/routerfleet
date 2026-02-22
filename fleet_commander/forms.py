@@ -29,8 +29,7 @@ class CommandForm(forms.ModelForm):
 
         self.helper.layout = Layout(
             Div(
-                Div(Field('name'), css_class='col-md-6'),
-                Div(Field('enabled'), css_class='col-md-6'),
+                Div(Field('name'), css_class='col-md-12'),
                 css_class='row',
             ),
             Div(
@@ -38,9 +37,16 @@ class CommandForm(forms.ModelForm):
                 css_class='row',
             ),
             Div(
-                Div(Field('capture_output'), css_class='col-md-4'),
-                Div(Field('max_retry'), css_class='col-md-4'),
-                Div(Field('retry_interval'), css_class='col-md-4'),
+                Div(Field('max_retry'), css_class='col-md-6'),
+                Div(Field('retry_interval'), css_class='col-md-6'),
+                css_class='row',
+            ),
+            Div(
+                Div(Field('capture_output'), css_class='col-md-12'),
+                css_class='row',
+            ),
+            Div(
+                Div(Field('enabled'), css_class='col-md-12'),
                 css_class='row',
             ),
             Row(
