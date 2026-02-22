@@ -179,7 +179,7 @@ class CommandVariantForm(forms.ModelForm):
 
 
 class CommandScheduleForm(forms.ModelForm):
-    repeat_interval = forms.CharField(label='Repeat Interval', initial='7d')
+    repeat_interval = forms.CharField(label='Repeat Interval', initial='7d', required=True)
 
     class Meta:
         model = CommandSchedule
@@ -238,7 +238,7 @@ class CommandScheduleForm(forms.ModelForm):
     def clean_repeat_interval(self):
         val = self.cleaned_data.get('repeat_interval', '').strip().lower()
         if not val:
-            return 0
+            raise forms.ValidationError("You must specify a repeat interval.")
         
         if not (val.endswith('d') or val.endswith('h') or val.endswith('m')):
             raise forms.ValidationError("You must specify 'd' for days, 'h' for hours, or 'm' for minutes (e.g. 7d, 24h, 30m).")
@@ -248,6 +248,9 @@ class CommandScheduleForm(forms.ModelForm):
             num = int(val[:-1].strip())
         except ValueError:
             raise forms.ValidationError("Invalid number before the unit.")
+        
+        if num < 1:
+            raise forms.ValidationError("Repeat interval must be at least 1 minute.")
         
         if unit == 'd':
             return num * 1440
