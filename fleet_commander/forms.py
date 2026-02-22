@@ -134,12 +134,16 @@ class CommandVariantForm(forms.ModelForm):
 
         self.helper.layout = Layout(
             Div(
-                Div(Field('router_type'), css_class='col-md-6'),
-                Div(Field('enabled'), css_class='col-md-6'),
+                Div(Field('router_type'), css_class='col-md-12'),
+
                 css_class='row',
             ),
             Div(
                 Div(Field('payload'), css_class='col-md-12'),
+                css_class='row',
+            ),
+            Div(
+                Div(Field('enabled'), css_class='col-md-12'),
                 css_class='row',
             ),
             Row(
