@@ -2,7 +2,7 @@ import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Q, ProtectedError
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
@@ -47,10 +47,15 @@ def view_manage_command(request):
         command = get_object_or_404(Command, uuid=request.GET.get('uuid'))
         if request.GET.get('action') == 'delete':
             if request.GET.get('confirmation') == 'delete':
-                command.delete()
-                messages.success(request, 'Command deleted successfully')
+                try:
+                    command.delete()
+                    messages.success(request, 'Command deleted successfully')
+                except ProtectedError:
+                    messages.warning(request, 'Cannot delete command because it is referenced by existing variants, schedules, or jobs.')
+                    return redirect(f'/fleet_commander/command/details/?uuid={command.uuid}')
             else:
                 messages.warning(request, 'Command not deleted|Invalid confirmation')
+                return redirect(f'/fleet_commander/command/details/?uuid={command.uuid}')
             return redirect('/fleet_commander/')
     else:
         command = None
