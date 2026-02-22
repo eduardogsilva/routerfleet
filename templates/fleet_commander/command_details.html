@@ -135,7 +135,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <div class="row">
@@ -146,41 +145,29 @@
                 </div>
                 <div class="card-body row">
                     <div class="col-lg-12">
-                        <table class="table table-hover">
-                            <thead>
-                            <tr>
-                                <th>Router Type</th>
-                                <th>Enabled</th>
-                                <th></th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for variant in variant_list %}
-                                <tr>
-                                    <td>{{ variant.get_router_type_display }}</td>
-                                    <td>
+                        {% for variant in variant_list %}
+                            <div class="card card-outline {% if variant.enabled %}card-primary{% else %}card-secondary{% endif %} mb-3">
+                                <div class="card-header">
+                                    <h3 class="card-title">{{ variant.get_router_type_display }}</h3>
+                                    <span class="float-right">
                                         {% if variant.enabled %}
-                                            <i class="far fa-check-circle text-success"></i>
+                                            <i class="far fa-check-circle text-success mr-2" title="Enabled"></i>
                                         {% else %}
-                                            <i class="far fa-times-circle text-danger"></i>
+                                            <i class="far fa-times-circle text-danger mr-2" title="Disabled"></i>
                                         {% endif %}
-                                    </td>
-                                    <td class="min-width">
-                                        <a
-                                                href="/fleet_commander/variant/manage/?command_uuid={{ command.uuid }}&uuid={{ variant.uuid }}">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="3" class="text-muted">No variants defined.</td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                        <a href="/fleet_commander/variant/manage/?command_uuid={{ command.uuid }}"
-                           class="btn btn-primary btn-sm mt-2">Add Variant</a>
+                                        <a href="/fleet_commander/variant/manage/?command_uuid={{ command.uuid }}&uuid={{ variant.uuid }}">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                    </span>
+                                </div>
+                                <div class="card-body p-0">
+                                    <pre class="m-0 p-3" style="background-color: #f8f9fa; border: none;"><code>{{ variant.payload }}</code></pre>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <p class="text-muted">No variants defined.</p>
+                        {% endfor %}
+                        <a href="/fleet_commander/variant/manage/?command_uuid={{ command.uuid }}" class="btn btn-primary btn-sm mt-2">Add Variant</a>
                     </div>
                 </div>
             </div>
