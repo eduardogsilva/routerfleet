@@ -26,6 +26,10 @@ class Command(models.Model):
     def __str__(self) -> str:
         return self.name
 
+    @property
+    def can_execute(self):
+        return self.enabled and self.variants.exists()
+
 
 class CommandSchedule(models.Model):
     command = models.ForeignKey(Command, on_delete=models.PROTECT, related_name="schedules")

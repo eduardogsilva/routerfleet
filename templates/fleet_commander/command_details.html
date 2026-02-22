@@ -9,10 +9,23 @@
                     <div class="card-header">
                         <h3 class="card-title">{{ command.name }}</h3>
                         <span class="float-right">
+                            {% if command.can_execute %}
                             <a href="/fleet_commander/command/execute/?command_uuid={{ command.uuid }}"
                                 class="btn btn-primary btn-sm mr-2">
                                 <i class="fas fa-play"></i> Execute
                             </a>
+                            {% else %}
+                                <a href="#" class="btn btn-outline-secondary btn-sm mr-2"
+                                    {% if not command.enabled %}
+                                        onclick="alert('This command is disabled. Please enable it before executing it.');"
+                                    {% elif not command.variants.exists %}
+                                        onclick="alert('Please add at least one command variant for a router type.');"
+                                    {% else %}
+                                        onclick="alert('This command cannot be executed because some requirements are not met. Please review the command details.');"
+                                    {% endif %}
+                                ><i class="fas fa-play"></i> Execute
+                                </a>
+                            {% endif %}
                             <a href="/fleet_commander/command/manage/?uuid={{ command.uuid }}"
                                 class="btn btn-default btn-sm">
                                 <i class="fas fa-edit"></i> Edit

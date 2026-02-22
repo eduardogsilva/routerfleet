@@ -77,7 +77,10 @@ def view_execute_command(request):
     if not UserAcl.objects.filter(user=request.user, user_level__gte=40).exists():
         return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
 
-    command = get_object_or_404(Command, uuid=request.GET.get('command_uuid'))
+    command = get_object_or_404(Command, uuid=request.GET.get('command_uuid'), enabled=True)
+    if not command.can_execute:
+        messages.warning(request, 'No variants defined for this command. Please create a variant before executing.')
+        return redirect(f'/fleet_commander/command/details/?uuid={command.uuid}')
     form = CommandExecuteForm(request.POST or None, command=command)
 
     if form.is_valid():
