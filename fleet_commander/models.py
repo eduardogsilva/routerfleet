@@ -135,6 +135,9 @@ class CommandJob(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     uuid = models.UUIDField(unique=True, editable=False, default=uuid.uuid4)
 
+    def __str__(self):
+        return f"#{self.id}: {self.command.name}"
+
     def update_counters(self):
         tasks = self.tasks.aggregate(
             total=Count('id'),

@@ -1,119 +1,119 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class='row'>
-    <div class='col-lg-8'>
-        <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">{{ page_title }}</h3>
-            </div>
-            <div class="card-body row">
-                <div class="col-lg-12">
-                    <ul class="list-group list-group-unbordered mb-3">
-                        <li class="list-group-item">
-                            <b>Job</b>
-                            <span class="float-right">
+    <div class='row'>
+        <div class='col-lg-8'>
+            <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">{{ task.job }}</h3>
+                </div>
+                <div class="card-body row">
+                    <div class="col-lg-12">
+                        <ul class="list-group list-group-unbordered mb-3">
+                            <li class="list-group-item">
+                                <b>Job</b>
+                                <span class="float-right">
                                 <a href="/fleet_commander/job/details/?uuid={{ task.job.uuid }}">
-                                    {{ task.job.command.name }}
+                                    {{ task.job }}
                                 </a>
                             </span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Router</b>
-                            <span class="float-right">{{ task.router_name|default_if_none:task.router_uuid }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Variant</b>
-                            <span class="float-right">{{ task.command_variant|default_if_none:"—" }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Status</b>
-                            <span class="float-right">
+                            </li>
+                            <li class="list-group-item">
+                                <b>Router</b>
+                                <span class="float-right">{{ task.router_name|default_if_none:task.router_uuid }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Variant</b>
+                                <span class="float-right">{{ task.command_variant|default_if_none:"—" }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Status</b>
+                                <span class="float-right">
                                 {% if task.status == 'success' %}
-                                <span class="badge badge-success">{{ task.get_status_display }}</span>
+                                    <span class="badge badge-success">{{ task.get_status_display }}</span>
                                 {% elif task.status == 'error' %}
-                                <span class="badge badge-danger">{{ task.get_status_display }}</span>
+                                    <span class="badge badge-danger">{{ task.get_status_display }}</span>
                                 {% elif task.status == 'aborted' %}
-                                <span class="badge badge-secondary">{{ task.get_status_display }}</span>
+                                    <span class="badge badge-secondary">{{ task.get_status_display }}</span>
                                 {% else %}
-                                <span class="badge badge-warning">{{ task.get_status_display }}</span>
+                                    <span class="badge badge-warning">{{ task.get_status_display }}</span>
                                 {% endif %}
                             </span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Retry Count</b>
-                            <span class="float-right">{{ task.retry_count }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Next Retry</b>
-                            <span class="float-right">{{ task.next_retry|default_if_none:"—" }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Started</b>
-                            <span class="float-right">{{ task.started_at|default_if_none:"—" }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Finished</b>
-                            <span class="float-right">{{ task.finished_at|default_if_none:"—" }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Created</b>
-                            <span class="float-right">{{ task.created }}</span>
-                        </li>
-                    </ul>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Retry Count</b>
+                                <span class="float-right">{{ task.retry_count }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Next Retry</b>
+                                <span class="float-right">{{ task.next_retry|default_if_none:"—" }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Started</b>
+                                <span class="float-right">{{ task.started_at|default_if_none:"—" }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Finished</b>
+                                <span class="float-right">{{ task.finished_at|default_if_none:"—" }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Created</b>
+                                <span class="float-right">{{ task.created }}</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        {% if task.command_payload %}
-        <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">Command Payload</h3>
-            </div>
-            <div class="card-body">
-                <pre class="mb-0">{{ task.command_payload }}</pre>
-            </div>
-        </div>
-        {% endif %}
+            {% if task.command_payload %}
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Command Payload</h3>
+                    </div>
+                    <div class="card-body">
+                        <pre class="mb-0">{{ task.command_payload }}</pre>
+                    </div>
+                </div>
+            {% endif %}
 
-        {% if task.command_executed %}
-        <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">Command Executed</h3>
-            </div>
-            <div class="card-body">
-                <pre class="mb-0">{{ task.command_executed }}</pre>
-            </div>
-        </div>
-        {% endif %}
+            {% if task.command_executed %}
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Command Executed</h3>
+                    </div>
+                    <div class="card-body">
+                        <pre class="mb-0">{{ task.command_executed }}</pre>
+                    </div>
+                </div>
+            {% endif %}
 
-        {% if task.command_output %}
-        <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">Command Output</h3>
-            </div>
-            <div class="card-body">
-                <pre class="mb-0">{{ task.command_output }}</pre>
-            </div>
-        </div>
-        {% endif %}
+            {% if task.command_output %}
+                <div class="card card-primary card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Command Output</h3>
+                    </div>
+                    <div class="card-body">
+                        <pre class="mb-0">{{ task.command_output }}</pre>
+                    </div>
+                </div>
+            {% endif %}
 
-        {% if task.error_message %}
-        <div class="card card-danger card-outline">
-            <div class="card-header">
-                <h3 class="card-title">Error Message</h3>
-            </div>
-            <div class="card-body">
-                <pre class="mb-0">{{ task.error_message }}</pre>
-            </div>
+            {% if task.error_message %}
+                <div class="card card-danger card-outline">
+                    <div class="card-header">
+                        <h3 class="card-title">Error Message</h3>
+                    </div>
+                    <div class="card-body">
+                        <pre class="mb-0">{{ task.error_message }}</pre>
+                    </div>
+                </div>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
-</div>
 
-<div class="row">
-    <div class="col-lg-12">
-        <a href="/fleet_commander/job/details/?uuid={{ task.job.uuid }}" class="btn btn-secondary">Back</a>
+    <div class="row">
+        <div class="col-lg-12">
+            <a href="/fleet_commander/job/details/?uuid={{ task.job.uuid }}" class="btn btn-secondary">Back</a>
+        </div>
     </div>
-</div>
 {% endblock %}

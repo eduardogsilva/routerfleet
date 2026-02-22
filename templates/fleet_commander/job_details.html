@@ -1,60 +1,69 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class='row'>
-    <div class='col-xl-5'>
-        <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">{{ page_title }}</h3>
-            </div>
-            <div class="card-body row">
-                <div class="col-lg-12">
-                    <ul class="list-group list-group-unbordered mb-3">
-                        <li class="list-group-item">
-                            <b>Command</b>
-                            <span class="float-right">
+    <div class='row'>
+        <div class='col-xl-5'>
+            <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">{{ job }}</h3>
+                </div>
+                <div class="card-body row">
+                    <div class="col-lg-12">
+                        <ul class="list-group list-group-unbordered mb-3">
+                            <li class="list-group-item">
+                                <b>Job ID</b>
+                                <span class="float-right">
+                                {{ job.id }}
+                            </span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Command</b>
+                                <span class="float-right">
                                 <a href="/fleet_commander/command/details/?uuid={{ job.command.uuid }}">
                                     {{ job.command.name }}
                                 </a>
                             </span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Execution Source</b>
-                            <span class="float-right">{{ job.get_exec_source_display }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>User</b>
-                            <span class="float-right">{{ job.user_source_name|default_if_none:"—" }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Created</b>
-                            <span class="float-right">{{ job.created }}</span>
-                        </li>
-                        <li class="list-group-item">
-                            <b>Completed</b>
-                            <span class="float-right">
+                            </li>
+                            <li class="list-group-item">
+                                <b>Execution Source</b>
+                                <span class="float-right">{{ job.get_exec_source_display }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>User</b>
+                                <span class="float-right">{{ job.user_source_name|default_if_none:"—" }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Created</b>
+                                <span class="float-right">{{ job.created }}</span>
+                            </li>
+                            <li class="list-group-item">
+                                <b>Completed</b>
+                                <span class="float-right">
                                 {% if job.completed %}
-                                {{ job.completed }}
+                                    {{ job.completed }}
                                 {% else %}
-                                <i class="far fa-clock text-warning"></i> Pending
+                                    <i class="far fa-clock text-warning"></i> Pending
                                 {% endif %}
                             </span>
-                        </li>
-                    </ul>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
 
-    <div class='col-xl-7'>
-        <div class="card card-primary card-outline">
-            <div class="card-header">
-                <h3 class="card-title">Tasks</h3>
-            </div>
-            <div class="card-body row">
-                <div class="col-lg-12">
-                    <table class="table table-hover">
-                        <thead>
+    <div class="row">
+        <div class='col-lg-12'>
+            <div class="card card-primary card-outline">
+                <div class="card-header">
+                    <h3 class="card-title">Tasks</h3>
+                </div>
+                <div class="card-body row">
+                    <div class="col-lg-12">
+                        <table class="table table-hover">
+                            <thead>
                             <tr>
                                 <th>Router</th>
                                 <th>Status</th>
@@ -63,47 +72,48 @@
                                 <th>Retries</th>
                                 <th></th>
                             </tr>
-                        </thead>
-                        <tbody>
+                            </thead>
+                            <tbody>
                             {% for task in task_list %}
-                            <tr>
-                                <td>{{ task.router_name|default_if_none:task.router_uuid }}</td>
-                                <td>
-                                    {% if task.status == 'success' %}
-                                    <span class="badge badge-success">{{ task.get_status_display }}</span>
-                                    {% elif task.status == 'error' %}
-                                    <span class="badge badge-danger">{{ task.get_status_display }}</span>
-                                    {% elif task.status == 'aborted' %}
-                                    <span class="badge badge-secondary">{{ task.get_status_display }}</span>
-                                    {% else %}
-                                    <span class="badge badge-warning">{{ task.get_status_display }}</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ task.started_at|default_if_none:"—" }}</td>
-                                <td>{{ task.finished_at|default_if_none:"—" }}</td>
-                                <td>{{ task.retry_count }}</td>
-                                <td class="min-width">
-                                    <a href="/fleet_commander/task/details/?uuid={{ task.uuid }}">
-                                        <i class="fas fa-search"></i>
-                                    </a>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td>{{ task.router_name|default_if_none:task.router_uuid }}</td>
+                                    <td>
+                                        {% if task.status == 'success' %}
+                                            <span class="badge badge-success">{{ task.get_status_display }}</span>
+                                        {% elif task.status == 'error' %}
+                                            <span class="badge badge-danger">{{ task.get_status_display }}</span>
+                                        {% elif task.status == 'aborted' %}
+                                            <span class="badge badge-secondary">{{ task.get_status_display }}</span>
+                                        {% else %}
+                                            <span class="badge badge-warning">{{ task.get_status_display }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ task.started_at|default_if_none:"—" }}</td>
+                                    <td>{{ task.finished_at|default_if_none:"—" }}</td>
+                                    <td>{{ task.retry_count }}</td>
+                                    <td class="min-width">
+                                        <a href="/fleet_commander/task/details/?uuid={{ task.uuid }}">
+                                            <i class="fas fa-search"></i>
+                                        </a>
+                                    </td>
+                                </tr>
                             {% empty %}
-                            <tr>
-                                <td colspan="6" class="text-muted">No tasks found.</td>
-                            </tr>
+                                <tr>
+                                    <td colspan="6" class="text-muted">No tasks found.</td>
+                                </tr>
                             {% endfor %}
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<div class="row">
-    <div class="col-lg-12">
-        <a href="/fleet_commander/job/list/" class="btn btn-secondary">Back</a>
     </div>
-</div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <a href="/fleet_commander/job/list/" class="btn btn-secondary">Back</a>
+        </div>
+    </div>
 {% endblock %}
