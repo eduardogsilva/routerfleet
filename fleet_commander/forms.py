@@ -1,5 +1,5 @@
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Submit, Div, Field, HTML
+from crispy_forms.layout import Layout, Submit, Div, Field, HTML, Row, Column
 from django import forms
 
 from router_manager.models import Router
@@ -43,11 +43,13 @@ class CommandForm(forms.ModelForm):
                 Div(Field('retry_interval'), css_class='col-md-4'),
                 css_class='row',
             ),
-            Div(
-                Submit('submit', 'Save', css_class='btn btn-success'),
-                HTML(f' <a class="btn btn-secondary" href="{back_url}">Back</a> '),
-                HTML(delete_html),
-                css_class='row col-md-12',
+            Row(
+                Column(
+                    Submit('submit', 'Save', css_class='btn btn-success'),
+                    HTML(f' <a class="btn btn-secondary" href="{back_url}">Back</a> '),
+                    HTML(delete_html),
+                    css_class='col-md-12'
+                )
             ),
         )
 
@@ -81,10 +83,12 @@ class CommandExecuteForm(forms.Form):
                 Div(Field('router_groups'), css_class='col-md-6'),
                 css_class='row',
             ),
-            Div(
-                Submit('submit', 'Execute Now', css_class='btn btn-primary'),
-                HTML(f' <a class="btn btn-secondary" href="{back_url}">Back</a> '),
-                css_class='row col-md-12',
+            Row(
+                Column(
+                    Submit('submit', 'Execute Now', css_class='btn btn-primary'),
+                    HTML(f' <a class="btn btn-secondary" href="{back_url}">Back</a> '),
+                    css_class='col-md-12'
+                )
             ),
         )
 
@@ -132,11 +136,13 @@ class CommandVariantForm(forms.ModelForm):
                 Div(Field('payload'), css_class='col-md-12'),
                 css_class='row',
             ),
-            Div(
-                Submit('submit', 'Save', css_class='btn btn-success'),
-                HTML(f' <a class="btn btn-secondary" href="/fleet_commander/command/details/?uuid={back_uuid}">Back</a> '),
-                HTML(delete_html),
-                css_class='row col-md-12',
+            Row(
+                Column(
+                    Submit('submit', 'Save', css_class='btn btn-success'),
+                    HTML(f' <a class="btn btn-secondary" href="/fleet_commander/command/details/?uuid={back_uuid}">Back</a> '),
+                    HTML(delete_html),
+                    css_class='col-md-12'
+                )
             ),
         )
 
@@ -203,11 +209,13 @@ class CommandScheduleForm(forms.ModelForm):
                 Div(Field('repeat_interval'), css_class='col-md-4'),
                 css_class='row',
             ),
-            Div(
-                Submit('submit', 'Save', css_class='btn btn-success'),
-                HTML(f' <a class="btn btn-secondary" href="/fleet_commander/command/details/?uuid={back_uuid}">Back</a> '),
-                HTML(delete_html),
-                css_class='row col-md-12',
+            Row(
+                Column(
+                    Submit('submit', 'Save', css_class='btn btn-success'),
+                    HTML(f' <a class="btn btn-secondary" href="/fleet_commander/command/details/?uuid={back_uuid}">Back</a> '),
+                    HTML(delete_html),
+                    css_class='col-md-12'
+                )
             ),
         )
 
