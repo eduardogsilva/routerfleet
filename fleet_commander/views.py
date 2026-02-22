@@ -13,12 +13,57 @@ from .forms import CommandForm, CommandVariantForm, CommandScheduleForm, Command
 from .models import Command, CommandVariant, CommandSchedule, CommandJob, CommandTask
 
 
+def create_default_commands():
+    new_command = Command.objects.create(
+        name='Show Version',
+        description = "Collects and displays version information for your routers. This command is commonly used to gather details about the router model, software version, uptime, and hardware.",
+        enabled=True,
+        capture_output=True,
+        max_retry=3,
+        retry_interval=30,
+    )
+    for router_type in ['routeros', 'routeros-branded']:
+        CommandVariant.objects.create(
+            command=new_command, router_type=router_type, enabled=True,
+            payload='/system resource print\n/system package print'
+        )
+    CommandVariant.objects.create(
+        command=new_command, router_type='openwrt', enabled=True,
+        payload='uname -a\ncat /etc/openwrt_release\nubus call system board'
+    )
+    CommandVariant.objects.create(
+        command=new_command, router_type='ubiquiti-airos', enabled=True,
+        payload='uname -a\ncat /etc/version\ncat /proc/uptime'
+    )
+
+    new_command = Command.objects.create(
+        name='Update Router Firmware',
+        description = "Updates the router's firmware to the latest version. This command is essential for maintaining security and performance by ensuring that your routers are running the most recent software.",
+        enabled=True,
+        capture_output=True,
+        max_retry=3,
+        retry_interval=30,
+    )
+    for router_type in ['routeros', 'routeros-branded']:
+        CommandVariant.objects.create(
+            command=new_command, router_type=router_type, enabled=True,
+            payload='/system/package/update/set channel=long-term\n/system/package/update/install'
+        )
+    return
+
+
 @login_required()
 def view_command_list(request):
     if not UserAcl.objects.filter(user=request.user, user_level__gte=20).exists():
         return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
+    command_list = Command.objects.all().order_by('name')
+    if not command_list:
+        create_default_commands()
+        messages.success(request, 'Default commands created successfully')
+        command_list = Command.objects.all().order_by('name')
+
     context = {
-        'command_list': Command.objects.all().order_by('name'),
+        'command_list': command_list,
         'page_title': 'Fleet Commander',
     }
     return render(request, 'fleet_commander/command_list.html', context)
