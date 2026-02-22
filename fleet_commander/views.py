@@ -183,10 +183,34 @@ def view_manage_command_schedule(request):
         messages.success(request, 'Schedule saved successfully')
         return redirect(f'/fleet_commander/command/details/?uuid={command.uuid}')
 
+    form_description_content = '''
+    <strong>Start At</strong>
+    <p>The designated date and time when the schedule should begin execution. All schedules require a starting point.</p>
+    
+    <strong>End At</strong>
+    <p>Optional. If set, the schedule will not execute after this date and time.</p>
+    
+    <strong>Repeat Interval</strong>
+    <p>How frequently the command should run. You must specify a letter indicating the unit of time:</p>
+    <ul>
+        <li><strong>d</strong> for days (e.g., <code>1d</code>, <code>30d</code>)</li>
+        <li><strong>h</strong> for hours (e.g., <code>2h</code>, <code>24h</code>)</li>
+        <li><strong>m</strong> for minutes (e.g., <code>30m</code>, <code>90m</code>)</li>
+    </ul>
+    <p>Leave it empty or set to <code>0</code> for a one-time execution.</p>
+    
+    <strong>Target</strong>
+    <p>You must select at least one router or one router group to execute the scheduled command.</p>
+    '''
+
     context = {
         'form': form,
         'page_title': 'Manage Schedule',
         'instance': schedule,
+        'form_description': {
+            'size': '',
+            'content': form_description_content
+        },
     }
     return render(request, 'generic_form.html', context)
 

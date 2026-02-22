@@ -179,9 +179,11 @@ class CommandVariantForm(forms.ModelForm):
 
 
 class CommandScheduleForm(forms.ModelForm):
+    repeat_interval = forms.CharField(label='Repeat Interval', initial='7d')
+
     class Meta:
         model = CommandSchedule
-        fields = ['enabled', 'router', 'router_group', 'start_at', 'end_at', 'repeat_interval']
+        fields = ['enabled', 'router', 'router_group', 'start_at', 'end_at']
         widgets = {
             'start_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
             'end_at': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
@@ -192,6 +194,16 @@ class CommandScheduleForm(forms.ModelForm):
         self.command = command
         self.helper = FormHelper()
         self.helper.form_method = 'post'
+        self.fields['start_at'].required = True
+
+        if self.instance.pk and self.instance.repeat_interval:
+            val = self.instance.repeat_interval
+            if val % 1440 == 0:
+                self.fields['repeat_interval'].initial = f"{int(val / 1440)}d"
+            elif val % 60 == 0:
+                self.fields['repeat_interval'].initial = f"{int(val / 60)}h"
+            else:
+                self.fields['repeat_interval'].initial = f"{val}m"
 
         if self.instance.pk:
             back_uuid = self.instance.command.uuid
@@ -205,18 +217,18 @@ class CommandScheduleForm(forms.ModelForm):
 
         self.helper.layout = Layout(
             Div(
+                Div(Field('router'), css_class='col-xl-6'),
+                Div(Field('router_group'), css_class='col-xl-6'),
+                css_class='row',
+            ),
+            Div(
+                Div(Field('start_at'), css_class='col-xl-6'),
+                Div(Field('end_at'), css_class='col-xl-6'),
+                Div(Field('repeat_interval'), css_class='col-xl-6'),
+                css_class='row',
+            ),
+            Div(
                 Div(Field('enabled'), css_class='col-md-12'),
-                css_class='row',
-            ),
-            Div(
-                Div(Field('router'), css_class='col-md-6'),
-                Div(Field('router_group'), css_class='col-md-6'),
-                css_class='row',
-            ),
-            Div(
-                Div(Field('start_at'), css_class='col-md-4'),
-                Div(Field('end_at'), css_class='col-md-4'),
-                Div(Field('repeat_interval'), css_class='col-md-4'),
                 css_class='row',
             ),
             Row(
@@ -229,8 +241,38 @@ class CommandScheduleForm(forms.ModelForm):
             ),
         )
 
+    def clean_repeat_interval(self):
+        val = self.cleaned_data.get('repeat_interval', '').strip().lower()
+        if not val:
+            return 0
+        
+        if not (val.endswith('d') or val.endswith('h') or val.endswith('m')):
+            raise forms.ValidationError("You must specify 'd' for days, 'h' for hours, or 'm' for minutes (e.g. 7d, 24h, 30m).")
+        
+        unit = val[-1]
+        try:
+            num = int(val[:-1].strip())
+        except ValueError:
+            raise forms.ValidationError("Invalid number before the unit.")
+        
+        if unit == 'd':
+            return num * 1440
+        elif unit == 'h':
+            return num * 60
+        else:
+            return num
+
+    def clean(self):
+        cleaned_data = super().clean()
+        router = cleaned_data.get('router')
+        router_group = cleaned_data.get('router_group')
+        if not router and not router_group:
+            raise forms.ValidationError("You must select at least one router or one router group.")
+        return cleaned_data
+
     def save(self, commit=True):
         instance = super().save(commit=False)
+        instance.repeat_interval = self.cleaned_data.get('repeat_interval', 0)
         if self.command:
             instance.command = self.command
         if commit:
