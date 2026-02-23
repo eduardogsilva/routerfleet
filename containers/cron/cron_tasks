@@ -10,3 +10,4 @@
 * * * * *    root sleep 30; /usr/bin/curl -s http://routerfleet:8001/cron/send_messages/             >> /var/log/cron.log 2>&1
 * * * * *    root sleep 50; /usr/bin/curl -s http://routerfleet:8001/cron/perform_command_tasks/             >> /var/log/cron.log 2>&1
 * * * * *    root sleep 40; /usr/bin/curl -s http://routerfleet:8001/cron/create_command_jobs/             >> /var/log/cron.log 2>&1
+
