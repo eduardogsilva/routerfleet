@@ -7,6 +7,7 @@ from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 
+from router_manager.models import Router
 from user_manager.models import UserAcl
 from .command_functions import create_jobs_from_schedules, execute_command_task, create_manual_job
 from .forms import CommandForm, CommandVariantForm, CommandScheduleForm, CommandExecuteForm
@@ -167,6 +168,61 @@ def view_execute_command(request):
         'command': command,
     }
     return render(request, 'generic_form.html', context)
+
+
+@login_required()
+def view_run_command_multiple(request):
+    if not UserAcl.objects.filter(user=request.user, user_level__gte=40).exists():
+        return render(request, 'access_denied.html', {'page_title': 'Access Denied'})
+
+    if request.method == 'POST':
+        router_uuids = request.POST.getlist('router_uuids')
+        command_uuid = request.POST.get('command')
+
+        if not router_uuids:
+            messages.warning(request, 'No routers selected')
+            return redirect('router_list')
+
+        if not command_uuid:
+            messages.warning(request, 'No command selected')
+            return redirect('router_list')
+
+        command = get_object_or_404(Command, uuid=command_uuid, enabled=True)
+        routers = Router.objects.filter(uuid__in=router_uuids)
+
+        if not command.can_execute:
+            messages.warning(request, 'No variants defined for this command. Please create a variant before executing.')
+            return redirect('router_list')
+
+        job = create_manual_job(
+            command,
+            routers=routers,
+            router_groups=None,
+            user=request.user
+        )
+        if job:
+            messages.success(request, f'Job created for {job.tasks.count()} targets')
+            return redirect(f'/fleet_commander/job/details/?uuid={job.uuid}')
+        else:
+            messages.warning(request, 'No targets selected or found enabled')
+            return redirect('router_list')
+
+    # GET request - display form
+    router_uuids = request.GET.getlist('routers[]')
+    if not router_uuids:
+        messages.warning(request, 'No routers selected')
+        return redirect('router_list')
+
+    routers = Router.objects.filter(uuid__in=router_uuids)
+    commands = Command.objects.filter(enabled=True).order_by('name')
+
+    context = {
+        'routers': routers,
+        'commands': commands,
+        'page_title': 'Run Command on Multiple Routers',
+    }
+
+    return render(request, 'fleet_commander/run_command_multiple.html', context)
 
 
 @login_required()

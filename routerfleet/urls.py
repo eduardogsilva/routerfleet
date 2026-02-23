@@ -9,7 +9,7 @@ from backup_data.views import view_cron_generate_backup_schedule, view_cron_crea
 from dashboard.views import view_dashboard, view_status, backup_statistics_data, router_status_data
 from fleet_commander.views import view_command_list, view_command_details, view_manage_command, \
     view_manage_command_variant, view_manage_command_schedule, view_job_list, view_job_details, view_task_details, \
-    view_cron_create_command_jobs, view_cron_perform_command_tasks, view_execute_command
+    view_cron_create_command_jobs, view_cron_perform_command_tasks, view_execute_command, view_run_command_multiple
 from import_tool.views import view_import_tool_list, view_import_csv_file, view_import_details, run_import_task
 from integration_manager.views import view_wireguard_webadmin_launcher, view_manage_wireguard_integration, \
     view_launch_wireguard_webadmin
@@ -89,6 +89,7 @@ urlpatterns = [
     path('fleet_commander/job/list/', view_job_list, name='fleet_commander_job_list'),
     path('fleet_commander/job/details/', view_job_details, name='fleet_commander_job_details'),
     path('fleet_commander/task/details/', view_task_details, name='fleet_commander_task_details'),
+    path('fleet_commander/command/execute_multiple/', view_run_command_multiple, name='fleet_commander_execute_multiple'),
     path('cron/create_command_jobs/', view_cron_create_command_jobs, name='cron_create_command_jobs'),
     path('cron/perform_command_tasks/', view_cron_perform_command_tasks, name='cron_perform_command_tasks'),
 ]
