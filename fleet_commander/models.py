@@ -88,7 +88,7 @@ class CommandSchedule(models.Model):
                 self.router.filter(enabled=True).exists()
                 or self.router_group.filter(routers__enabled=True).exists()
         )
-        if not has_active_variant or not has_active_router:
+        if not has_active_variant or not has_active_router or not self.command.enabled:
             self.enabled = False
             self.save(update_fields=["enabled"])
         return self.enabled

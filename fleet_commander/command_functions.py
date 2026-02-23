@@ -118,6 +118,10 @@ def create_jobs_from_schedules():
     ).select_related('command')
 
     for schedule in due_schedules:
+        schedule.disable_if_invalid()
+        if not schedule.enabled:
+            continue
+
         routers = set(schedule.router.filter(enabled=True))
         for group in schedule.router_group.all():
             routers.update(group.routers.filter(enabled=True))
