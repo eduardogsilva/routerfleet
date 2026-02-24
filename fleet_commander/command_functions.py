@@ -34,7 +34,8 @@ def execute_command_task(task):
     try:
         task.started_at = timezone.now()
         task.status = 'pending'
-        task.save(update_fields=['started_at', 'status'])
+        task.retry_count += 1
+        task.save(update_fields=['started_at', 'status', 'retry_count'])
 
         variant = task.command_variant
         if not variant:
@@ -102,7 +103,6 @@ def execute_command_task(task):
 
 
 def handle_task_retry(task, command):
-    task.retry_count += 1
     if task.retry_count >= command.max_retry:
         task.status = 'error'
         task.finished_at = timezone.now()
