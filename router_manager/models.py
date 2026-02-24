@@ -1,6 +1,8 @@
-from django.db import models
-from backup.models import BackupProfile
 import uuid
+
+from django.db import models
+
+from backup.models import BackupProfile
 
 SUPPORTED_ROUTER_TYPES = (
     ('monitoring', 'Monitoring Only'),
@@ -51,6 +53,7 @@ class RouterStatus(models.Model):
     last_backup = models.DateTimeField(blank=True, null=True)
     last_backup_failed = models.DateTimeField(blank=True, null=True)
     backup_lock = models.DateTimeField(blank=True, null=True)
+    command_lock = models.DateTimeField(blank=True, null=True)
 
     updated = models.DateTimeField(auto_now=True)
     created = models.DateTimeField(auto_now_add=True)
