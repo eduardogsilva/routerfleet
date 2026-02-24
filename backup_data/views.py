@@ -8,9 +8,9 @@ from django.utils import timezone
 from backup.models import BackupProfile
 from backup_data.models import RouterBackup
 from message_center.functions import notify_backup_fail, notify_backup_task_lock_expired
+from message_center.models import Message
 from router_manager.models import Router, BackupSchedule, RouterStatus
 from routerlib.backup_functions import perform_backup, append_task_console_output
-from message_center.models import Message
 
 
 def next_weekday(now, weekday, hour):
@@ -247,10 +247,12 @@ def view_cron_perform_backup_tasks(request):
 def view_cron_housekeeping(request):
     max_backup_task_age = timezone.now() - timedelta(hours=18)
     max_backup_task_lock = timezone.now() - timedelta(hours=6)
+    max_command_lock_age = timezone.now() - timedelta(hours=1)
     data = {
         'backup_tasks_expired': 0,
         'backup_locks_removed': 0,
         'backup_task_locks_expired': 0,
+        'command_locks_removed': 0,
         'messages_removed': 0,
     }
 
@@ -280,6 +282,11 @@ def view_cron_housekeeping(request):
             router_status.last_backup_failed = timezone.now()
             router_status.save()
             data['backup_locks_removed'] += 1
+
+    for router_status in RouterStatus.objects.filter(command_lock__lt=max_command_lock_age):
+        router_status.command_lock = None
+        router_status.save()
+        data['command_locks_removed'] += 1
 
     for backup_profile in BackupProfile.objects.all():
         if backup_profile.name == 'default':

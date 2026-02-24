@@ -3,6 +3,7 @@ import datetime
 from django.utils import timezone
 
 from fleet_commander.models import CommandJob, CommandSchedule, CommandTask, CommandVariant
+from router_manager.models import RouterStatus
 from routerlib.functions import connect_to_ssh
 
 
@@ -15,10 +16,6 @@ def run_fleet_ssh_command(ssh_client, command):
 
 
 def execute_command_task(task):
-    task.started_at = timezone.now()
-    task.status = 'pending'
-    task.save(update_fields=['started_at', 'status'])
-
     command = task.job.command
     router = task.router
 
@@ -29,25 +26,38 @@ def execute_command_task(task):
         task.save()
         return
 
-    variant = task.command_variant
-    if not variant:
-        try:
-            variant = CommandVariant.objects.get(
-                command=command, router_type=router.router_type, enabled=True
-            )
-            task.command_variant = variant
-        except CommandVariant.DoesNotExist:
-            task.status = 'error'
-            task.error_message = f'No enabled variant for router type: {router.router_type}'
-            task.finished_at = timezone.now()
-            task.save()
-            return
+    # Check for locks
+    router_status, _ = RouterStatus.objects.get_or_create(router=router)
+    if router_status.command_lock or router_status.backup_lock:
+        # Skip this router in this cycle
+        return
 
-    task.command_payload = variant.payload
-    task.save(update_fields=['command_variant', 'command_payload'])
+    # Set command lock
+    router_status.command_lock = timezone.now()
+    router_status.save(update_fields=['command_lock'])
 
     ssh_client = None
     try:
+        task.started_at = timezone.now()
+        task.status = 'pending'
+        task.save(update_fields=['started_at', 'status'])
+
+        variant = task.command_variant
+        if not variant:
+            try:
+                variant = CommandVariant.objects.get(
+                    command=command, router_type=router.router_type, enabled=True
+                )
+                task.command_variant = variant
+            except CommandVariant.DoesNotExist:
+                task.status = 'error'
+                task.error_message = f'No enabled variant for router type: {router.router_type}'
+                task.finished_at = timezone.now()
+                return
+
+        task.command_payload = variant.payload
+        task.save(update_fields=['command_variant', 'command_payload'])
+
         ssh_client = connect_to_ssh(
             router.address, router.port, router.username, router.password, router.ssh_key
         )
@@ -88,9 +98,13 @@ def execute_command_task(task):
     finally:
         if ssh_client:
             ssh_client.close()
-        task.save()
 
-    check_job_completion(task.job)
+        # Clear command lock
+        router_status.command_lock = None
+        router_status.save(update_fields=['command_lock'])
+
+        task.save()
+        check_job_completion(task.job)
 
 
 def handle_task_retry(task, command):
