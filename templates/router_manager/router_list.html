@@ -69,6 +69,10 @@
                                     {% if "next_monthly_backup" in visible_columns %}
                                     <th data-column="next_monthly_backup">Next Monthly Backup</th>
                                     {% endif %}
+                                    {% if "lock_information" in visible_columns %}
+                                        <th data-column="lock_information">Backup Lock</th>
+                                        <th data-column="lock_information">Command Lock</th>
+                                    {% endif %}
                                     {% if "groups" in visible_columns %}
                                     <th data-column="groups">Groups</th>
                                     {% endif %}
@@ -171,6 +175,10 @@
                                                 ---
                                             {% endif %}
                                         </td>
+                                        {% endif %}
+                                        {% if "lock_information" in visible_columns %}
+                                            <td data-column="lock_information">{{ router.routerstatus.backup_lock|default_if_none:'' }}</td>
+                                            <td data-column="lock_information">{{ router.routerstatus.command_lock|default_if_none:'' }}</td>
                                         {% endif %}
                                         {% if "groups" in visible_columns %}
                                         <td data-column="groups">
@@ -289,6 +297,7 @@
             { name: "next_daily_backup", label: "Next Daily Backup", default: false },
             { name: "next_weekly_backup", label: "Next Weekly Backup", default: false },
             { name: "next_monthly_backup", label: "Next Monthly Backup", default: false },
+            { name: "lock_information", label: "Router Lock Information", default: false },
             { name: "groups", label: "Groups", default: true },
             { name: "auth", label: "Auth", default: false },
             { name: "os_version", label: "OS Version", default: false },
