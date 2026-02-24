@@ -76,7 +76,12 @@
                             <tbody>
                             {% for task in task_list %}
                                 <tr>
-                                    <td>{{ task.router_name|default_if_none:task.router_uuid }}</td>
+                                    <td>
+                                        {{ task.router_name|default_if_none:task.router_uuid }}
+                                        {% if task.router.routerstatus.command_lock or task.router.routerstatus.backup_lock %}
+                                            <span style="text-decoration: underline" title="Router is currently locked ||| Backup lock: {{ task.router.routerstatus.backup_lock|default_if_none:'------' }} ||| Command Lock: {{ task.router.routerstatus.command_lock|default_if_none:'------' }}">(locked)</span>
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         {% if task.status == 'success' %}
                                             <span class="badge badge-success">{{ task.get_status_display }}</span>
@@ -84,6 +89,8 @@
                                             <span class="badge badge-danger">{{ task.get_status_display }}</span>
                                         {% elif task.status == 'aborted' %}
                                             <span class="badge badge-secondary">{{ task.get_status_display }}</span>
+                                        {% elif task.router.routerstatus.command_lock or task.router.routerstatus.backup_lock %}
+                                            <span class="badge badge-warning" title="Router is currently locked ||| Backup lock: {{ task.router.routerstatus.backup_lock|default_if_none:'------' }} ||| Command Lock: {{ task.router.routerstatus.command_lock|default_if_none:'------' }}">Execution locked</span>
                                         {% else %}
                                             <span class="badge badge-warning">{{ task.get_status_display }}</span>
                                         {% endif %}

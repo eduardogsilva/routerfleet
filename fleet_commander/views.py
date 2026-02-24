@@ -364,6 +364,7 @@ def view_cron_perform_command_tasks(request):
 
     pending_tasks = CommandTask.objects.filter(
         status='pending',
+        router__routerstatus__command_lock__isnull=True, router__routerstatus__backup_lock__isnull=True
     ).filter(
         Q(next_retry__isnull=True) | Q(next_retry__lte=timezone.now())
     ).select_related('job__command', 'router', 'command_variant')

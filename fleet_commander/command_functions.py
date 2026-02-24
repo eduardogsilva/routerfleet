@@ -26,13 +26,7 @@ def execute_command_task(task):
         task.save()
         return
 
-    # Check for locks
     router_status, _ = RouterStatus.objects.get_or_create(router=router)
-    if router_status.command_lock or router_status.backup_lock:
-        # Skip this router in this cycle
-        return
-
-    # Set command lock
     router_status.command_lock = timezone.now()
     router_status.save(update_fields=['command_lock'])
 

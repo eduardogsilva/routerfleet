@@ -247,7 +247,7 @@ def view_cron_perform_backup_tasks(request):
 def view_cron_housekeeping(request):
     max_backup_task_age = timezone.now() - timedelta(hours=18)
     max_backup_task_lock = timezone.now() - timedelta(hours=6)
-    max_command_lock_age = timezone.now() - timedelta(hours=1)
+    max_command_lock_age = timezone.now() - timedelta(hours=2)
     data = {
         'backup_tasks_expired': 0,
         'backup_locks_removed': 0,
