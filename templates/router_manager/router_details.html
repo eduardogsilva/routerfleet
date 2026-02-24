@@ -129,8 +129,8 @@
                                     {% if not router_information.success and not router_information.error %}
                                         <i class="far fa-clock" title="Fetching router information on next cron"></i>
 
-                                        {% else %}
-                                    <a href="/router/manage/?uuid={{ router.uuid }}&action=refresh_information" ><i class="fas fa-sync"></i></a>
+                                    {% else %}
+                                        <a href="/router/manage/?uuid={{ router.uuid }}&action=refresh_information" ><i class="fas fa-sync"></i></a>
                                     {% endif %}
                             </div>
                             <div class="card-body row">
@@ -236,8 +236,7 @@
                             show schedule <i class="far fa-clock"></i>
                         </a>
                         {% endif %}
-
-                    </span>
+                        </span>
                             </div>
                             <div class="card-body row">
                                 <div class="col-lg-12">
@@ -326,6 +325,65 @@
                     {% endif %}
 
                 </div>
+                <div class="col-lg-12">
+                    {% if router.router_type != 'monitoring' %}
+                        <div class="card card-primary card-outline">
+                            <div class="card-header">
+                                <h3 class="card-title">Fleet Commander tasks</h3>
+                                <span class="float-right">Last 25 entries</span>
+                            </div>
+                            <div class="card-body row">
+                                <div class="col-lg-12">
+                                    <table class="table table-hover datatables-no-export" >
+                                        <thead>
+                                        <tr>
+                                            <th>Job</th>
+                                            <th>Status</th>
+                                            <th>Finished</th>
+                                            <th>Details</th>
+
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for task in command_task_list %}
+                                            <tr>
+                                                <td>
+                                                    <a href="/fleet_commander/job/details/?uuid={{ task.job.uuid }}">{{ task.job }}</a>
+                                                </td>
+                                                <td>
+                                                    {% if task.status == 'success' %}
+                                                        <span class="badge badge-success">{{ task.get_status_display }}</span>
+                                                    {% elif task.status == 'error' %}
+                                                        <span class="badge badge-danger">{{ task.get_status_display }}</span>
+                                                    {% elif task.status == 'aborted' %}
+                                                        <span class="badge badge-secondary">{{ task.get_status_display }}</span>
+                                                    {% else %}
+                                                        <span class="badge badge-warning">{{ task.get_status_display }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ task.finished_at|default_if_none:"---" }}</td>
+
+                                                <td class="min-width">
+                                                    <a href="/fleet_commander/task/details/?uuid={{ task.uuid }}">
+                                                        <i class="fas fa-search"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+
+                                        {% endfor %}
+
+
+
+                                        </tbody>
+
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                </div>
+
             </div>
 
 

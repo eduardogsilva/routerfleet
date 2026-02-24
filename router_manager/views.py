@@ -1,3 +1,6 @@
+import json
+from urllib.parse import unquote
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
@@ -12,9 +15,7 @@ from routerlib.router_functions import update_router_information
 from user_manager.models import UserAcl
 from .forms import RouterForm, RouterGroupForm, SSHKeyForm
 from .models import Router, RouterGroup, RouterInformation, RouterStatus, SSHKey, BackupSchedule
-from django.conf import settings
-import json
-from urllib.parse import unquote
+
 
 @login_required
 def view_router_list(request):
@@ -103,7 +104,7 @@ def view_router_details(request):
         'page_title': 'Router Details',
         'offline_time_last_week': downtime_last_week,
         'last_week_availability': last_week_availability,
-
+        'command_task_list': router.commandtask_set.all().order_by('-created')[:25],
     }
 
 
